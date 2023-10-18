@@ -100,6 +100,15 @@ fn emitFunctionParameters(x: std.json.Value) void {
 }
 
 fn emitTypeDesc(x: std.json.Value) void {
+    if (x.object.get("storage_classes")) |storage_classes| {
+        for (storage_classes.array.items) |storage_class| {
+            write(switch (hash(storage_class.string)) {
+                hash("const") => "const ",
+                else => "",
+            });
+        }
+    }
+
     const kind = x.object.get("kind").?.string;
     switch (hash(kind)) {
         hash("Builtin") => {
@@ -133,8 +142,39 @@ fn emitTypeDesc(x: std.json.Value) void {
             }
         },
         hash("Pointer") => {
+            const nullable = blk: {
+                if (x.object.get("is_nullable")) |is_nullable| {
+                    break :blk is_nullable.bool;
+                }
+
+                break :blk true;
+            };
+
+            if (nullable)
+                write("?");
+
+            const inner_type = x.object.get("inner_type").?;
+            const inner_type_kind = inner_type.object.get("kind").?.string;
+            switch (hash(inner_type_kind)) {
+                hash("Builtin") => {
+                    const builtin_type = inner_type.object.get("builtin_type").?.string;
+                    switch (hash(builtin_type)) {
+                        hash("void") => {
+                            write("*anyopaque");
+                            return;
+                        },
+                        hash("char") => {
+                            write("[*:0]const u8");
+                            return;
+                        },
+                        else => {},
+                    }
+                },
+                else => {},
+            }
+
             write("*");
-            emitTypeDesc(x.object.get("inner_type").?);
+            emitTypeDesc(inner_type);
         },
         hash("Type") => {
             emitTypeDesc(x.object.get("inner_type").?);
