@@ -6,6 +6,7 @@ pub const IMGUI_VERSION = "1.90 WIP";
 pub const IMGUI_VERSION_NUM = 18995;
 const IM_DRAWLIST_TEX_LINES_WIDTH_MAX = 63;
 const IM_UNICODE_CODEPOINT_MAX = 0xFFFF;
+pub const DrawCallback_ResetRenderState: *DrawCallback = @ptrFromInt(~0);
 pub const WindowFlags = enum(c_int) {
     None = 0,
     NoTitleBar = 1,
@@ -747,92 +748,92 @@ pub const Vec4 = extern struct {
 pub const Vector_ImWchar = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*Wchar,
+    Data: [*]Wchar,
 };
 pub const Vector_ImGuiTextFilter_ImGuiTextRange = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*TextFilter_ImGuiTextRange,
+    Data: [*]TextFilter_ImGuiTextRange,
 };
 pub const Vector_char = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?[*:0]const u8,
+    Data: [*]u8,
 };
 pub const Vector_ImGuiStorage_ImGuiStoragePair = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*Storage_ImGuiStoragePair,
+    Data: [*]Storage_ImGuiStoragePair,
 };
 pub const Vector_ImDrawCmd = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*DrawCmd,
+    Data: [*]DrawCmd,
 };
 pub const Vector_ImDrawIdx = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*DrawIdx,
+    Data: [*]DrawIdx,
 };
 pub const Vector_ImDrawChannel = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*DrawChannel,
+    Data: [*]DrawChannel,
 };
 pub const Vector_ImDrawVert = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*DrawVert,
+    Data: [*]DrawVert,
 };
 pub const Vector_ImVec4 = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*Vec4,
+    Data: [*]Vec4,
 };
 pub const Vector_ImTextureID = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*TextureID,
+    Data: [*]TextureID,
 };
 pub const Vector_ImVec2 = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*Vec2,
+    Data: [*]Vec2,
 };
 pub const Vector_ImDrawListPtr = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*?*DrawList,
+    Data: [*]*DrawList,
 };
 pub const Vector_ImU32 = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*U32,
+    Data: [*]*U32,
 };
 pub const Vector_ImFontPtr = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*?*Font,
+    Data: [*]*Font,
 };
 pub const Vector_ImFontAtlasCustomRect = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*FontAtlasCustomRect,
+    Data: [*]*FontAtlasCustomRect,
 };
 pub const Vector_ImFontConfig = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*FontConfig,
+    Data: [*]*FontConfig,
 };
 pub const Vector_float = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*f32,
+    Data: [*]*f32,
 };
 pub const Vector_ImFontGlyph = extern struct {
     Size: c_int,
     Capacity: c_int,
-    Data: ?*FontGlyph,
+    Data: [*]*FontGlyph,
 };
 pub const Style = extern struct {
     Alpha: f32,
