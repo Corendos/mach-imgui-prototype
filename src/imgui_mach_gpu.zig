@@ -160,15 +160,15 @@ fn ImGui_ImplWGPU_SetupRenderState(draw_data: *imgui.DrawData, ctx: *gpu.RenderP
         const R = draw_data.DisplayPos.x + draw_data.DisplaySize.x;
         const T = draw_data.DisplayPos.y;
         const B = draw_data.DisplayPos.y + draw_data.DisplaySize.y;
-        const mvp = [4][4]f32{
+
+        var uniforms: Uniforms = undefined;
+        uniforms.MVP = [4][4]f32{
             [4]f32{ 2.0 / (R - L), 0.0, 0.0, 0.0 },
             [4]f32{ 0.0, 2.0 / (T - B), 0.0, 0.0 },
             [4]f32{ 0.0, 0.0, 0.5, 0.0 },
             [4]f32{ (R + L) / (L - R), (T + B) / (B - T), 0.5, 1.0 },
         };
-        bd.defaultQueue.?.writeBuffer(bd.renderResources.Uniforms.?, @offsetOf(Uniforms, "MVP"), &mvp);
-        var gamma: f32 = undefined;
-        switch (bd.renderTargetFormat) {
+        uniforms.Gamma = switch (bd.renderTargetFormat) {
             .astc10x10_unorm_srgb,
             .astc10x5_unorm_srgb,
             .astc10x6_unorm_srgb,
@@ -191,10 +191,11 @@ fn ImGui_ImplWGPU_SetupRenderState(draw_data: *imgui.DrawData, ctx: *gpu.RenderP
             .etc2_rgb8_unorm_srgb,
             .etc2_rgba8_unorm_srgb,
             .rgba8_unorm_srgb,
-            => gamma = 2.2,
-            else => gamma = 1.0,
-        }
-        bd.defaultQueue.?.writeBuffer(bd.renderResources.Uniforms.?, @offsetOf(Uniforms, "Gamma"), &[_]f32{gamma});
+            => 2.2,
+            else => 1.0,
+        };
+
+        bd.defaultQueue.?.writeBuffer(bd.renderResources.Uniforms.?, 0, &[_]Uniforms{uniforms});
     }
 
     // Setup viewport
@@ -205,10 +206,6 @@ fn ImGui_ImplWGPU_SetupRenderState(draw_data: *imgui.DrawData, ctx: *gpu.RenderP
     ctx.setIndexBuffer(fr.IndexBuffer.?, if (@sizeOf(imgui.DrawIdx) == 2) .uint16 else .uint32, 0, fr.IndexBufferSize * @sizeOf(imgui.DrawIdx));
     ctx.setPipeline(bd.pipelineState.?);
     ctx.setBindGroup(0, bd.renderResources.CommonBindGroup.?, &.{});
-
-    // Setup blend factor
-    const blend_color = gpu.Color{ .r = 0, .g = 0, .b = 0, .a = 0 };
-    ctx.setBlendConstant(&blend_color);
 }
 
 // Render function
@@ -276,8 +273,10 @@ pub fn renderDrawData(draw_data: *imgui.DrawData, pass_encoder: *gpu.RenderPassE
     }
     vb_write_size = MEMALIGN(vb_write_size, 4);
     ib_write_size = MEMALIGN(ib_write_size, 4);
-    bd.defaultQueue.?.writeBuffer(fr.VertexBuffer.?, 0, fr.VertexBufferHost.?[0..vb_write_size]);
-    bd.defaultQueue.?.writeBuffer(fr.IndexBuffer.?, 0, fr.IndexBufferHost.?[0..ib_write_size]);
+    if (vb_write_size > 0)
+        bd.defaultQueue.?.writeBuffer(fr.VertexBuffer.?, 0, fr.VertexBufferHost.?[0..vb_write_size]);
+    if (ib_write_size > 0)
+        bd.defaultQueue.?.writeBuffer(fr.IndexBuffer.?, 0, fr.IndexBufferHost.?[0..ib_write_size]);
 
     // Setup desired render state
     ImGui_ImplWGPU_SetupRenderState(draw_data, pass_encoder, fr);
