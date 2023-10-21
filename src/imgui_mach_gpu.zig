@@ -221,7 +221,7 @@ pub fn renderDrawData(draw_data: *imgui.DrawData, pass_encoder: *gpu.RenderPassE
     // FIXME: Assuming that this only gets called once per frame!
     // If not, we can't just re-allocate the IB or VB, we'll have to do a proper allocator.
     var bd = ImGui_ImplWGPU_GetBackendData().?;
-    bd.frameIndex = bd.frameIndex + 1;
+    bd.frameIndex = @addWithOverflow(bd.frameIndex, 1)[0];
     var fr = &bd.pFrameResources[bd.frameIndex % bd.numFramesInFlight];
 
     // Create and grow vertex/index buffers if needed
@@ -265,12 +265,14 @@ pub fn renderDrawData(draw_data: *imgui.DrawData, pass_encoder: *gpu.RenderPassE
     var ib_write_size: usize = 0;
     for (0..@intCast(draw_data.CmdListsCount)) |n| {
         const cmd_list: *imgui.DrawList = draw_data.CmdLists.Data[n];
-        @memcpy(vtx_dst, cmd_list.VtxBuffer.Data[0..@intCast(cmd_list.VtxBuffer.Size * @sizeOf(imgui.DrawVert))]);
-        @memcpy(idx_dst, cmd_list.IdxBuffer.Data[0..@intCast(cmd_list.IdxBuffer.Size * @sizeOf(imgui.DrawIdx))]);
-        vtx_dst = vtx_dst[@intCast(cmd_list.VtxBuffer.Size)..];
-        idx_dst = idx_dst[@intCast(cmd_list.IdxBuffer.Size)..];
-        vb_write_size += @intCast(cmd_list.VtxBuffer.Size);
-        ib_write_size += @intCast(cmd_list.IdxBuffer.Size);
+        const vtx_size: usize = @intCast(cmd_list.VtxBuffer.Size);
+        const idx_size: usize = @intCast(cmd_list.IdxBuffer.Size);
+        @memcpy(vtx_dst[0..vtx_size], cmd_list.VtxBuffer.Data[0..vtx_size]);
+        @memcpy(idx_dst[0..idx_size], cmd_list.IdxBuffer.Data[0..idx_size]);
+        vtx_dst = vtx_dst[vtx_size..];
+        idx_dst = idx_dst[idx_size..];
+        vb_write_size += vtx_size;
+        ib_write_size += idx_size;
     }
     vb_write_size = MEMALIGN(vb_write_size, 4);
     ib_write_size = MEMALIGN(ib_write_size, 4);
@@ -598,12 +600,21 @@ fn ImGui_ImplWGPU_InvalidateDeviceObjects() void {
     for (bd.pFrameResources) |*frame_resources| frame_resources.release();
 }
 
-pub fn init(device: *gpu.Device, num_frames_in_flight: u32, rt_format: gpu.Texture.Format, depth_format: gpu.Texture.Format) bool {
+pub fn init(
+    allocator_: std.mem.Allocator,
+    device: *gpu.Device,
+    num_frames_in_flight: u32,
+    rt_format: gpu.Texture.Format,
+    depth_format: gpu.Texture.Format,
+) bool {
+    allocator = allocator_;
+
     var io = imgui.GetIO();
     std.debug.assert(io.BackendRendererUserData == null);
 
     // Setup backend capabilities flags
     var bd = allocator.create(ImGui_ImplWGPU_Data) catch @panic("OutOfMemory");
+
     io.BackendRendererUserData = bd;
     io.BackendRendererName = "imgui_impl_webgpu";
     io.BackendFlags = @enumFromInt(@intFromEnum(io.BackendFlags) | @intFromEnum(imgui.BackendFlags.RendererHasVtxOffset)); // We can honor the imgui.DrawCmd::VtxOffset field, allowing for large meshes.
@@ -612,6 +623,7 @@ pub fn init(device: *gpu.Device, num_frames_in_flight: u32, rt_format: gpu.Textu
     bd.defaultQueue = bd.wgpuDevice.?.getQueue();
     bd.renderTargetFormat = rt_format;
     bd.depthStencilFormat = depth_format;
+    bd.pipelineState = null;
     bd.numFramesInFlight = num_frames_in_flight;
     bd.frameIndex = std.math.maxInt(u32);
 
@@ -620,6 +632,7 @@ pub fn init(device: *gpu.Device, num_frames_in_flight: u32, rt_format: gpu.Textu
     bd.renderResources.Sampler = null;
     bd.renderResources.Uniforms = null;
     bd.renderResources.CommonBindGroup = null;
+    bd.renderResources.ImageBindGroups = .{};
     bd.renderResources.ImageBindGroup = null;
     bd.renderResources.ImageBindGroupLayout = null;
 

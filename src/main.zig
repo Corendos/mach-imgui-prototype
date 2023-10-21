@@ -14,8 +14,10 @@ f: f32 = 0.0,
 pub fn init(app: *App) !void {
     try core.init(.{});
 
+    const allocator = gpa.allocator();
+
     _ = imgui.CreateContext(null);
-    _ = imgui_mach_gpu.init(core.device, 3, .bgra8_unorm, .undefined); // TODO - use swap chain preferred format
+    _ = imgui_mach_gpu.init(allocator, core.device, 3, .bgra8_unorm, .undefined); // TODO - use swap chain preferred format
 
     var io = imgui.GetIO();
 

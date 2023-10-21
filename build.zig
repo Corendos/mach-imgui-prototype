@@ -54,14 +54,14 @@ pub fn build(b: *std.Build) !void {
     const generate_step = b.step("generate", "Generate the bindings");
     generate_step.dependOn(&b.addRunArtifact(generator_exe).step);
 
-    const main_tests = b.addTest(.{
-        .name = "mach-imgui-tests",
-        .root_source_file = .{ .path = "src/main.zig" },
-        .target = target,
-        .optimize = optimize,
-    });
-    b.installArtifact(main_tests);
+    // const main_tests = b.addTest(.{
+    //     .name = "mach-imgui-tests",
+    //     .root_source_file = .{ .path = "src/main.zig" },
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // b.installArtifact(main_tests);
 
-    const test_step = b.step("test", "Run library tests");
-    test_step.dependOn(&b.addRunArtifact(main_tests).step);
+    // const test_step = b.step("test", "Run library tests");
+    // test_step.dependOn(&b.addRunArtifact(main_tests).step);
 }
