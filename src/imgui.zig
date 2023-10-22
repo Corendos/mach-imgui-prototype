@@ -2,11 +2,18 @@ const std = @import("std");
 const c = @cImport({
     @cInclude("stdarg.h");
 });
-pub const IMGUI_VERSION = "1.90 WIP";
-pub const IMGUI_VERSION_NUM = 18995;
-const IM_DRAWLIST_TEX_LINES_WIDTH_MAX = 63;
-const IM_UNICODE_CODEPOINT_MAX = 0xFFFF;
-pub const DrawCallback_ResetRenderState: *DrawCallback = @ptrFromInt(~0);
+pub const VERSION = "1.90 WIP";
+pub const VERSION_NUM = 18995;
+pub const PAYLOAD_TYPE_COLOR_3F = "_COL3F";
+pub const PAYLOAD_TYPE_COLOR_4F = "_COL4F";
+pub const UNICODE_CODEPOINT_INVALID = 0xFFFD;
+pub const UNICODE_CODEPOINT_MAX = 0xFFFF;
+pub const COL32_R_SHIFT = 0;
+pub const COL32_G_SHIFT = 8;
+pub const COL32_B_SHIFT = 16;
+pub const COL32_A_SHIFT = 24;
+pub const COL32_A_MASK = 0xFF000000;
+pub const DRAWLIST_TEX_LINES_WIDTH_MAX = 63;
 pub const WindowFlags = enum(c_int) {
     None = 0,
     NoTitleBar = 1,
@@ -81,15 +88,14 @@ pub const TreeNodeFlags = enum(c_int) {
     SpanAllColumns = 8192,
     NavLeftJumpsBackHere = 16384,
     CollapsingHeader = 26,
-    AllowItemOverlap = 4,
 };
 pub const PopupFlags = enum(c_int) {
+    const MouseButtonLeft = PopupFlags.None;
+    const MouseButtonDefault_ = PopupFlags.MouseButtonRight;
     None = 0,
-    MouseButtonLeft = 0,
     MouseButtonRight = 1,
     MouseButtonMiddle = 2,
     MouseButtonMask_ = 31,
-    MouseButtonDefault_ = 1,
     NoOpenOverExistingPopup = 32,
     NoOpenOverItems = 64,
     AnyPopupId = 128,
@@ -103,7 +109,6 @@ pub const SelectableFlags = enum(c_int) {
     AllowDoubleClick = 4,
     Disabled = 8,
     AllowOverlap = 16,
-    AllowItemOverlap = 16,
 };
 pub const ComboFlags = enum(c_int) {
     None = 0,
@@ -118,6 +123,7 @@ pub const ComboFlags = enum(c_int) {
     HeightMask_ = 30,
 };
 pub const TabBarFlags = enum(c_int) {
+    const FittingPolicyDefault_ = TabBarFlags.FittingPolicyResizeDown;
     None = 0,
     Reorderable = 1,
     AutoSelectNewTabs = 2,
@@ -128,7 +134,6 @@ pub const TabBarFlags = enum(c_int) {
     FittingPolicyResizeDown = 64,
     FittingPolicyScroll = 128,
     FittingPolicyMask_ = 192,
-    FittingPolicyDefault_ = 64,
 };
 pub const TabItemFlags = enum(c_int) {
     None = 0,
@@ -290,31 +295,36 @@ pub const SortDirection = enum(c_int) {
     Descending = 2,
 };
 pub const Key = enum(c_int) {
-    _None = 0,
-    _Tab = 512,
-    _LeftArrow = 513,
-    _RightArrow = 514,
-    _UpArrow = 515,
-    _DownArrow = 516,
-    _PageUp = 517,
-    _PageDown = 518,
-    _Home = 519,
-    _End = 520,
-    _Insert = 521,
-    _Delete = 522,
-    _Backspace = 523,
-    _Space = 524,
-    _Enter = 525,
-    _Escape = 526,
-    _LeftCtrl = 527,
-    _LeftShift = 528,
-    _LeftAlt = 529,
-    _LeftSuper = 530,
-    _RightCtrl = 531,
-    _RightShift = 532,
-    _RightAlt = 533,
-    _RightSuper = 534,
-    _Menu = 535,
+    const ImGuiMod_None = Key.None;
+    const NamedKey_BEGIN = Key.Tab;
+    const NamedKey_END = Key.COUNT;
+    const KeysData_SIZE = Key.NamedKey_COUNT;
+    const KeysData_OFFSET = Key.NamedKey_BEGIN;
+    None = 0,
+    Tab = 512,
+    LeftArrow = 513,
+    RightArrow = 514,
+    UpArrow = 515,
+    DownArrow = 516,
+    PageUp = 517,
+    PageDown = 518,
+    Home = 519,
+    End = 520,
+    Insert = 521,
+    Delete = 522,
+    Backspace = 523,
+    Space = 524,
+    Enter = 525,
+    Escape = 526,
+    LeftCtrl = 527,
+    LeftShift = 528,
+    LeftAlt = 529,
+    LeftSuper = 530,
+    RightCtrl = 531,
+    RightShift = 532,
+    RightAlt = 533,
+    RightSuper = 534,
+    Menu = 535,
     _0 = 536,
     _1 = 537,
     _2 = 538,
@@ -351,139 +361,108 @@ pub const Key = enum(c_int) {
     _X = 569,
     _Y = 570,
     _Z = 571,
-    _F1 = 572,
-    _F2 = 573,
-    _F3 = 574,
-    _F4 = 575,
-    _F5 = 576,
-    _F6 = 577,
-    _F7 = 578,
-    _F8 = 579,
-    _F9 = 580,
-    _F10 = 581,
-    _F11 = 582,
-    _F12 = 583,
-    _F13 = 584,
-    _F14 = 585,
-    _F15 = 586,
-    _F16 = 587,
-    _F17 = 588,
-    _F18 = 589,
-    _F19 = 590,
-    _F20 = 591,
-    _F21 = 592,
-    _F22 = 593,
-    _F23 = 594,
-    _F24 = 595,
-    _Apostrophe = 596,
-    _Comma = 597,
-    _Minus = 598,
-    _Period = 599,
-    _Slash = 600,
-    _Semicolon = 601,
-    _Equal = 602,
-    _LeftBracket = 603,
-    _Backslash = 604,
-    _RightBracket = 605,
-    _GraveAccent = 606,
-    _CapsLock = 607,
-    _ScrollLock = 608,
-    _NumLock = 609,
-    _PrintScreen = 610,
-    _Pause = 611,
-    _Keypad0 = 612,
-    _Keypad1 = 613,
-    _Keypad2 = 614,
-    _Keypad3 = 615,
-    _Keypad4 = 616,
-    _Keypad5 = 617,
-    _Keypad6 = 618,
-    _Keypad7 = 619,
-    _Keypad8 = 620,
-    _Keypad9 = 621,
-    _KeypadDecimal = 622,
-    _KeypadDivide = 623,
-    _KeypadMultiply = 624,
-    _KeypadSubtract = 625,
-    _KeypadAdd = 626,
-    _KeypadEnter = 627,
-    _KeypadEqual = 628,
-    _AppBack = 629,
-    _AppForward = 630,
-    _GamepadStart = 631,
-    _GamepadBack = 632,
-    _GamepadFaceLeft = 633,
-    _GamepadFaceRight = 634,
-    _GamepadFaceUp = 635,
-    _GamepadFaceDown = 636,
-    _GamepadDpadLeft = 637,
-    _GamepadDpadRight = 638,
-    _GamepadDpadUp = 639,
-    _GamepadDpadDown = 640,
-    _GamepadL1 = 641,
-    _GamepadR1 = 642,
-    _GamepadL2 = 643,
-    _GamepadR2 = 644,
-    _GamepadL3 = 645,
-    _GamepadR3 = 646,
-    _GamepadLStickLeft = 647,
-    _GamepadLStickRight = 648,
-    _GamepadLStickUp = 649,
-    _GamepadLStickDown = 650,
-    _GamepadRStickLeft = 651,
-    _GamepadRStickRight = 652,
-    _GamepadRStickUp = 653,
-    _GamepadRStickDown = 654,
-    _MouseLeft = 655,
-    _MouseRight = 656,
-    _MouseMiddle = 657,
-    _MouseX1 = 658,
-    _MouseX2 = 659,
-    _MouseWheelX = 660,
-    _MouseWheelY = 661,
-    _ReservedForModCtrl = 662,
-    _ReservedForModShift = 663,
-    _ReservedForModAlt = 664,
-    _ReservedForModSuper = 665,
-    _COUNT = 666,
-    //ImGuiMod_None = 0,
+    F1 = 572,
+    F2 = 573,
+    F3 = 574,
+    F4 = 575,
+    F5 = 576,
+    F6 = 577,
+    F7 = 578,
+    F8 = 579,
+    F9 = 580,
+    F10 = 581,
+    F11 = 582,
+    F12 = 583,
+    F13 = 584,
+    F14 = 585,
+    F15 = 586,
+    F16 = 587,
+    F17 = 588,
+    F18 = 589,
+    F19 = 590,
+    F20 = 591,
+    F21 = 592,
+    F22 = 593,
+    F23 = 594,
+    F24 = 595,
+    Apostrophe = 596,
+    Comma = 597,
+    Minus = 598,
+    Period = 599,
+    Slash = 600,
+    Semicolon = 601,
+    Equal = 602,
+    LeftBracket = 603,
+    Backslash = 604,
+    RightBracket = 605,
+    GraveAccent = 606,
+    CapsLock = 607,
+    ScrollLock = 608,
+    NumLock = 609,
+    PrintScreen = 610,
+    Pause = 611,
+    Keypad0 = 612,
+    Keypad1 = 613,
+    Keypad2 = 614,
+    Keypad3 = 615,
+    Keypad4 = 616,
+    Keypad5 = 617,
+    Keypad6 = 618,
+    Keypad7 = 619,
+    Keypad8 = 620,
+    Keypad9 = 621,
+    KeypadDecimal = 622,
+    KeypadDivide = 623,
+    KeypadMultiply = 624,
+    KeypadSubtract = 625,
+    KeypadAdd = 626,
+    KeypadEnter = 627,
+    KeypadEqual = 628,
+    AppBack = 629,
+    AppForward = 630,
+    GamepadStart = 631,
+    GamepadBack = 632,
+    GamepadFaceLeft = 633,
+    GamepadFaceRight = 634,
+    GamepadFaceUp = 635,
+    GamepadFaceDown = 636,
+    GamepadDpadLeft = 637,
+    GamepadDpadRight = 638,
+    GamepadDpadUp = 639,
+    GamepadDpadDown = 640,
+    GamepadL1 = 641,
+    GamepadR1 = 642,
+    GamepadL2 = 643,
+    GamepadR2 = 644,
+    GamepadL3 = 645,
+    GamepadR3 = 646,
+    GamepadLStickLeft = 647,
+    GamepadLStickRight = 648,
+    GamepadLStickUp = 649,
+    GamepadLStickDown = 650,
+    GamepadRStickLeft = 651,
+    GamepadRStickRight = 652,
+    GamepadRStickUp = 653,
+    GamepadRStickDown = 654,
+    MouseLeft = 655,
+    MouseRight = 656,
+    MouseMiddle = 657,
+    MouseX1 = 658,
+    MouseX2 = 659,
+    MouseWheelX = 660,
+    MouseWheelY = 661,
+    ReservedForModCtrl = 662,
+    ReservedForModShift = 663,
+    ReservedForModAlt = 664,
+    ReservedForModSuper = 665,
+    COUNT = 666,
     ImGuiMod_Ctrl = 4096,
     ImGuiMod_Shift = 8192,
     ImGuiMod_Alt = 16384,
     ImGuiMod_Super = 32768,
     ImGuiMod_Shortcut = 2048,
     ImGuiMod_Mask_ = 63488,
-    // _NamedKey_BEGIN = 512,
-    // _NamedKey_END = 666,
-    // _NamedKey_COUNT = 154,
-    _KeysData_SIZE = 154,
-    // _KeysData_OFFSET = 512,
-    // _KeysData_SIZE = 666,
-    // _KeysData_OFFSET = 0,
-    // _ModCtrl = 4096,
-    // _ModShift = 8192,
-    // _ModAlt = 16384,
-    // _ModSuper = 32768,
-    // _KeyPadEnter = 627,
-};
-pub const NavInput = enum(c_int) {
-    _Activate = 0,
-    _Cancel = 1,
-    _Input = 2,
-    _Menu = 3,
-    _DpadLeft = 4,
-    _DpadRight = 5,
-    _DpadUp = 6,
-    _DpadDown = 7,
-    _LStickLeft = 8,
-    _LStickRight = 9,
-    _LStickUp = 10,
-    _LStickDown = 11,
-    _FocusPrev = 12,
-    _FocusNext = 13,
-    _TweakSlow = 14,
-    _TweakFast = 15,
-    _COUNT = 16,
+    NamedKey_COUNT = 154,
 };
 pub const ConfigFlags = enum(c_int) {
     None = 0,
@@ -592,12 +571,12 @@ pub const StyleVar = enum(c_int) {
     COUNT = 29,
 };
 pub const ButtonFlags = enum(c_int) {
+    const MouseButtonDefault_ = ButtonFlags.MouseButtonLeft;
     None = 0,
     MouseButtonLeft = 1,
     MouseButtonRight = 2,
     MouseButtonMiddle = 4,
     MouseButtonMask_ = 7,
-    MouseButtonDefault_ = 1,
 };
 pub const ColorEditFlags = enum(c_int) {
     None = 0,
@@ -658,10 +637,10 @@ pub const MouseCursor = enum(c_int) {
     COUNT = 9,
 };
 pub const MouseSource = enum(c_int) {
-    _Mouse = 0,
-    _TouchScreen = 1,
-    _Pen = 2,
-    _COUNT = 3,
+    Mouse = 0,
+    TouchScreen = 1,
+    Pen = 2,
+    COUNT = 3,
 };
 pub const Cond = enum(c_int) {
     None = 0,
@@ -671,6 +650,7 @@ pub const Cond = enum(c_int) {
     Appearing = 8,
 };
 pub const DrawFlags = enum(c_int) {
+    const RoundCornersDefault_ = DrawFlags.RoundCornersAll;
     None = 0,
     Closed = 1,
     RoundCornersTopLeft = 16,
@@ -683,7 +663,6 @@ pub const DrawFlags = enum(c_int) {
     RoundCornersLeft = 80,
     RoundCornersRight = 160,
     RoundCornersAll = 240,
-    RoundCornersDefault_ = 240,
     RoundCornersMask_ = 496,
 };
 pub const DrawListFlags = enum(c_int) {
@@ -705,13 +684,6 @@ pub const ViewportFlags = enum(c_int) {
     IsPlatformMonitor = 2,
     OwnedByApp = 4,
 };
-pub const ModFlags = enum(c_int) {
-    None = 0,
-    Ctrl = 4096,
-    Shift = 8192,
-    Alt = 16384,
-    Super = 32768,
-};
 pub const KeyChord = c_int;
 pub const TextureID = ?*anyopaque;
 pub const DrawIdx = c_ushort;
@@ -726,15 +698,25 @@ pub const S64 = c_longlong;
 pub const U64 = c_ulonglong;
 pub const Wchar32 = c_uint;
 pub const Wchar16 = c_ushort;
+pub const Wchar = Wchar16;
 pub const InputTextCallback = ?*const fn (?*InputTextCallbackData) callconv(.C) c_int;
 pub const SizeCallback = ?*const fn (?*SizeCallbackData) callconv(.C) void;
 pub const MemAllocFunc = ?*const fn (usize, ?*anyopaque) callconv(.C) ?*anyopaque;
 pub const MemFreeFunc = ?*const fn (?*anyopaque, ?*anyopaque) callconv(.C) void;
 pub const DrawCallback = ?*const fn (?*const DrawList, ?*const DrawCmd) callconv(.C) void;
-pub const Wchar = Wchar16;
-pub const DrawListSharedData = extern struct {};
-pub const FontBuilderIO = extern struct {};
-pub const Context = extern struct {};
+pub fn Vector(comptime T: type) type {
+    return extern struct {
+        Size: c_int,
+        Capacity: c_int,
+        Data: [*]T,
+    };
+}
+pub const DrawListSharedData = extern struct {
+};
+pub const FontBuilderIO = extern struct {
+};
+pub const Context = extern struct {
+};
 pub const Vec2 = extern struct {
     x: f32,
     y: f32,
@@ -744,96 +726,6 @@ pub const Vec4 = extern struct {
     y: f32,
     z: f32,
     w: f32,
-};
-pub const Vector_ImWchar = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]Wchar,
-};
-pub const Vector_ImGuiTextFilter_ImGuiTextRange = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]TextFilter_ImGuiTextRange,
-};
-pub const Vector_char = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]u8,
-};
-pub const Vector_ImGuiStorage_ImGuiStoragePair = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]Storage_ImGuiStoragePair,
-};
-pub const Vector_ImDrawCmd = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]DrawCmd,
-};
-pub const Vector_ImDrawIdx = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]DrawIdx,
-};
-pub const Vector_ImDrawChannel = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]DrawChannel,
-};
-pub const Vector_ImDrawVert = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]DrawVert,
-};
-pub const Vector_ImVec4 = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]Vec4,
-};
-pub const Vector_ImTextureID = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]TextureID,
-};
-pub const Vector_ImVec2 = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]Vec2,
-};
-pub const Vector_ImDrawListPtr = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]*DrawList,
-};
-pub const Vector_ImU32 = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]*U32,
-};
-pub const Vector_ImFontPtr = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]*Font,
-};
-pub const Vector_ImFontAtlasCustomRect = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]*FontAtlasCustomRect,
-};
-pub const Vector_ImFontConfig = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]*FontConfig,
-};
-pub const Vector_float = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]*f32,
-};
-pub const Vector_ImFontGlyph = extern struct {
-    Size: c_int,
-    Capacity: c_int,
-    Data: [*]*FontGlyph,
 };
 pub const Style = extern struct {
     Alpha: f32,
@@ -881,7 +773,7 @@ pub const Style = extern struct {
     AntiAliasedFill: bool,
     CurveTessellationTol: f32,
     CircleTessellationMaxError: f32,
-    Colors: [Col.COUNT]Vec4,
+    Colors: [@intFromEnum(Col.COUNT)]Vec4,
     HoverStationaryDelay: f32,
     HoverDelayShort: f32,
     HoverDelayNormal: f32,
@@ -949,10 +841,6 @@ pub const IO = extern struct {
     MetricsRenderWindows: c_int,
     MetricsActiveWindows: c_int,
     MouseDelta: Vec2,
-    KeyMap: [@intFromEnum(Key._COUNT)]c_int,
-    KeysDown: [@intFromEnum(Key._COUNT)]bool,
-    NavInputs: [@intFromEnum(NavInput._COUNT)]f32,
-    ImeWindowHandle: ?*anyopaque,
     Ctx: ?*Context,
     MousePos: Vec2,
     MouseDown: [5]bool,
@@ -964,7 +852,7 @@ pub const IO = extern struct {
     KeyAlt: bool,
     KeySuper: bool,
     KeyMods: KeyChord,
-    KeysData: [@intFromEnum(Key._KeysData_SIZE)]KeyData,
+    KeysData: [@intFromEnum(Key.KeysData_SIZE)]KeyData,
     WantCaptureMouseUnlessPopupClose: bool,
     MousePosPrev: Vec2,
     MouseClickedPos: [5]Vec2,
@@ -986,7 +874,7 @@ pub const IO = extern struct {
     BackendUsingLegacyKeyArrays: S8,
     BackendUsingLegacyNavInputArray: bool,
     InputQueueSurrogate: Wchar16,
-    InputQueueCharacters: Vector_ImWchar,
+    InputQueueCharacters: Vector(Wchar),
 };
 pub const InputTextCallbackData = extern struct {
     Ctx: ?*Context,
@@ -1015,7 +903,7 @@ pub const Payload = extern struct {
     SourceId: ID,
     SourceParentId: ID,
     DataFrameCount: c_int,
-    DataType: [32 + 1]c_char,
+    DataType: [32+1]c_char,
     Preview: bool,
     Delivery: bool,
 };
@@ -1026,7 +914,7 @@ pub const TableColumnSortSpecs = extern struct {
     SortDirection: SortDirection,
 };
 pub const TableSortSpecs = extern struct {
-    Specs: ?*const TableColumnSortSpecs,
+    Specs: ?[*]const TableColumnSortSpecs,
     SpecsCount: c_int,
     SpecsDirty: bool,
 };
@@ -1036,11 +924,11 @@ pub const TextFilter_ImGuiTextRange = extern struct {
 };
 pub const TextFilter = extern struct {
     InputBuf: [256]c_char,
-    Filters: Vector_ImGuiTextFilter_ImGuiTextRange,
+    Filters: Vector(TextFilter_ImGuiTextRange),
     CountGrep: c_int,
 };
 pub const TextBuffer = extern struct {
-    Buf: Vector_char,
+    Buf: Vector(u8),
 };
 pub const Storage_ImGuiStoragePair = extern struct {
     key: ID,
@@ -1052,7 +940,7 @@ pub const __anonymous_type0 = extern struct {
     val_p: ?*anyopaque,
 };
 pub const Storage = extern struct {
-    Data: Vector_ImGuiStorage_ImGuiStoragePair,
+    Data: Vector(Storage_ImGuiStoragePair),
 };
 pub const ListClipper = extern struct {
     Ctx: ?*Context,
@@ -1086,27 +974,27 @@ pub const DrawCmdHeader = extern struct {
     VtxOffset: c_uint,
 };
 pub const DrawChannel = extern struct {
-    _CmdBuffer: Vector_ImDrawCmd,
-    _IdxBuffer: Vector_ImDrawIdx,
+    _CmdBuffer: Vector(DrawCmd),
+    _IdxBuffer: Vector(DrawIdx),
 };
 pub const DrawListSplitter = extern struct {
     _Current: c_int,
     _Count: c_int,
-    _Channels: Vector_ImDrawChannel,
+    _Channels: Vector(DrawChannel),
 };
 pub const DrawList = extern struct {
-    CmdBuffer: Vector_ImDrawCmd,
-    IdxBuffer: Vector_ImDrawIdx,
-    VtxBuffer: Vector_ImDrawVert,
+    CmdBuffer: Vector(DrawCmd),
+    IdxBuffer: Vector(DrawIdx),
+    VtxBuffer: Vector(DrawVert),
     Flags: DrawListFlags,
     _VtxCurrentIdx: c_uint,
     _Data: ?*DrawListSharedData,
     _OwnerName: ?[*:0]const u8,
-    _VtxWritePtr: ?*DrawVert,
-    _IdxWritePtr: ?*DrawIdx,
-    _ClipRectStack: Vector_ImVec4,
-    _TextureIdStack: Vector_ImTextureID,
-    _Path: Vector_ImVec2,
+    _VtxWritePtr: ?[*]DrawVert,
+    _IdxWritePtr: ?[*]DrawIdx,
+    _ClipRectStack: Vector(Vec4),
+    _TextureIdStack: Vector(TextureID),
+    _Path: Vector(Vec2),
     _CmdHeader: DrawCmdHeader,
     _Splitter: DrawListSplitter,
     _FringeScale: f32,
@@ -1116,7 +1004,7 @@ pub const DrawData = extern struct {
     CmdListsCount: c_int,
     TotalIdxCount: c_int,
     TotalVtxCount: c_int,
-    CmdLists: Vector_ImDrawListPtr,
+    CmdLists: Vector(*DrawList),
     DisplayPos: Vec2,
     DisplaySize: Vec2,
     FramebufferScale: Vec2,
@@ -1133,7 +1021,7 @@ pub const FontConfig = extern struct {
     PixelSnapH: bool,
     GlyphExtraSpacing: Vec2,
     GlyphOffset: Vec2,
-    GlyphRanges: ?*const Wchar,
+    GlyphRanges: ?[*]const Wchar,
     GlyphMinAdvanceX: f32,
     GlyphMaxAdvanceX: f32,
     MergeMode: bool,
@@ -1158,7 +1046,7 @@ pub const FontGlyph = extern struct {
     V1: f32,
 };
 pub const FontGlyphRangesBuilder = extern struct {
-    UsedChars: Vector_ImU32,
+    UsedChars: Vector(U32),
 };
 pub const FontAtlasCustomRect = extern struct {
     Width: c_ushort,
@@ -1179,27 +1067,27 @@ pub const FontAtlas = extern struct {
     UserData: ?*anyopaque,
     TexReady: bool,
     TexPixelsUseColors: bool,
-    TexPixelsAlpha8: ?*c_char,
-    TexPixelsRGBA32: ?*c_uint,
+    TexPixelsAlpha8: ?[*]c_char,
+    TexPixelsRGBA32: ?[*]c_uint,
     TexWidth: c_int,
     TexHeight: c_int,
     TexUvScale: Vec2,
     TexUvWhitePixel: Vec2,
-    Fonts: Vector_ImFontPtr,
-    CustomRects: Vector_ImFontAtlasCustomRect,
-    ConfigData: Vector_ImFontConfig,
-    TexUvLines: [IM_DRAWLIST_TEX_LINES_WIDTH_MAX + 1]Vec4,
+    Fonts: Vector(*Font),
+    CustomRects: Vector(FontAtlasCustomRect),
+    ConfigData: Vector(FontConfig),
+    TexUvLines: [DRAWLIST_TEX_LINES_WIDTH_MAX+1]Vec4,
     FontBuilderIO: ?*const FontBuilderIO,
     FontBuilderFlags: c_uint,
     PackIdMouseCursors: c_int,
     PackIdLines: c_int,
 };
 pub const Font = extern struct {
-    IndexAdvanceX: Vector_float,
+    IndexAdvanceX: Vector(f32),
     FallbackAdvanceX: f32,
     FontSize: f32,
-    IndexLookup: Vector_ImWchar,
-    Glyphs: Vector_ImFontGlyph,
+    IndexLookup: Vector(Wchar),
+    Glyphs: Vector(FontGlyph),
     FallbackGlyph: ?*const FontGlyph,
     ContainerAtlas: ?*FontAtlas,
     ConfigData: ?*const FontConfig,
@@ -1214,7 +1102,7 @@ pub const Font = extern struct {
     Ascent: f32,
     Descent: f32,
     MetricsTotalSurface: c_int,
-    Used4kPagesMap: [(IM_UNICODE_CODEPOINT_MAX + 1) / 4096 / 8]U8,
+    Used4kPagesMap: [(UNICODE_CODEPOINT_MAX+1)/4096/8]U8,
 };
 pub const Viewport = extern struct {
     Flags: ViewportFlags,
@@ -1712,7 +1600,6 @@ extern fn ImGuiIO_SetKeyEventNativeDataEx(self: *IO, key: Key, native_keycode: c
 extern fn ImGuiIO_SetAppAcceptingEvents(self: *IO, accepting_events: bool) void;
 extern fn ImGuiIO_ClearEventsQueue(self: *IO) void;
 extern fn ImGuiIO_ClearInputKeys(self: *IO) void;
-extern fn ImGuiIO_ClearInputCharacters(self: *IO) void;
 extern fn ImGuiInputTextCallbackData_DeleteChars(self: *InputTextCallbackData, pos: c_int, bytes_count: c_int) void;
 extern fn ImGuiInputTextCallbackData_InsertChars(self: *InputTextCallbackData, pos: c_int, text: ?[*:0]const u8, text_end: ?[*:0]const u8) void;
 extern fn ImGuiInputTextCallbackData_SelectAll(self: *InputTextCallbackData) void;
@@ -1723,7 +1610,7 @@ extern fn ImGuiPayload_IsDataType(self: *const Payload, type: ?[*:0]const u8) bo
 extern fn ImGuiPayload_IsPreview(self: *const Payload) bool;
 extern fn ImGuiPayload_IsDelivery(self: *const Payload) bool;
 extern fn ImGuiTextFilter_ImGuiTextRange_empty(self: *const TextFilter_ImGuiTextRange) bool;
-extern fn ImGuiTextFilter_ImGuiTextRange_split(self: *const TextFilter_ImGuiTextRange, separator: c_char, out: ?*Vector_ImGuiTextFilter_ImGuiTextRange) void;
+extern fn ImGuiTextFilter_ImGuiTextRange_split(self: *const TextFilter_ImGuiTextRange, separator: c_char, out: ?*Vector(TextFilter_ImGuiTextRange)) void;
 extern fn ImGuiTextFilter_Draw(self: *TextFilter, label: ?[*:0]const u8, width: f32) bool;
 extern fn ImGuiTextFilter_PassFilter(self: *const TextFilter, text: ?[*:0]const u8, text_end: ?[*:0]const u8) bool;
 extern fn ImGuiTextFilter_Build(self: *TextFilter) void;
@@ -1759,8 +1646,6 @@ extern fn ImGuiListClipper_End(self: *ListClipper) void;
 extern fn ImGuiListClipper_Step(self: *ListClipper) bool;
 extern fn ImGuiListClipper_IncludeItemByIndex(self: *ListClipper, item_index: c_int) void;
 extern fn ImGuiListClipper_IncludeItemsByIndex(self: *ListClipper, item_begin: c_int, item_end: c_int) void;
-extern fn ImGuiListClipper_IncludeRangeByIndices(self: *ListClipper, item_begin: c_int, item_end: c_int) void;
-extern fn ImGuiListClipper_ForceDisplayRangeByIndices(self: *ListClipper, item_begin: c_int, item_end: c_int) void;
 extern fn ImColor_SetHSV(self: *Color, h: f32, s: f32, v: f32, a: f32) void;
 extern fn ImColor_HSV(self: *Color, h: f32, s: f32, v: f32, a: f32) Color;
 extern fn ImDrawCmd_GetTexID(self: *const DrawCmd) TextureID;
@@ -1858,7 +1743,7 @@ extern fn ImFontGlyphRangesBuilder_SetBit(self: *FontGlyphRangesBuilder, n: usiz
 extern fn ImFontGlyphRangesBuilder_AddChar(self: *FontGlyphRangesBuilder, c: Wchar) void;
 extern fn ImFontGlyphRangesBuilder_AddText(self: *FontGlyphRangesBuilder, text: ?[*:0]const u8, text_end: ?[*:0]const u8) void;
 extern fn ImFontGlyphRangesBuilder_AddRanges(self: *FontGlyphRangesBuilder, ranges: ?*const Wchar) void;
-extern fn ImFontGlyphRangesBuilder_BuildRanges(self: *FontGlyphRangesBuilder, out_ranges: ?*Vector_ImWchar) void;
+extern fn ImFontGlyphRangesBuilder_BuildRanges(self: *FontGlyphRangesBuilder, out_ranges: ?*Vector(Wchar)) void;
 extern fn ImFontAtlasCustomRect_IsPacked(self: *const FontAtlasCustomRect) bool;
 extern fn ImFontAtlas_AddFont(self: *FontAtlas, font_cfg: ?*const FontConfig) ?*Font;
 extern fn ImFontAtlas_AddFontDefault(self: *FontAtlas, font_cfg: ?*const FontConfig) ?*Font;
@@ -1908,18 +1793,7 @@ extern fn ImFont_SetGlyphVisible(self: *Font, c: Wchar, visible: bool) void;
 extern fn ImFont_IsGlyphRangeUnused(self: *Font, c_begin: c_uint, c_last: c_uint) bool;
 extern fn ImGuiViewport_GetCenter(self: *const Viewport) Vec2;
 extern fn ImGuiViewport_GetWorkCenter(self: *const Viewport) Vec2;
-extern fn ImGui_ShowStackToolWindow(p_open: ?*bool) void;
-extern fn ImGui_ListBoxObsolete(label: ?[*:0]const u8, current_item: ?*c_int, old_callback: ?*const fn (?*anyopaque, c_int, ?*?[*:0]const u8) callconv(.C) bool, user_data: ?*anyopaque, items_count: c_int) bool;
-extern fn ImGui_ListBoxObsoleteEx(label: ?[*:0]const u8, current_item: ?*c_int, old_callback: ?*const fn (?*anyopaque, c_int, ?*?[*:0]const u8) callconv(.C) bool, user_data: ?*anyopaque, items_count: c_int, height_in_items: c_int) bool;
-extern fn ImGui_ComboObsolete(label: ?[*:0]const u8, current_item: ?*c_int, old_callback: ?*const fn (?*anyopaque, c_int, ?*?[*:0]const u8) callconv(.C) bool, user_data: ?*anyopaque, items_count: c_int) bool;
-extern fn ImGui_ComboObsoleteEx(label: ?[*:0]const u8, current_item: ?*c_int, old_callback: ?*const fn (?*anyopaque, c_int, ?*?[*:0]const u8) callconv(.C) bool, user_data: ?*anyopaque, items_count: c_int, popup_max_height_in_items: c_int) bool;
-extern fn ImGui_SetItemAllowOverlap() void;
-extern fn ImGui_PushAllowKeyboardFocus(tab_stop: bool) void;
-extern fn ImGui_PopAllowKeyboardFocus() void;
-extern fn ImGui_ImageButtonImTextureID(user_texture_id: TextureID, size: Vec2, uv0: Vec2, uv1: Vec2, frame_padding: c_int, bg_col: Vec4, tint_col: Vec4) bool;
-extern fn ImGui_CaptureKeyboardFromApp(want_capture_keyboard: bool) void;
-extern fn ImGui_CaptureMouseFromApp(want_capture_mouse: bool) void;
-extern fn ImGui_CalcListClipping(items_count: c_int, items_height: f32, out_items_display_start: ?*c_int, out_items_display_end: ?*c_int) void;
+extern fn ImGui_GetKeyIndex(key: Key) Key;
 pub const CreateContext = ImGui_CreateContext;
 pub const DestroyContext = ImGui_DestroyContext;
 pub const GetCurrentContext = ImGui_GetCurrentContext;
@@ -2403,7 +2277,6 @@ pub const IO_SetKeyEventNativeDataEx = ImGuiIO_SetKeyEventNativeDataEx;
 pub const IO_SetAppAcceptingEvents = ImGuiIO_SetAppAcceptingEvents;
 pub const IO_ClearEventsQueue = ImGuiIO_ClearEventsQueue;
 pub const IO_ClearInputKeys = ImGuiIO_ClearInputKeys;
-pub const IO_ClearInputCharacters = ImGuiIO_ClearInputCharacters;
 pub const InputTextCallbackData_DeleteChars = ImGuiInputTextCallbackData_DeleteChars;
 pub const InputTextCallbackData_InsertChars = ImGuiInputTextCallbackData_InsertChars;
 pub const InputTextCallbackData_SelectAll = ImGuiInputTextCallbackData_SelectAll;
@@ -2450,8 +2323,6 @@ pub const ListClipper_End = ImGuiListClipper_End;
 pub const ListClipper_Step = ImGuiListClipper_Step;
 pub const ListClipper_IncludeItemByIndex = ImGuiListClipper_IncludeItemByIndex;
 pub const ListClipper_IncludeItemsByIndex = ImGuiListClipper_IncludeItemsByIndex;
-pub const ListClipper_IncludeRangeByIndices = ImGuiListClipper_IncludeRangeByIndices;
-pub const ListClipper_ForceDisplayRangeByIndices = ImGuiListClipper_ForceDisplayRangeByIndices;
 pub const Color_SetHSV = ImColor_SetHSV;
 pub const Color_HSV = ImColor_HSV;
 pub const DrawCmd_GetTexID = ImDrawCmd_GetTexID;
@@ -2599,18 +2470,7 @@ pub const Font_SetGlyphVisible = ImFont_SetGlyphVisible;
 pub const Font_IsGlyphRangeUnused = ImFont_IsGlyphRangeUnused;
 pub const Viewport_GetCenter = ImGuiViewport_GetCenter;
 pub const Viewport_GetWorkCenter = ImGuiViewport_GetWorkCenter;
-pub const ShowStackToolWindow = ImGui_ShowStackToolWindow;
-pub const ListBoxObsolete = ImGui_ListBoxObsolete;
-pub const ListBoxObsoleteEx = ImGui_ListBoxObsoleteEx;
-pub const ComboObsolete = ImGui_ComboObsolete;
-pub const ComboObsoleteEx = ImGui_ComboObsoleteEx;
-pub const SetItemAllowOverlap = ImGui_SetItemAllowOverlap;
-pub const PushAllowKeyboardFocus = ImGui_PushAllowKeyboardFocus;
-pub const PopAllowKeyboardFocus = ImGui_PopAllowKeyboardFocus;
-pub const ImageButtonImTextureID = ImGui_ImageButtonImTextureID;
-pub const CaptureKeyboardFromApp = ImGui_CaptureKeyboardFromApp;
-pub const CaptureMouseFromApp = ImGui_CaptureMouseFromApp;
-pub const CalcListClipping = ImGui_CalcListClipping;
+pub const GetKeyIndex = ImGui_GetKeyIndex;
 test {
     std.testing.refAllDeclsRecursive(@This());
 }
