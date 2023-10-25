@@ -1,6 +1,6 @@
 const std = @import("std");
 const imgui = @import("imgui.zig");
-const imgui_mach_gpu = @import("imgui_mach_gpu.zig");
+const imgui_mach = @import("imgui_mach.zig");
 const core = @import("mach-core");
 const gpu = core.gpu;
 
@@ -22,7 +22,7 @@ pub fn init(app: *App) !void {
     const allocator = gpa.allocator();
 
     _ = imgui.CreateContext(null);
-    try imgui_mach_gpu.init(allocator, core.device, 3, .bgra8_unorm, .undefined); // TODO - use swap chain preferred format
+    try imgui_mach.init(allocator, core.device, 3, .bgra8_unorm, .undefined); // TODO - use swap chain preferred format
 
     var io = imgui.GetIO();
 
@@ -43,17 +43,16 @@ pub fn deinit(app: *App) void {
     defer _ = gpa.deinit();
     defer core.deinit();
 
-    imgui_mach_gpu.shutdown();
+    imgui_mach.shutdown();
     imgui.DestroyContext(null);
 }
 
 pub fn update(app: *App) !bool {
     var iter = core.pollEvents();
     while (iter.next()) |event| {
+        _ = imgui_mach.processEvent(event);
+
         switch (event) {
-            .key_press => |ev| {
-                if (ev.key == .space) return true;
-            },
             .close => return true,
             else => {},
         }
@@ -64,7 +63,7 @@ pub fn update(app: *App) !bool {
     // update the window title every second
     if (app.title_timer.read() >= 1.0) {
         app.title_timer.reset();
-        try core.printTitle("Clear Color [ {d}fps ] [ Input {d}hz ]", .{
+        try core.printTitle("ImGui [ {d}fps ] [ Input {d}hz ]", .{
             core.frameRate(),
             core.inputRate(),
         });
@@ -78,7 +77,7 @@ fn render(app: *App) !void {
     io.DisplaySize = imgui.Vec2{ .x = 1920, .y = 1080 };
     io.DeltaTime = 1.0 / 60.0;
 
-    imgui_mach_gpu.newFrame() catch return;
+    imgui_mach.newFrame() catch return;
     imgui.NewFrame();
 
     imgui.Text("Hello, world!");
@@ -102,7 +101,7 @@ fn render(app: *App) !void {
     });
 
     const pass = encoder.beginRenderPass(&render_pass_info);
-    imgui_mach_gpu.renderDrawData(imgui.GetDrawData().?, pass) catch {};
+    imgui_mach.renderDrawData(imgui.GetDrawData().?, pass) catch {};
     pass.end();
     pass.release();
 

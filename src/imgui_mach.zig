@@ -3,6 +3,8 @@ const imgui = @import("imgui.zig");
 const core = @import("mach-core");
 const gpu = core.gpu;
 
+var allocator: std.mem.Allocator = undefined;
+
 // ------------------------------------------------------------------------------------------------
 // Public API
 // ------------------------------------------------------------------------------------------------
@@ -17,32 +19,339 @@ pub fn init(
     allocator = allocator_;
 
     var io = imgui.GetIO();
+    std.debug.assert(io.BackendPlatformUserData == null);
     std.debug.assert(io.BackendRendererUserData == null);
 
-    var bd = try allocator.create(BackendData);
-    bd.* = BackendData.init(device, max_frames_in_flight, color_format, depth_stencil_format);
-    io.BackendRendererUserData = bd;
+    var brp = try allocator.create(BackendPlatformData);
+    brp.* = BackendPlatformData.init();
+    io.BackendPlatformUserData = brp;
+
+    var brd = try allocator.create(BackendRendererData);
+    brd.* = BackendRendererData.init(device, max_frames_in_flight, color_format, depth_stencil_format);
+    io.BackendRendererUserData = brd;
 }
 
 pub fn shutdown() void {
-    var bd = BackendData.get();
-    bd.deinit();
-    allocator.destroy(bd);
+    var bpd = BackendPlatformData.get();
+    bpd.deinit();
+    allocator.destroy(bpd);
+
+    var brd = BackendRendererData.get();
+    brd.deinit();
+    allocator.destroy(brd);
 }
 
 pub fn newFrame() !void {
-    try BackendData.get().newFrame();
+    try BackendPlatformData.get().newFrame();
+    try BackendRendererData.get().newFrame();
+}
+
+pub fn processEvent(event: core.Event) bool {
+    return BackendPlatformData.get().processEvent(event);
 }
 
 pub fn renderDrawData(draw_data: *imgui.DrawData, pass_encoder: *gpu.RenderPassEncoder) !void {
-    try BackendData.get().render(draw_data, pass_encoder);
+    try BackendRendererData.get().render(draw_data, pass_encoder);
 }
 
 // ------------------------------------------------------------------------------------------------
-// Implementation
+// Platform
 // ------------------------------------------------------------------------------------------------
 
-var allocator: std.mem.Allocator = undefined;
+// Missing from mach:
+// - HasSetMousePos
+// - Clipboard
+// - IME
+// - Mouse Source (e.g. pen, touch)
+// - Mouse Enter/Leave
+// - joystick/gamepad
+
+// Bugs?
+// - Positive Delta Time
+
+const BackendPlatformData = struct {
+    pub fn init() BackendPlatformData {
+        var io = imgui.GetIO();
+        io.BackendPlatformName = "imgui_mach";
+        // TODO - flags or ints
+        //io.BackendFlags = @enumFromInt(@intFromEnum(io.BackendFlags) | @intFromEnum(imgui.BackendFlags.HasMouseCursors));
+        //io.BackendFlags = @enumFromInt(@intFromEnum(io.BackendFlags) | @intFromEnum(imgui.BackendFlags.HasSetMousePos));
+
+        return .{};
+    }
+
+    pub fn deinit(bd: *BackendPlatformData) void {
+        _ = bd;
+        var io = imgui.GetIO();
+        io.BackendPlatformName = null;
+    }
+
+    pub fn get() *BackendPlatformData {
+        std.debug.assert(imgui.GetCurrentContext() != null);
+
+        const io = imgui.GetIO();
+        return @ptrCast(@alignCast(io.BackendPlatformUserData));
+    }
+
+    pub fn newFrame(bd: *BackendPlatformData) !void {
+        _ = bd;
+        var io = imgui.GetIO();
+
+        // DisplaySize
+        const window_size = core.size();
+        const w: f32 = @floatFromInt(window_size.width);
+        const h: f32 = @floatFromInt(window_size.height);
+        const display_w: f32 = @floatFromInt(core.descriptor.width);
+        const display_h: f32 = @floatFromInt(core.descriptor.height);
+
+        io.DisplaySize = imgui.Vec2{ .x = w, .y = h };
+
+        // DisplayFramebufferScale
+        if (w > 0 and h > 0)
+            io.DisplayFramebufferScale = imgui.Vec2{ .x = display_w / w, .y = display_h / h };
+
+        // DeltaTime
+        io.DeltaTime = if (core.delta_time > 0.0) core.delta_time else 1.0e-6;
+
+        // WantSetMousePos - TODO
+
+        // MouseCursor
+        if ((@intFromEnum(io.ConfigFlags) & @intFromEnum(imgui.ConfigFlags.NoMouseCursorChange)) == 0) {
+            const imgui_cursor = imgui.GetMouseCursor();
+
+            if (io.MouseDrawCursor or imgui_cursor == imgui.MouseCursor.None) {
+                core.setCursorMode(.hidden);
+            } else {
+                core.setCursorMode(.normal);
+                core.setCursorShape(machCursorShape(imgui_cursor));
+            }
+        }
+
+        // Gamepads - TODO
+    }
+
+    pub fn processEvent(bd: *BackendPlatformData, event: core.Event) bool {
+        _ = bd;
+        var io = imgui.GetIO();
+        switch (event) {
+            .key_press, .key_repeat => |data| {
+                addKeyMods(data.mods);
+                const key = imguiKey(data.key);
+                imgui.IO_AddKeyEvent(io, key, true);
+                return true;
+            },
+            .key_release => |data| {
+                addKeyMods(data.mods);
+                const key = imguiKey(data.key);
+                imgui.IO_AddKeyEvent(io, key, false);
+                return true;
+            },
+            .char_input => |data| {
+                imgui.IO_AddInputCharacter(io, data.codepoint);
+                return true;
+            },
+            .mouse_motion => |data| {
+                // TODO - imgui.IO_AddMouseSourceEvent
+                imgui.IO_AddMousePosEvent(io, @floatCast(data.pos.x), @floatCast(data.pos.y));
+                return true;
+            },
+            .mouse_press => |data| {
+                const mouse_button = imguiMouseButton(data.button);
+                // TODO - imgui.IO_AddMouseSourceEvent
+                imgui.IO_AddMouseButtonEvent(io, mouse_button, true);
+                return true;
+            },
+            .mouse_release => |data| {
+                const mouse_button = imguiMouseButton(data.button);
+                // TODO - imgui.IO_AddMouseSourceEvent
+                imgui.IO_AddMouseButtonEvent(io, mouse_button, false);
+                return true;
+            },
+            .mouse_scroll => |data| {
+                // TODO - imgui.IO_AddMouseSourceEvent
+                imgui.IO_AddMouseWheelEvent(io, data.xoffset, data.yoffset);
+                return true;
+            },
+            .joystick_connected => {},
+            .joystick_disconnected => {},
+            .framebuffer_resize => {},
+            .focus_gained => {
+                imgui.IO_AddFocusEvent(io, true);
+                return true;
+            },
+            .focus_lost => {
+                imgui.IO_AddFocusEvent(io, false);
+                return true;
+            },
+            .close => {},
+
+            // TODO - mouse enter/leave?
+        }
+
+        return false;
+    }
+
+    fn addKeyMods(mods: core.KeyMods) void {
+        var io = imgui.GetIO();
+        imgui.IO_AddKeyEvent(io, imgui.Key.ImGuiMod_Ctrl, mods.control);
+        imgui.IO_AddKeyEvent(io, imgui.Key.ImGuiMod_Shift, mods.shift);
+        imgui.IO_AddKeyEvent(io, imgui.Key.ImGuiMod_Alt, mods.alt);
+        imgui.IO_AddKeyEvent(io, imgui.Key.ImGuiMod_Super, mods.super);
+    }
+
+    fn imguiMouseButton(button: core.MouseButton) i32 {
+        return @intFromEnum(button);
+    }
+
+    fn imguiKey(key: core.Key) imgui.Key {
+        return switch (key) {
+            .a => ._A,
+            .b => ._B,
+            .c => ._C,
+            .d => ._D,
+            .e => ._E,
+            .f => ._F,
+            .g => ._G,
+            .h => ._H,
+            .i => ._I,
+            .j => ._J,
+            .k => ._K,
+            .l => ._L,
+            .m => ._M,
+            .n => ._N,
+            .o => ._O,
+            .p => ._P,
+            .q => ._Q,
+            .r => ._R,
+            .s => ._S,
+            .t => ._T,
+            .u => ._U,
+            .v => ._V,
+            .w => ._W,
+            .x => ._X,
+            .y => ._Y,
+            .z => ._Z,
+
+            .zero => ._0,
+            .one => ._1,
+            .two => ._2,
+            .three => ._3,
+            .four => ._4,
+            .five => ._5,
+            .six => ._6,
+            .seven => ._7,
+            .eight => ._8,
+            .nine => ._9,
+
+            .f1 => .F1,
+            .f2 => .F2,
+            .f3 => .F3,
+            .f4 => .F4,
+            .f5 => .F5,
+            .f6 => .F6,
+            .f7 => .F7,
+            .f8 => .F8,
+            .f9 => .F9,
+            .f10 => .F10,
+            .f11 => .F11,
+            .f12 => .F12,
+            .f13 => .F13,
+            .f14 => .F14,
+            .f15 => .F15,
+            .f16 => .F16,
+            .f17 => .F17,
+            .f18 => .F18,
+            .f19 => .F19,
+            .f20 => .F20,
+            .f21 => .F21,
+            .f22 => .F22,
+            .f23 => .F23,
+            .f24 => .F24,
+            .f25 => .None,
+
+            .kp_divide => .KeypadDivide,
+            .kp_multiply => .KeypadMultiply,
+            .kp_subtract => .KeypadSubtract,
+            .kp_add => .KeypadAdd,
+            .kp_0 => .Keypad0,
+            .kp_1 => .Keypad1,
+            .kp_2 => .Keypad2,
+            .kp_3 => .Keypad3,
+            .kp_4 => .Keypad4,
+            .kp_5 => .Keypad5,
+            .kp_6 => .Keypad6,
+            .kp_7 => .Keypad7,
+            .kp_8 => .Keypad8,
+            .kp_9 => .Keypad9,
+            .kp_decimal => .KeypadDecimal,
+            .kp_equal => .KeypadEqual,
+            .kp_enter => .KeypadEnter,
+
+            .enter => .Enter,
+            .escape => .Escape,
+            .tab => .Tab,
+            .left_shift => .LeftShift,
+            .right_shift => .RightShift,
+            .left_control => .LeftCtrl,
+            .right_control => .RightCtrl,
+            .left_alt => .LeftAlt,
+            .right_alt => .RightAlt,
+            .left_super => .LeftSuper,
+            .right_super => .RightSuper,
+            .menu => .Menu,
+            .num_lock => .NumLock,
+            .caps_lock => .CapsLock,
+            .print => .PrintScreen,
+            .scroll_lock => .ScrollLock,
+            .pause => .Pause,
+            .delete => .Delete,
+            .home => .Home,
+            .end => .End,
+            .page_up => .PageUp,
+            .page_down => .PageDown,
+            .insert => .Insert,
+            .left => .LeftArrow,
+            .right => .RightArrow,
+            .up => .UpArrow,
+            .down => .DownArrow,
+            .backspace => .Backspace,
+            .space => .Space,
+            .minus => .Minus,
+            .equal => .Equal,
+            .left_bracket => .LeftBracket,
+            .right_bracket => .RightBracket,
+            .backslash => .Backslash,
+            .semicolon => .Semicolon,
+            .apostrophe => .Apostrophe,
+            .comma => .Comma,
+            .period => .Period,
+            .slash => .Slash,
+            .grave => .GraveAccent,
+
+            .unknown => .None,
+        };
+    }
+
+    fn machCursorShape(imgui_cursor: imgui.MouseCursor) core.CursorShape {
+        return switch (imgui_cursor) {
+            .None => unreachable,
+            .Arrow => .arrow,
+            .TextInput => .ibeam,
+            .ResizeAll => .resize_all,
+            .ResizeNS => .resize_ns,
+            .ResizeEW => .resize_ew,
+            .ResizeNESW => .resize_nesw,
+            .ResizeNWSE => .resize_nwse,
+            .Hand => .pointing_hand,
+            .NotAllowed => .not_allowed,
+            .COUNT => unreachable,
+        };
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
+// Renderer
+// ------------------------------------------------------------------------------------------------
 
 fn alignUp(x: usize, a: usize) usize {
     return (x + a - 1) & ~(a - 1);
@@ -52,7 +361,7 @@ const Uniforms = struct {
     MVP: [4][4]f32,
 };
 
-const BackendData = struct {
+const BackendRendererData = struct {
     device: *gpu.Device,
     queue: *gpu.Queue,
     color_format: gpu.Texture.Format,
@@ -66,9 +375,9 @@ const BackendData = struct {
         max_frames_in_flight: u32,
         color_format: gpu.Texture.Format,
         depth_stencil_format: gpu.Texture.Format,
-    ) BackendData {
+    ) BackendRendererData {
         var io = imgui.GetIO();
-        io.BackendRendererName = "imgui_mach_gpu";
+        io.BackendRendererName = "imgui_mach";
         io.BackendFlags = @enumFromInt(@intFromEnum(io.BackendFlags) | @intFromEnum(imgui.BackendFlags.RendererHasVtxOffset));
 
         return .{
@@ -82,7 +391,7 @@ const BackendData = struct {
         };
     }
 
-    pub fn deinit(bd: *BackendData) void {
+    pub fn deinit(bd: *BackendRendererData) void {
         var io = imgui.GetIO();
         io.BackendRendererName = null;
         io.BackendRendererUserData = null;
@@ -91,19 +400,19 @@ const BackendData = struct {
         bd.queue.release();
     }
 
-    pub fn get() *BackendData {
+    pub fn get() *BackendRendererData {
         std.debug.assert(imgui.GetCurrentContext() != null);
 
         const io = imgui.GetIO();
         return @ptrCast(@alignCast(io.BackendRendererUserData));
     }
 
-    pub fn newFrame(bd: *BackendData) !void {
+    pub fn newFrame(bd: *BackendRendererData) !void {
         if (bd.device_resources == null)
             bd.device_resources = try DeviceResources.init(bd);
     }
 
-    pub fn render(bd: *BackendData, draw_data: *imgui.DrawData, pass_encoder: *gpu.RenderPassEncoder) !void {
+    pub fn render(bd: *BackendRendererData, draw_data: *imgui.DrawData, pass_encoder: *gpu.RenderPassEncoder) !void {
         if (draw_data.DisplaySize.x <= 0.0 or draw_data.DisplaySize.y <= 0.0)
             return;
 
@@ -231,7 +540,7 @@ const BackendData = struct {
     }
 
     fn setupRenderState(
-        bd: *BackendData,
+        bd: *BackendRendererData,
         draw_data: *imgui.DrawData,
         pass_encoder: *gpu.RenderPassEncoder,
         fr: *FrameResources,
@@ -277,7 +586,7 @@ const DeviceResources = struct {
     image_bind_group_layout: *gpu.BindGroupLayout,
     frame_resources: []FrameResources,
 
-    pub fn init(bd: *BackendData) !DeviceResources {
+    pub fn init(bd: *BackendRendererData) !DeviceResources {
         // Bind Group layouts
         const common_bind_group_layout = bd.device.createBindGroupLayout(
             &gpu.BindGroupLayout.Descriptor.init(.{
