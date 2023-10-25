@@ -22,7 +22,7 @@ pub fn init(app: *App) !void {
     const allocator = gpa.allocator();
 
     _ = imgui.CreateContext(null);
-    _ = imgui_mach_gpu.init(allocator, core.device, 3, .bgra8_unorm, .undefined); // TODO - use swap chain preferred format
+    try imgui_mach_gpu.init(allocator, core.device, 3, .bgra8_unorm, .undefined); // TODO - use swap chain preferred format
 
     var io = imgui.GetIO();
 
@@ -43,6 +43,7 @@ pub fn deinit(app: *App) void {
     defer _ = gpa.deinit();
     defer core.deinit();
 
+    imgui_mach_gpu.shutdown();
     imgui.DestroyContext(null);
 }
 
@@ -58,7 +59,7 @@ pub fn update(app: *App) !bool {
         }
     }
 
-    app.render();
+    try app.render();
 
     // update the window title every second
     if (app.title_timer.read() >= 1.0) {
@@ -72,12 +73,12 @@ pub fn update(app: *App) !bool {
     return false;
 }
 
-fn render(app: *App) void {
+fn render(app: *App) !void {
     var io = imgui.GetIO();
     io.DisplaySize = imgui.Vec2{ .x = 1920, .y = 1080 };
     io.DeltaTime = 1.0 / 60.0;
 
-    imgui_mach_gpu.newFrame();
+    imgui_mach_gpu.newFrame() catch return;
     imgui.NewFrame();
 
     imgui.Text("Hello, world!");
@@ -101,7 +102,7 @@ fn render(app: *App) void {
     });
 
     const pass = encoder.beginRenderPass(&render_pass_info);
-    imgui_mach_gpu.renderDrawData(imgui.GetDrawData().?, pass);
+    imgui_mach_gpu.renderDrawData(imgui.GetDrawData().?, pass) catch {};
     pass.end();
     pass.release();
 
