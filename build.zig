@@ -18,6 +18,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
+    lib.linkLibC();
     lib.addCSourceFiles(.{
         .files = &.{
             "imgui/imgui.cpp",
@@ -38,6 +39,13 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
     app.compile.linkLibrary(lib);
+
+    const mach_dusk_dep = b.dependency("mach_dusk", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    app.compile.linkLibrary(mach_dusk_dep.artifact("mach-dusk"));
+    @import("mach_dusk").link(mach_dusk_dep.builder, app.compile);
 
     const run_step = b.step("run", "Run the example");
     run_step.dependOn(&app.run.step);
