@@ -580,7 +580,6 @@ const DeviceResources = struct {
     uniforms: *gpu.Buffer,
     common_bind_group: *gpu.BindGroup,
     image_bind_groups: std.AutoArrayHashMapUnmanaged(imgui.TextureID, *gpu.BindGroup),
-    image_bind_group: *gpu.BindGroup,
     image_bind_group_layout: *gpu.BindGroupLayout,
     frame_resources: []FrameResources,
 
@@ -800,7 +799,6 @@ const DeviceResources = struct {
             .sampler = sampler,
             .uniforms = uniforms,
             .common_bind_group = common_bind_group,
-            .image_bind_group = image_bind_group,
             .image_bind_groups = image_bind_groups,
             .image_bind_group_layout = image_bind_group_layout,
             .frame_resources = frame_resources,
@@ -818,7 +816,6 @@ const DeviceResources = struct {
         dr.uniforms.release();
         dr.common_bind_group.release();
         for (dr.image_bind_groups.values()) |x| x.release();
-        dr.image_bind_group.release();
         dr.image_bind_group_layout.release();
         for (dr.frame_resources) |*frame_resources| frame_resources.release();
 
