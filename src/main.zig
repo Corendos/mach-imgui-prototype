@@ -25,6 +25,20 @@ pub fn init(app: *App) !void {
     try imgui_mach.init(allocator, core.device, 3, .bgra8_unorm, .undefined); // TODO - use swap chain preferred format
 
     var io = imgui.getIO();
+    io.config_flags |= imgui.ConfigFlags_NavEnableKeyboard;
+
+    const font_data = @embedFile("Roboto-Medium.ttf");
+    const size_pixels = 14 * io.display_framebuffer_scale.y;
+
+    var font_cfg: imgui.FontConfig = std.mem.zeroes(imgui.FontConfig); // TODO - constructors
+    io.font_global_scale = 1.0 / io.display_framebuffer_scale.y;
+    font_cfg.font_data_owned_by_atlas = false;
+    font_cfg.oversample_h = 2;
+    font_cfg.oversample_v = 1;
+    font_cfg.glyph_max_advance_x = std.math.floatMax(f32);
+    font_cfg.rasterizer_multiply = 1.0;
+    font_cfg.ellipsis_char = imgui.UNICODE_CODEPOINT_MAX;
+    _ = io.fonts.?.addFontFromMemoryTTF(@constCast(@ptrCast(font_data.ptr)), font_data.len, size_pixels, &font_cfg, null);
 
     // Build atlas
     var tex_pixels: ?*c_char = undefined;
@@ -88,7 +102,7 @@ fn render(app: *App) !void {
     const back_buffer_view = core.swap_chain.getCurrentTextureView().?;
     const color_attachment = gpu.RenderPassColorAttachment{
         .view = back_buffer_view,
-        .clear_value = gpu.Color{ .r = 0.0, .g = 0.0, .b = 1.0, .a = 1.0 },
+        .clear_value = gpu.Color{ .r = 0.2, .g = 0.2, .b = 0.2, .a = 1.0 },
         .load_op = .clear,
         .store_op = .store,
     };

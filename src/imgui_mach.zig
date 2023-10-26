@@ -74,9 +74,11 @@ const BackendPlatformData = struct {
         var io = imgui.getIO();
         io.backend_platform_name = "imgui_mach";
         io.backend_flags |= imgui.BackendFlags_HasMouseCursors;
-        io.backend_flags |= imgui.BackendFlags_HasSetMousePos;
+        //io.backend_flags |= imgui.BackendFlags_HasSetMousePos;
 
-        return .{};
+        var bd = BackendPlatformData{};
+        bd.setDisplaySizeAndScale();
+        return bd;
     }
 
     pub fn deinit(bd: *BackendPlatformData) void {
@@ -93,21 +95,9 @@ const BackendPlatformData = struct {
     }
 
     pub fn newFrame(bd: *BackendPlatformData) !void {
-        _ = bd;
         var io = imgui.getIO();
 
-        // DisplaySize
-        const window_size = core.size();
-        const w: f32 = @floatFromInt(window_size.width);
-        const h: f32 = @floatFromInt(window_size.height);
-        const display_w: f32 = @floatFromInt(core.descriptor.width);
-        const display_h: f32 = @floatFromInt(core.descriptor.height);
-
-        io.display_size = imgui.Vec2{ .x = w, .y = h };
-
-        // DisplayFramebufferScale
-        if (w > 0 and h > 0)
-            io.display_framebuffer_scale = imgui.Vec2{ .x = display_w / w, .y = display_h / h };
+        bd.setDisplaySizeAndScale();
 
         // DeltaTime
         io.delta_time = if (core.delta_time > 0.0) core.delta_time else 1.0e-6;
@@ -196,6 +186,24 @@ const BackendPlatformData = struct {
         io.addKeyEvent(imgui.Mod_Shift, mods.shift);
         io.addKeyEvent(imgui.Mod_Alt, mods.alt);
         io.addKeyEvent(imgui.Mod_Super, mods.super);
+    }
+
+    fn setDisplaySizeAndScale(bd: *BackendPlatformData) void {
+        _ = bd;
+        var io = imgui.getIO();
+
+        // DisplaySize
+        const window_size = core.size();
+        const w: f32 = @floatFromInt(window_size.width);
+        const h: f32 = @floatFromInt(window_size.height);
+        const display_w: f32 = @floatFromInt(core.descriptor.width);
+        const display_h: f32 = @floatFromInt(core.descriptor.height);
+
+        io.display_size = imgui.Vec2{ .x = w, .y = h };
+
+        // DisplayFramebufferScale
+        if (w > 0 and h > 0)
+            io.display_framebuffer_scale = imgui.Vec2{ .x = display_w / w, .y = display_h / h };
     }
 
     fn imguiMouseButton(button: core.MouseButton) i32 {
@@ -423,7 +431,7 @@ const BackendRendererData = struct {
             // Create and grow vertex/index buffers if needed
             if (fr.vertex_buffer == null or fr.vertex_buffer_size < draw_data.total_vtx_count) {
                 if (fr.vertex_buffer) |buffer| {
-                    buffer.destroy();
+                    //buffer.destroy();
                     buffer.release();
                 }
                 if (fr.vertices) |x| allocator.free(x);
@@ -438,7 +446,7 @@ const BackendRendererData = struct {
             }
             if (fr.index_buffer == null or fr.index_buffer_size < draw_data.total_idx_count) {
                 if (fr.index_buffer) |buffer| {
-                    buffer.destroy();
+                    //buffer.destroy();
                     buffer.release();
                 }
                 if (fr.indices) |x| allocator.free(x);
