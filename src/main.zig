@@ -21,17 +21,17 @@ pub fn init(app: *App) !void {
 
     const allocator = gpa.allocator();
 
-    _ = imgui.CreateContext(null);
+    _ = imgui.createContext(null);
     try imgui_mach.init(allocator, core.device, 3, .bgra8_unorm, .undefined); // TODO - use swap chain preferred format
 
-    var io = imgui.GetIO();
+    var io = imgui.getIO();
 
     // Build atlas
     var tex_pixels: ?*c_char = undefined;
     var tex_w: c_int = undefined;
     var tex_h: c_int = undefined;
     var bytes_per_pixel: c_int = undefined;
-    imgui.FontAtlas_GetTexDataAsRGBA32(io.Fonts.?, &tex_pixels, &tex_w, &tex_h, &bytes_per_pixel);
+    io.fonts.?.getTexDataAsRGBA32(&tex_pixels, &tex_w, &tex_h, &bytes_per_pixel);
 
     app.* = .{
         .title_timer = try core.Timer.start(),
@@ -44,7 +44,7 @@ pub fn deinit(app: *App) void {
     defer core.deinit();
 
     imgui_mach.shutdown();
-    imgui.DestroyContext(null);
+    imgui.destroyContext(null);
 }
 
 pub fn update(app: *App) !bool {
@@ -73,19 +73,17 @@ pub fn update(app: *App) !bool {
 }
 
 fn render(app: *App) !void {
-    var io = imgui.GetIO();
-    io.DisplaySize = imgui.Vec2{ .x = 1920, .y = 1080 };
-    io.DeltaTime = 1.0 / 60.0;
+    var io = imgui.getIO();
 
     imgui_mach.newFrame() catch return;
-    imgui.NewFrame();
+    imgui.newFrame();
 
-    imgui.Text("Hello, world!");
-    _ = imgui.SliderFloat("float", &app.f, 0.0, 1.0);
-    imgui.Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0 / io.Framerate, io.Framerate);
-    imgui.ShowDemoWindow(null);
+    imgui.text("Hello, world!");
+    _ = imgui.sliderFloat("float", &app.f, 0.0, 1.0);
+    imgui.text("Application average %.3f ms/frame (%.1f FPS)", 1000.0 / io.framerate, io.framerate);
+    imgui.showDemoWindow(null);
 
-    imgui.Render();
+    imgui.render();
 
     const back_buffer_view = core.swap_chain.getCurrentTextureView().?;
     const color_attachment = gpu.RenderPassColorAttachment{
@@ -101,7 +99,7 @@ fn render(app: *App) !void {
     });
 
     const pass = encoder.beginRenderPass(&render_pass_info);
-    imgui_mach.renderDrawData(imgui.GetDrawData().?, pass) catch {};
+    imgui_mach.renderDrawData(imgui.getDrawData().?, pass) catch {};
     pass.end();
     pass.release();
 

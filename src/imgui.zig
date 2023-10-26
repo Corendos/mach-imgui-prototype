@@ -14,677 +14,643 @@ pub const COL32_B_SHIFT = 16;
 pub const COL32_A_SHIFT = 24;
 pub const COL32_A_MASK = 0xFF000000;
 pub const DRAWLIST_TEX_LINES_WIDTH_MAX = 63;
-pub const WindowFlags = enum(c_int) {
-    None = 0,
-    NoTitleBar = 1,
-    NoResize = 2,
-    NoMove = 4,
-    NoScrollbar = 8,
-    NoScrollWithMouse = 16,
-    NoCollapse = 32,
-    AlwaysAutoResize = 64,
-    NoBackground = 128,
-    NoSavedSettings = 256,
-    NoMouseInputs = 512,
-    MenuBar = 1024,
-    HorizontalScrollbar = 2048,
-    NoFocusOnAppearing = 4096,
-    NoBringToFrontOnFocus = 8192,
-    AlwaysVerticalScrollbar = 16384,
-    AlwaysHorizontalScrollbar = 32768,
-    AlwaysUseWindowPadding = 65536,
-    NoNavInputs = 262144,
-    NoNavFocus = 524288,
-    UnsavedDocument = 1048576,
-    NoNav = 786432,
-    NoDecoration = 43,
-    NoInputs = 786944,
-    NavFlattened = 8388608,
-    ChildWindow = 16777216,
-    Tooltip = 33554432,
-    Popup = 67108864,
-    Modal = 134217728,
-    ChildMenu = 268435456,
-};
-pub const InputTextFlags = enum(c_int) {
-    None = 0,
-    CharsDecimal = 1,
-    CharsHexadecimal = 2,
-    CharsUppercase = 4,
-    CharsNoBlank = 8,
-    AutoSelectAll = 16,
-    EnterReturnsTrue = 32,
-    CallbackCompletion = 64,
-    CallbackHistory = 128,
-    CallbackAlways = 256,
-    CallbackCharFilter = 512,
-    AllowTabInput = 1024,
-    CtrlEnterForNewLine = 2048,
-    NoHorizontalScroll = 4096,
-    AlwaysOverwrite = 8192,
-    ReadOnly = 16384,
-    Password = 32768,
-    NoUndoRedo = 65536,
-    CharsScientific = 131072,
-    CallbackResize = 262144,
-    CallbackEdit = 524288,
-    EscapeClearsAll = 1048576,
-};
-pub const TreeNodeFlags = enum(c_int) {
-    None = 0,
-    Selected = 1,
-    Framed = 2,
-    AllowOverlap = 4,
-    NoTreePushOnOpen = 8,
-    NoAutoOpenOnLog = 16,
-    DefaultOpen = 32,
-    OpenOnDoubleClick = 64,
-    OpenOnArrow = 128,
-    Leaf = 256,
-    Bullet = 512,
-    FramePadding = 1024,
-    SpanAvailWidth = 2048,
-    SpanFullWidth = 4096,
-    SpanAllColumns = 8192,
-    NavLeftJumpsBackHere = 16384,
-    CollapsingHeader = 26,
-};
-pub const PopupFlags = enum(c_int) {
-    const MouseButtonLeft = PopupFlags.None;
-    const MouseButtonDefault_ = PopupFlags.MouseButtonRight;
-    None = 0,
-    MouseButtonRight = 1,
-    MouseButtonMiddle = 2,
-    MouseButtonMask_ = 31,
-    NoOpenOverExistingPopup = 32,
-    NoOpenOverItems = 64,
-    AnyPopupId = 128,
-    AnyPopupLevel = 256,
-    AnyPopup = 384,
-};
-pub const SelectableFlags = enum(c_int) {
-    None = 0,
-    DontClosePopups = 1,
-    SpanAllColumns = 2,
-    AllowDoubleClick = 4,
-    Disabled = 8,
-    AllowOverlap = 16,
-};
-pub const ComboFlags = enum(c_int) {
-    None = 0,
-    PopupAlignLeft = 1,
-    HeightSmall = 2,
-    HeightRegular = 4,
-    HeightLarge = 8,
-    HeightLargest = 16,
-    NoArrowButton = 32,
-    NoPreview = 64,
-    WidthFitPreview = 128,
-    HeightMask_ = 30,
-};
-pub const TabBarFlags = enum(c_int) {
-    const FittingPolicyDefault_ = TabBarFlags.FittingPolicyResizeDown;
-    None = 0,
-    Reorderable = 1,
-    AutoSelectNewTabs = 2,
-    TabListPopupButton = 4,
-    NoCloseWithMiddleMouseButton = 8,
-    NoTabListScrollingButtons = 16,
-    NoTooltip = 32,
-    FittingPolicyResizeDown = 64,
-    FittingPolicyScroll = 128,
-    FittingPolicyMask_ = 192,
-};
-pub const TabItemFlags = enum(c_int) {
-    None = 0,
-    UnsavedDocument = 1,
-    SetSelected = 2,
-    NoCloseWithMiddleMouseButton = 4,
-    NoPushId = 8,
-    NoTooltip = 16,
-    NoReorder = 32,
-    Leading = 64,
-    Trailing = 128,
-};
-pub const TableFlags = enum(c_int) {
-    None = 0,
-    Resizable = 1,
-    Reorderable = 2,
-    Hideable = 4,
-    Sortable = 8,
-    NoSavedSettings = 16,
-    ContextMenuInBody = 32,
-    RowBg = 64,
-    BordersInnerH = 128,
-    BordersOuterH = 256,
-    BordersInnerV = 512,
-    BordersOuterV = 1024,
-    BordersH = 384,
-    BordersV = 1536,
-    BordersInner = 640,
-    BordersOuter = 1280,
-    Borders = 1920,
-    NoBordersInBody = 2048,
-    NoBordersInBodyUntilResize = 4096,
-    SizingFixedFit = 8192,
-    SizingFixedSame = 16384,
-    SizingStretchProp = 24576,
-    SizingStretchSame = 32768,
-    NoHostExtendX = 65536,
-    NoHostExtendY = 131072,
-    NoKeepColumnsVisible = 262144,
-    PreciseWidths = 524288,
-    NoClip = 1048576,
-    PadOuterX = 2097152,
-    NoPadOuterX = 4194304,
-    NoPadInnerX = 8388608,
-    ScrollX = 16777216,
-    ScrollY = 33554432,
-    SortMulti = 67108864,
-    SortTristate = 134217728,
-    HighlightHoveredColumn = 268435456,
-    SizingMask_ = 57344,
-};
-pub const TableColumnFlags = enum(c_int) {
-    None = 0,
-    Disabled = 1,
-    DefaultHide = 2,
-    DefaultSort = 4,
-    WidthStretch = 8,
-    WidthFixed = 16,
-    NoResize = 32,
-    NoReorder = 64,
-    NoHide = 128,
-    NoClip = 256,
-    NoSort = 512,
-    NoSortAscending = 1024,
-    NoSortDescending = 2048,
-    NoHeaderLabel = 4096,
-    NoHeaderWidth = 8192,
-    PreferSortAscending = 16384,
-    PreferSortDescending = 32768,
-    IndentEnable = 65536,
-    IndentDisable = 131072,
-    AngledHeader = 262144,
-    IsEnabled = 16777216,
-    IsVisible = 33554432,
-    IsSorted = 67108864,
-    IsHovered = 134217728,
-    WidthMask_ = 24,
-    IndentMask_ = 196608,
-    StatusMask_ = 251658240,
-    NoDirectResize_ = 1073741824,
-};
-pub const TableRowFlags = enum(c_int) {
-    None = 0,
-    Headers = 1,
-};
-pub const TableBgTarget = enum(c_int) {
-    None = 0,
-    RowBg0 = 1,
-    RowBg1 = 2,
-    CellBg = 3,
-};
-pub const FocusedFlags = enum(c_int) {
-    None = 0,
-    ChildWindows = 1,
-    RootWindow = 2,
-    AnyWindow = 4,
-    NoPopupHierarchy = 8,
-    RootAndChildWindows = 3,
-};
-pub const HoveredFlags = enum(c_int) {
-    None = 0,
-    ChildWindows = 1,
-    RootWindow = 2,
-    AnyWindow = 4,
-    NoPopupHierarchy = 8,
-    AllowWhenBlockedByPopup = 32,
-    AllowWhenBlockedByActiveItem = 128,
-    AllowWhenOverlappedByItem = 256,
-    AllowWhenOverlappedByWindow = 512,
-    AllowWhenDisabled = 1024,
-    NoNavOverride = 2048,
-    AllowWhenOverlapped = 768,
-    RectOnly = 928,
-    RootAndChildWindows = 3,
-    ForTooltip = 4096,
-    Stationary = 8192,
-    DelayNone = 16384,
-    DelayShort = 32768,
-    DelayNormal = 65536,
-    NoSharedDelay = 131072,
-};
-pub const DragDropFlags = enum(c_int) {
-    None = 0,
-    SourceNoPreviewTooltip = 1,
-    SourceNoDisableHover = 2,
-    SourceNoHoldToOpenOthers = 4,
-    SourceAllowNullID = 8,
-    SourceExtern = 16,
-    SourceAutoExpirePayload = 32,
-    AcceptBeforeDelivery = 1024,
-    AcceptNoDrawDefaultRect = 2048,
-    AcceptNoPreviewTooltip = 4096,
-    AcceptPeekOnly = 3072,
-};
-pub const DataType = enum(c_int) {
-    S8 = 0,
-    U8 = 1,
-    S16 = 2,
-    U16 = 3,
-    S32 = 4,
-    U32 = 5,
-    S64 = 6,
-    U64 = 7,
-    Float = 8,
-    Double = 9,
-    COUNT = 10,
-};
-pub const Dir = enum(c_int) {
-    None = -1,
-    Left = 0,
-    Right = 1,
-    Up = 2,
-    Down = 3,
-    COUNT = 4,
-};
-pub const SortDirection = enum(c_int) {
-    None = 0,
-    Ascending = 1,
-    Descending = 2,
-};
-pub const Key = enum(c_int) {
-    const ImGuiMod_None = Key.None;
-    const NamedKey_BEGIN = Key.Tab;
-    const NamedKey_END = Key.COUNT;
-    const KeysData_SIZE = Key.NamedKey_COUNT;
-    const KeysData_OFFSET = Key.NamedKey_BEGIN;
-    None = 0,
-    Tab = 512,
-    LeftArrow = 513,
-    RightArrow = 514,
-    UpArrow = 515,
-    DownArrow = 516,
-    PageUp = 517,
-    PageDown = 518,
-    Home = 519,
-    End = 520,
-    Insert = 521,
-    Delete = 522,
-    Backspace = 523,
-    Space = 524,
-    Enter = 525,
-    Escape = 526,
-    LeftCtrl = 527,
-    LeftShift = 528,
-    LeftAlt = 529,
-    LeftSuper = 530,
-    RightCtrl = 531,
-    RightShift = 532,
-    RightAlt = 533,
-    RightSuper = 534,
-    Menu = 535,
-    _0 = 536,
-    _1 = 537,
-    _2 = 538,
-    _3 = 539,
-    _4 = 540,
-    _5 = 541,
-    _6 = 542,
-    _7 = 543,
-    _8 = 544,
-    _9 = 545,
-    _A = 546,
-    _B = 547,
-    _C = 548,
-    _D = 549,
-    _E = 550,
-    _F = 551,
-    _G = 552,
-    _H = 553,
-    _I = 554,
-    _J = 555,
-    _K = 556,
-    _L = 557,
-    _M = 558,
-    _N = 559,
-    _O = 560,
-    _P = 561,
-    _Q = 562,
-    _R = 563,
-    _S = 564,
-    _T = 565,
-    _U = 566,
-    _V = 567,
-    _W = 568,
-    _X = 569,
-    _Y = 570,
-    _Z = 571,
-    F1 = 572,
-    F2 = 573,
-    F3 = 574,
-    F4 = 575,
-    F5 = 576,
-    F6 = 577,
-    F7 = 578,
-    F8 = 579,
-    F9 = 580,
-    F10 = 581,
-    F11 = 582,
-    F12 = 583,
-    F13 = 584,
-    F14 = 585,
-    F15 = 586,
-    F16 = 587,
-    F17 = 588,
-    F18 = 589,
-    F19 = 590,
-    F20 = 591,
-    F21 = 592,
-    F22 = 593,
-    F23 = 594,
-    F24 = 595,
-    Apostrophe = 596,
-    Comma = 597,
-    Minus = 598,
-    Period = 599,
-    Slash = 600,
-    Semicolon = 601,
-    Equal = 602,
-    LeftBracket = 603,
-    Backslash = 604,
-    RightBracket = 605,
-    GraveAccent = 606,
-    CapsLock = 607,
-    ScrollLock = 608,
-    NumLock = 609,
-    PrintScreen = 610,
-    Pause = 611,
-    Keypad0 = 612,
-    Keypad1 = 613,
-    Keypad2 = 614,
-    Keypad3 = 615,
-    Keypad4 = 616,
-    Keypad5 = 617,
-    Keypad6 = 618,
-    Keypad7 = 619,
-    Keypad8 = 620,
-    Keypad9 = 621,
-    KeypadDecimal = 622,
-    KeypadDivide = 623,
-    KeypadMultiply = 624,
-    KeypadSubtract = 625,
-    KeypadAdd = 626,
-    KeypadEnter = 627,
-    KeypadEqual = 628,
-    AppBack = 629,
-    AppForward = 630,
-    GamepadStart = 631,
-    GamepadBack = 632,
-    GamepadFaceLeft = 633,
-    GamepadFaceRight = 634,
-    GamepadFaceUp = 635,
-    GamepadFaceDown = 636,
-    GamepadDpadLeft = 637,
-    GamepadDpadRight = 638,
-    GamepadDpadUp = 639,
-    GamepadDpadDown = 640,
-    GamepadL1 = 641,
-    GamepadR1 = 642,
-    GamepadL2 = 643,
-    GamepadR2 = 644,
-    GamepadL3 = 645,
-    GamepadR3 = 646,
-    GamepadLStickLeft = 647,
-    GamepadLStickRight = 648,
-    GamepadLStickUp = 649,
-    GamepadLStickDown = 650,
-    GamepadRStickLeft = 651,
-    GamepadRStickRight = 652,
-    GamepadRStickUp = 653,
-    GamepadRStickDown = 654,
-    MouseLeft = 655,
-    MouseRight = 656,
-    MouseMiddle = 657,
-    MouseX1 = 658,
-    MouseX2 = 659,
-    MouseWheelX = 660,
-    MouseWheelY = 661,
-    ReservedForModCtrl = 662,
-    ReservedForModShift = 663,
-    ReservedForModAlt = 664,
-    ReservedForModSuper = 665,
-    COUNT = 666,
-    ImGuiMod_Ctrl = 4096,
-    ImGuiMod_Shift = 8192,
-    ImGuiMod_Alt = 16384,
-    ImGuiMod_Super = 32768,
-    ImGuiMod_Shortcut = 2048,
-    ImGuiMod_Mask_ = 63488,
-    NamedKey_COUNT = 154,
-};
-pub const ConfigFlags = enum(c_int) {
-    None = 0,
-    NavEnableKeyboard = 1,
-    NavEnableGamepad = 2,
-    NavEnableSetMousePos = 4,
-    NavNoCaptureKeyboard = 8,
-    NoMouse = 16,
-    NoMouseCursorChange = 32,
-    IsSRGB = 1048576,
-    IsTouchScreen = 2097152,
-};
-pub const BackendFlags = enum(c_int) {
-    None = 0,
-    HasGamepad = 1,
-    HasMouseCursors = 2,
-    HasSetMousePos = 4,
-    RendererHasVtxOffset = 8,
-};
-pub const Col = enum(c_int) {
-    Text = 0,
-    TextDisabled = 1,
-    WindowBg = 2,
-    ChildBg = 3,
-    PopupBg = 4,
-    Border = 5,
-    BorderShadow = 6,
-    FrameBg = 7,
-    FrameBgHovered = 8,
-    FrameBgActive = 9,
-    TitleBg = 10,
-    TitleBgActive = 11,
-    TitleBgCollapsed = 12,
-    MenuBarBg = 13,
-    ScrollbarBg = 14,
-    ScrollbarGrab = 15,
-    ScrollbarGrabHovered = 16,
-    ScrollbarGrabActive = 17,
-    CheckMark = 18,
-    SliderGrab = 19,
-    SliderGrabActive = 20,
-    Button = 21,
-    ButtonHovered = 22,
-    ButtonActive = 23,
-    Header = 24,
-    HeaderHovered = 25,
-    HeaderActive = 26,
-    Separator = 27,
-    SeparatorHovered = 28,
-    SeparatorActive = 29,
-    ResizeGrip = 30,
-    ResizeGripHovered = 31,
-    ResizeGripActive = 32,
-    Tab = 33,
-    TabHovered = 34,
-    TabActive = 35,
-    TabUnfocused = 36,
-    TabUnfocusedActive = 37,
-    PlotLines = 38,
-    PlotLinesHovered = 39,
-    PlotHistogram = 40,
-    PlotHistogramHovered = 41,
-    TableHeaderBg = 42,
-    TableBorderStrong = 43,
-    TableBorderLight = 44,
-    TableRowBg = 45,
-    TableRowBgAlt = 46,
-    TextSelectedBg = 47,
-    DragDropTarget = 48,
-    NavHighlight = 49,
-    NavWindowingHighlight = 50,
-    NavWindowingDimBg = 51,
-    ModalWindowDimBg = 52,
-    COUNT = 53,
-};
-pub const StyleVar = enum(c_int) {
-    Alpha = 0,
-    DisabledAlpha = 1,
-    WindowPadding = 2,
-    WindowRounding = 3,
-    WindowBorderSize = 4,
-    WindowMinSize = 5,
-    WindowTitleAlign = 6,
-    ChildRounding = 7,
-    ChildBorderSize = 8,
-    PopupRounding = 9,
-    PopupBorderSize = 10,
-    FramePadding = 11,
-    FrameRounding = 12,
-    FrameBorderSize = 13,
-    ItemSpacing = 14,
-    ItemInnerSpacing = 15,
-    IndentSpacing = 16,
-    CellPadding = 17,
-    ScrollbarSize = 18,
-    ScrollbarRounding = 19,
-    GrabMinSize = 20,
-    GrabRounding = 21,
-    TabRounding = 22,
-    TabBarBorderSize = 23,
-    ButtonTextAlign = 24,
-    SelectableTextAlign = 25,
-    SeparatorTextBorderSize = 26,
-    SeparatorTextAlign = 27,
-    SeparatorTextPadding = 28,
-    COUNT = 29,
-};
-pub const ButtonFlags = enum(c_int) {
-    const MouseButtonDefault_ = ButtonFlags.MouseButtonLeft;
-    None = 0,
-    MouseButtonLeft = 1,
-    MouseButtonRight = 2,
-    MouseButtonMiddle = 4,
-    MouseButtonMask_ = 7,
-};
-pub const ColorEditFlags = enum(c_int) {
-    None = 0,
-    NoAlpha = 2,
-    NoPicker = 4,
-    NoOptions = 8,
-    NoSmallPreview = 16,
-    NoInputs = 32,
-    NoTooltip = 64,
-    NoLabel = 128,
-    NoSidePreview = 256,
-    NoDragDrop = 512,
-    NoBorder = 1024,
-    AlphaBar = 65536,
-    AlphaPreview = 131072,
-    AlphaPreviewHalf = 262144,
-    HDR = 524288,
-    DisplayRGB = 1048576,
-    DisplayHSV = 2097152,
-    DisplayHex = 4194304,
-    Uint8 = 8388608,
-    Float = 16777216,
-    PickerHueBar = 33554432,
-    PickerHueWheel = 67108864,
-    InputRGB = 134217728,
-    InputHSV = 268435456,
-    DefaultOptions_ = 177209344,
-    DisplayMask_ = 7340032,
-    DataTypeMask_ = 25165824,
-    PickerMask_ = 100663296,
-    InputMask_ = 402653184,
-};
-pub const SliderFlags = enum(c_int) {
-    None = 0,
-    AlwaysClamp = 16,
-    Logarithmic = 32,
-    NoRoundToFormat = 64,
-    NoInput = 128,
-    InvalidMask_ = 1879048207,
-};
-pub const MouseButton = enum(c_int) {
-    Left = 0,
-    Right = 1,
-    Middle = 2,
-    COUNT = 5,
-};
-pub const MouseCursor = enum(c_int) {
-    None = -1,
-    Arrow = 0,
-    TextInput = 1,
-    ResizeAll = 2,
-    ResizeNS = 3,
-    ResizeEW = 4,
-    ResizeNESW = 5,
-    ResizeNWSE = 6,
-    Hand = 7,
-    NotAllowed = 8,
-    COUNT = 9,
-};
-pub const MouseSource = enum(c_int) {
-    Mouse = 0,
-    TouchScreen = 1,
-    Pen = 2,
-    COUNT = 3,
-};
-pub const Cond = enum(c_int) {
-    None = 0,
-    Always = 1,
-    Once = 2,
-    FirstUseEver = 4,
-    Appearing = 8,
-};
-pub const DrawFlags = enum(c_int) {
-    const RoundCornersDefault_ = DrawFlags.RoundCornersAll;
-    None = 0,
-    Closed = 1,
-    RoundCornersTopLeft = 16,
-    RoundCornersTopRight = 32,
-    RoundCornersBottomLeft = 64,
-    RoundCornersBottomRight = 128,
-    RoundCornersNone = 256,
-    RoundCornersTop = 48,
-    RoundCornersBottom = 192,
-    RoundCornersLeft = 80,
-    RoundCornersRight = 160,
-    RoundCornersAll = 240,
-    RoundCornersMask_ = 496,
-};
-pub const DrawListFlags = enum(c_int) {
-    None = 0,
-    AntiAliasedLines = 1,
-    AntiAliasedLinesUseTex = 2,
-    AntiAliasedFill = 4,
-    AllowVtxOffset = 8,
-};
-pub const FontAtlasFlags = enum(c_int) {
-    None = 0,
-    NoPowerOfTwoHeight = 1,
-    NoMouseCursors = 2,
-    NoBakedLines = 4,
-};
-pub const ViewportFlags = enum(c_int) {
-    None = 0,
-    IsPlatformWindow = 1,
-    IsPlatformMonitor = 2,
-    OwnedByApp = 4,
-};
+pub const WindowFlags_None = 0;
+pub const WindowFlags_NoTitleBar = 1;
+pub const WindowFlags_NoResize = 2;
+pub const WindowFlags_NoMove = 4;
+pub const WindowFlags_NoScrollbar = 8;
+pub const WindowFlags_NoScrollWithMouse = 16;
+pub const WindowFlags_NoCollapse = 32;
+pub const WindowFlags_AlwaysAutoResize = 64;
+pub const WindowFlags_NoBackground = 128;
+pub const WindowFlags_NoSavedSettings = 256;
+pub const WindowFlags_NoMouseInputs = 512;
+pub const WindowFlags_MenuBar = 1024;
+pub const WindowFlags_HorizontalScrollbar = 2048;
+pub const WindowFlags_NoFocusOnAppearing = 4096;
+pub const WindowFlags_NoBringToFrontOnFocus = 8192;
+pub const WindowFlags_AlwaysVerticalScrollbar = 16384;
+pub const WindowFlags_AlwaysHorizontalScrollbar = 32768;
+pub const WindowFlags_AlwaysUseWindowPadding = 65536;
+pub const WindowFlags_NoNavInputs = 262144;
+pub const WindowFlags_NoNavFocus = 524288;
+pub const WindowFlags_UnsavedDocument = 1048576;
+pub const WindowFlags_NoNav = 786432;
+pub const WindowFlags_NoDecoration = 43;
+pub const WindowFlags_NoInputs = 786944;
+pub const WindowFlags_NavFlattened = 8388608;
+pub const WindowFlags_ChildWindow = 16777216;
+pub const WindowFlags_Tooltip = 33554432;
+pub const WindowFlags_Popup = 67108864;
+pub const WindowFlags_Modal = 134217728;
+pub const WindowFlags_ChildMenu = 268435456;
+pub const InputTextFlags_None = 0;
+pub const InputTextFlags_CharsDecimal = 1;
+pub const InputTextFlags_CharsHexadecimal = 2;
+pub const InputTextFlags_CharsUppercase = 4;
+pub const InputTextFlags_CharsNoBlank = 8;
+pub const InputTextFlags_AutoSelectAll = 16;
+pub const InputTextFlags_EnterReturnsTrue = 32;
+pub const InputTextFlags_CallbackCompletion = 64;
+pub const InputTextFlags_CallbackHistory = 128;
+pub const InputTextFlags_CallbackAlways = 256;
+pub const InputTextFlags_CallbackCharFilter = 512;
+pub const InputTextFlags_AllowTabInput = 1024;
+pub const InputTextFlags_CtrlEnterForNewLine = 2048;
+pub const InputTextFlags_NoHorizontalScroll = 4096;
+pub const InputTextFlags_AlwaysOverwrite = 8192;
+pub const InputTextFlags_ReadOnly = 16384;
+pub const InputTextFlags_Password = 32768;
+pub const InputTextFlags_NoUndoRedo = 65536;
+pub const InputTextFlags_CharsScientific = 131072;
+pub const InputTextFlags_CallbackResize = 262144;
+pub const InputTextFlags_CallbackEdit = 524288;
+pub const InputTextFlags_EscapeClearsAll = 1048576;
+pub const TreeNodeFlags_None = 0;
+pub const TreeNodeFlags_Selected = 1;
+pub const TreeNodeFlags_Framed = 2;
+pub const TreeNodeFlags_AllowOverlap = 4;
+pub const TreeNodeFlags_NoTreePushOnOpen = 8;
+pub const TreeNodeFlags_NoAutoOpenOnLog = 16;
+pub const TreeNodeFlags_DefaultOpen = 32;
+pub const TreeNodeFlags_OpenOnDoubleClick = 64;
+pub const TreeNodeFlags_OpenOnArrow = 128;
+pub const TreeNodeFlags_Leaf = 256;
+pub const TreeNodeFlags_Bullet = 512;
+pub const TreeNodeFlags_FramePadding = 1024;
+pub const TreeNodeFlags_SpanAvailWidth = 2048;
+pub const TreeNodeFlags_SpanFullWidth = 4096;
+pub const TreeNodeFlags_SpanAllColumns = 8192;
+pub const TreeNodeFlags_NavLeftJumpsBackHere = 16384;
+pub const TreeNodeFlags_CollapsingHeader = 26;
+pub const PopupFlags_None = 0;
+pub const PopupFlags_MouseButtonLeft = 0;
+pub const PopupFlags_MouseButtonRight = 1;
+pub const PopupFlags_MouseButtonMiddle = 2;
+pub const PopupFlags_MouseButtonMask_ = 31;
+pub const PopupFlags_MouseButtonDefault_ = 1;
+pub const PopupFlags_NoOpenOverExistingPopup = 32;
+pub const PopupFlags_NoOpenOverItems = 64;
+pub const PopupFlags_AnyPopupId = 128;
+pub const PopupFlags_AnyPopupLevel = 256;
+pub const PopupFlags_AnyPopup = 384;
+pub const SelectableFlags_None = 0;
+pub const SelectableFlags_DontClosePopups = 1;
+pub const SelectableFlags_SpanAllColumns = 2;
+pub const SelectableFlags_AllowDoubleClick = 4;
+pub const SelectableFlags_Disabled = 8;
+pub const SelectableFlags_AllowOverlap = 16;
+pub const ComboFlags_None = 0;
+pub const ComboFlags_PopupAlignLeft = 1;
+pub const ComboFlags_HeightSmall = 2;
+pub const ComboFlags_HeightRegular = 4;
+pub const ComboFlags_HeightLarge = 8;
+pub const ComboFlags_HeightLargest = 16;
+pub const ComboFlags_NoArrowButton = 32;
+pub const ComboFlags_NoPreview = 64;
+pub const ComboFlags_WidthFitPreview = 128;
+pub const ComboFlags_HeightMask_ = 30;
+pub const TabBarFlags_None = 0;
+pub const TabBarFlags_Reorderable = 1;
+pub const TabBarFlags_AutoSelectNewTabs = 2;
+pub const TabBarFlags_TabListPopupButton = 4;
+pub const TabBarFlags_NoCloseWithMiddleMouseButton = 8;
+pub const TabBarFlags_NoTabListScrollingButtons = 16;
+pub const TabBarFlags_NoTooltip = 32;
+pub const TabBarFlags_FittingPolicyResizeDown = 64;
+pub const TabBarFlags_FittingPolicyScroll = 128;
+pub const TabBarFlags_FittingPolicyMask_ = 192;
+pub const TabBarFlags_FittingPolicyDefault_ = 64;
+pub const TabItemFlags_None = 0;
+pub const TabItemFlags_UnsavedDocument = 1;
+pub const TabItemFlags_SetSelected = 2;
+pub const TabItemFlags_NoCloseWithMiddleMouseButton = 4;
+pub const TabItemFlags_NoPushId = 8;
+pub const TabItemFlags_NoTooltip = 16;
+pub const TabItemFlags_NoReorder = 32;
+pub const TabItemFlags_Leading = 64;
+pub const TabItemFlags_Trailing = 128;
+pub const TableFlags_None = 0;
+pub const TableFlags_Resizable = 1;
+pub const TableFlags_Reorderable = 2;
+pub const TableFlags_Hideable = 4;
+pub const TableFlags_Sortable = 8;
+pub const TableFlags_NoSavedSettings = 16;
+pub const TableFlags_ContextMenuInBody = 32;
+pub const TableFlags_RowBg = 64;
+pub const TableFlags_BordersInnerH = 128;
+pub const TableFlags_BordersOuterH = 256;
+pub const TableFlags_BordersInnerV = 512;
+pub const TableFlags_BordersOuterV = 1024;
+pub const TableFlags_BordersH = 384;
+pub const TableFlags_BordersV = 1536;
+pub const TableFlags_BordersInner = 640;
+pub const TableFlags_BordersOuter = 1280;
+pub const TableFlags_Borders = 1920;
+pub const TableFlags_NoBordersInBody = 2048;
+pub const TableFlags_NoBordersInBodyUntilResize = 4096;
+pub const TableFlags_SizingFixedFit = 8192;
+pub const TableFlags_SizingFixedSame = 16384;
+pub const TableFlags_SizingStretchProp = 24576;
+pub const TableFlags_SizingStretchSame = 32768;
+pub const TableFlags_NoHostExtendX = 65536;
+pub const TableFlags_NoHostExtendY = 131072;
+pub const TableFlags_NoKeepColumnsVisible = 262144;
+pub const TableFlags_PreciseWidths = 524288;
+pub const TableFlags_NoClip = 1048576;
+pub const TableFlags_PadOuterX = 2097152;
+pub const TableFlags_NoPadOuterX = 4194304;
+pub const TableFlags_NoPadInnerX = 8388608;
+pub const TableFlags_ScrollX = 16777216;
+pub const TableFlags_ScrollY = 33554432;
+pub const TableFlags_SortMulti = 67108864;
+pub const TableFlags_SortTristate = 134217728;
+pub const TableFlags_HighlightHoveredColumn = 268435456;
+pub const TableFlags_SizingMask_ = 57344;
+pub const TableColumnFlags_None = 0;
+pub const TableColumnFlags_Disabled = 1;
+pub const TableColumnFlags_DefaultHide = 2;
+pub const TableColumnFlags_DefaultSort = 4;
+pub const TableColumnFlags_WidthStretch = 8;
+pub const TableColumnFlags_WidthFixed = 16;
+pub const TableColumnFlags_NoResize = 32;
+pub const TableColumnFlags_NoReorder = 64;
+pub const TableColumnFlags_NoHide = 128;
+pub const TableColumnFlags_NoClip = 256;
+pub const TableColumnFlags_NoSort = 512;
+pub const TableColumnFlags_NoSortAscending = 1024;
+pub const TableColumnFlags_NoSortDescending = 2048;
+pub const TableColumnFlags_NoHeaderLabel = 4096;
+pub const TableColumnFlags_NoHeaderWidth = 8192;
+pub const TableColumnFlags_PreferSortAscending = 16384;
+pub const TableColumnFlags_PreferSortDescending = 32768;
+pub const TableColumnFlags_IndentEnable = 65536;
+pub const TableColumnFlags_IndentDisable = 131072;
+pub const TableColumnFlags_AngledHeader = 262144;
+pub const TableColumnFlags_IsEnabled = 16777216;
+pub const TableColumnFlags_IsVisible = 33554432;
+pub const TableColumnFlags_IsSorted = 67108864;
+pub const TableColumnFlags_IsHovered = 134217728;
+pub const TableColumnFlags_WidthMask_ = 24;
+pub const TableColumnFlags_IndentMask_ = 196608;
+pub const TableColumnFlags_StatusMask_ = 251658240;
+pub const TableColumnFlags_NoDirectResize_ = 1073741824;
+pub const TableRowFlags_None = 0;
+pub const TableRowFlags_Headers = 1;
+pub const TableBgTarget_None = 0;
+pub const TableBgTarget_RowBg0 = 1;
+pub const TableBgTarget_RowBg1 = 2;
+pub const TableBgTarget_CellBg = 3;
+pub const FocusedFlags_None = 0;
+pub const FocusedFlags_ChildWindows = 1;
+pub const FocusedFlags_RootWindow = 2;
+pub const FocusedFlags_AnyWindow = 4;
+pub const FocusedFlags_NoPopupHierarchy = 8;
+pub const FocusedFlags_RootAndChildWindows = 3;
+pub const HoveredFlags_None = 0;
+pub const HoveredFlags_ChildWindows = 1;
+pub const HoveredFlags_RootWindow = 2;
+pub const HoveredFlags_AnyWindow = 4;
+pub const HoveredFlags_NoPopupHierarchy = 8;
+pub const HoveredFlags_AllowWhenBlockedByPopup = 32;
+pub const HoveredFlags_AllowWhenBlockedByActiveItem = 128;
+pub const HoveredFlags_AllowWhenOverlappedByItem = 256;
+pub const HoveredFlags_AllowWhenOverlappedByWindow = 512;
+pub const HoveredFlags_AllowWhenDisabled = 1024;
+pub const HoveredFlags_NoNavOverride = 2048;
+pub const HoveredFlags_AllowWhenOverlapped = 768;
+pub const HoveredFlags_RectOnly = 928;
+pub const HoveredFlags_RootAndChildWindows = 3;
+pub const HoveredFlags_ForTooltip = 4096;
+pub const HoveredFlags_Stationary = 8192;
+pub const HoveredFlags_DelayNone = 16384;
+pub const HoveredFlags_DelayShort = 32768;
+pub const HoveredFlags_DelayNormal = 65536;
+pub const HoveredFlags_NoSharedDelay = 131072;
+pub const DragDropFlags_None = 0;
+pub const DragDropFlags_SourceNoPreviewTooltip = 1;
+pub const DragDropFlags_SourceNoDisableHover = 2;
+pub const DragDropFlags_SourceNoHoldToOpenOthers = 4;
+pub const DragDropFlags_SourceAllowNullID = 8;
+pub const DragDropFlags_SourceExtern = 16;
+pub const DragDropFlags_SourceAutoExpirePayload = 32;
+pub const DragDropFlags_AcceptBeforeDelivery = 1024;
+pub const DragDropFlags_AcceptNoDrawDefaultRect = 2048;
+pub const DragDropFlags_AcceptNoPreviewTooltip = 4096;
+pub const DragDropFlags_AcceptPeekOnly = 3072;
+pub const DataType_S8 = 0;
+pub const DataType_U8 = 1;
+pub const DataType_S16 = 2;
+pub const DataType_U16 = 3;
+pub const DataType_S32 = 4;
+pub const DataType_U32 = 5;
+pub const DataType_S64 = 6;
+pub const DataType_U64 = 7;
+pub const DataType_Float = 8;
+pub const DataType_Double = 9;
+pub const DataType_COUNT = 10;
+pub const Dir_None = -1;
+pub const Dir_Left = 0;
+pub const Dir_Right = 1;
+pub const Dir_Up = 2;
+pub const Dir_Down = 3;
+pub const Dir_COUNT = 4;
+pub const SortDirection_None = 0;
+pub const SortDirection_Ascending = 1;
+pub const SortDirection_Descending = 2;
+pub const Key_None = 0;
+pub const Key_Tab = 512;
+pub const Key_LeftArrow = 513;
+pub const Key_RightArrow = 514;
+pub const Key_UpArrow = 515;
+pub const Key_DownArrow = 516;
+pub const Key_PageUp = 517;
+pub const Key_PageDown = 518;
+pub const Key_Home = 519;
+pub const Key_End = 520;
+pub const Key_Insert = 521;
+pub const Key_Delete = 522;
+pub const Key_Backspace = 523;
+pub const Key_Space = 524;
+pub const Key_Enter = 525;
+pub const Key_Escape = 526;
+pub const Key_LeftCtrl = 527;
+pub const Key_LeftShift = 528;
+pub const Key_LeftAlt = 529;
+pub const Key_LeftSuper = 530;
+pub const Key_RightCtrl = 531;
+pub const Key_RightShift = 532;
+pub const Key_RightAlt = 533;
+pub const Key_RightSuper = 534;
+pub const Key_Menu = 535;
+pub const Key_0 = 536;
+pub const Key_1 = 537;
+pub const Key_2 = 538;
+pub const Key_3 = 539;
+pub const Key_4 = 540;
+pub const Key_5 = 541;
+pub const Key_6 = 542;
+pub const Key_7 = 543;
+pub const Key_8 = 544;
+pub const Key_9 = 545;
+pub const Key_A = 546;
+pub const Key_B = 547;
+pub const Key_C = 548;
+pub const Key_D = 549;
+pub const Key_E = 550;
+pub const Key_F = 551;
+pub const Key_G = 552;
+pub const Key_H = 553;
+pub const Key_I = 554;
+pub const Key_J = 555;
+pub const Key_K = 556;
+pub const Key_L = 557;
+pub const Key_M = 558;
+pub const Key_N = 559;
+pub const Key_O = 560;
+pub const Key_P = 561;
+pub const Key_Q = 562;
+pub const Key_R = 563;
+pub const Key_S = 564;
+pub const Key_T = 565;
+pub const Key_U = 566;
+pub const Key_V = 567;
+pub const Key_W = 568;
+pub const Key_X = 569;
+pub const Key_Y = 570;
+pub const Key_Z = 571;
+pub const Key_F1 = 572;
+pub const Key_F2 = 573;
+pub const Key_F3 = 574;
+pub const Key_F4 = 575;
+pub const Key_F5 = 576;
+pub const Key_F6 = 577;
+pub const Key_F7 = 578;
+pub const Key_F8 = 579;
+pub const Key_F9 = 580;
+pub const Key_F10 = 581;
+pub const Key_F11 = 582;
+pub const Key_F12 = 583;
+pub const Key_F13 = 584;
+pub const Key_F14 = 585;
+pub const Key_F15 = 586;
+pub const Key_F16 = 587;
+pub const Key_F17 = 588;
+pub const Key_F18 = 589;
+pub const Key_F19 = 590;
+pub const Key_F20 = 591;
+pub const Key_F21 = 592;
+pub const Key_F22 = 593;
+pub const Key_F23 = 594;
+pub const Key_F24 = 595;
+pub const Key_Apostrophe = 596;
+pub const Key_Comma = 597;
+pub const Key_Minus = 598;
+pub const Key_Period = 599;
+pub const Key_Slash = 600;
+pub const Key_Semicolon = 601;
+pub const Key_Equal = 602;
+pub const Key_LeftBracket = 603;
+pub const Key_Backslash = 604;
+pub const Key_RightBracket = 605;
+pub const Key_GraveAccent = 606;
+pub const Key_CapsLock = 607;
+pub const Key_ScrollLock = 608;
+pub const Key_NumLock = 609;
+pub const Key_PrintScreen = 610;
+pub const Key_Pause = 611;
+pub const Key_Keypad0 = 612;
+pub const Key_Keypad1 = 613;
+pub const Key_Keypad2 = 614;
+pub const Key_Keypad3 = 615;
+pub const Key_Keypad4 = 616;
+pub const Key_Keypad5 = 617;
+pub const Key_Keypad6 = 618;
+pub const Key_Keypad7 = 619;
+pub const Key_Keypad8 = 620;
+pub const Key_Keypad9 = 621;
+pub const Key_KeypadDecimal = 622;
+pub const Key_KeypadDivide = 623;
+pub const Key_KeypadMultiply = 624;
+pub const Key_KeypadSubtract = 625;
+pub const Key_KeypadAdd = 626;
+pub const Key_KeypadEnter = 627;
+pub const Key_KeypadEqual = 628;
+pub const Key_AppBack = 629;
+pub const Key_AppForward = 630;
+pub const Key_GamepadStart = 631;
+pub const Key_GamepadBack = 632;
+pub const Key_GamepadFaceLeft = 633;
+pub const Key_GamepadFaceRight = 634;
+pub const Key_GamepadFaceUp = 635;
+pub const Key_GamepadFaceDown = 636;
+pub const Key_GamepadDpadLeft = 637;
+pub const Key_GamepadDpadRight = 638;
+pub const Key_GamepadDpadUp = 639;
+pub const Key_GamepadDpadDown = 640;
+pub const Key_GamepadL1 = 641;
+pub const Key_GamepadR1 = 642;
+pub const Key_GamepadL2 = 643;
+pub const Key_GamepadR2 = 644;
+pub const Key_GamepadL3 = 645;
+pub const Key_GamepadR3 = 646;
+pub const Key_GamepadLStickLeft = 647;
+pub const Key_GamepadLStickRight = 648;
+pub const Key_GamepadLStickUp = 649;
+pub const Key_GamepadLStickDown = 650;
+pub const Key_GamepadRStickLeft = 651;
+pub const Key_GamepadRStickRight = 652;
+pub const Key_GamepadRStickUp = 653;
+pub const Key_GamepadRStickDown = 654;
+pub const Key_MouseLeft = 655;
+pub const Key_MouseRight = 656;
+pub const Key_MouseMiddle = 657;
+pub const Key_MouseX1 = 658;
+pub const Key_MouseX2 = 659;
+pub const Key_MouseWheelX = 660;
+pub const Key_MouseWheelY = 661;
+pub const Key_ReservedForModCtrl = 662;
+pub const Key_ReservedForModShift = 663;
+pub const Key_ReservedForModAlt = 664;
+pub const Key_ReservedForModSuper = 665;
+pub const Key_COUNT = 666;
+pub const Mod_None = 0;
+pub const Mod_Ctrl = 4096;
+pub const Mod_Shift = 8192;
+pub const Mod_Alt = 16384;
+pub const Mod_Super = 32768;
+pub const Mod_Shortcut = 2048;
+pub const Mod_Mask_ = 63488;
+pub const Key_NamedKey_BEGIN = 512;
+pub const Key_NamedKey_END = 666;
+pub const Key_NamedKey_COUNT = 154;
+pub const Key_KeysData_SIZE = 154;
+pub const Key_KeysData_OFFSET = 512;
+pub const ConfigFlags_None = 0;
+pub const ConfigFlags_NavEnableKeyboard = 1;
+pub const ConfigFlags_NavEnableGamepad = 2;
+pub const ConfigFlags_NavEnableSetMousePos = 4;
+pub const ConfigFlags_NavNoCaptureKeyboard = 8;
+pub const ConfigFlags_NoMouse = 16;
+pub const ConfigFlags_NoMouseCursorChange = 32;
+pub const ConfigFlags_IsSRGB = 1048576;
+pub const ConfigFlags_IsTouchScreen = 2097152;
+pub const BackendFlags_None = 0;
+pub const BackendFlags_HasGamepad = 1;
+pub const BackendFlags_HasMouseCursors = 2;
+pub const BackendFlags_HasSetMousePos = 4;
+pub const BackendFlags_RendererHasVtxOffset = 8;
+pub const Col_Text = 0;
+pub const Col_TextDisabled = 1;
+pub const Col_WindowBg = 2;
+pub const Col_ChildBg = 3;
+pub const Col_PopupBg = 4;
+pub const Col_Border = 5;
+pub const Col_BorderShadow = 6;
+pub const Col_FrameBg = 7;
+pub const Col_FrameBgHovered = 8;
+pub const Col_FrameBgActive = 9;
+pub const Col_TitleBg = 10;
+pub const Col_TitleBgActive = 11;
+pub const Col_TitleBgCollapsed = 12;
+pub const Col_MenuBarBg = 13;
+pub const Col_ScrollbarBg = 14;
+pub const Col_ScrollbarGrab = 15;
+pub const Col_ScrollbarGrabHovered = 16;
+pub const Col_ScrollbarGrabActive = 17;
+pub const Col_CheckMark = 18;
+pub const Col_SliderGrab = 19;
+pub const Col_SliderGrabActive = 20;
+pub const Col_Button = 21;
+pub const Col_ButtonHovered = 22;
+pub const Col_ButtonActive = 23;
+pub const Col_Header = 24;
+pub const Col_HeaderHovered = 25;
+pub const Col_HeaderActive = 26;
+pub const Col_Separator = 27;
+pub const Col_SeparatorHovered = 28;
+pub const Col_SeparatorActive = 29;
+pub const Col_ResizeGrip = 30;
+pub const Col_ResizeGripHovered = 31;
+pub const Col_ResizeGripActive = 32;
+pub const Col_Tab = 33;
+pub const Col_TabHovered = 34;
+pub const Col_TabActive = 35;
+pub const Col_TabUnfocused = 36;
+pub const Col_TabUnfocusedActive = 37;
+pub const Col_PlotLines = 38;
+pub const Col_PlotLinesHovered = 39;
+pub const Col_PlotHistogram = 40;
+pub const Col_PlotHistogramHovered = 41;
+pub const Col_TableHeaderBg = 42;
+pub const Col_TableBorderStrong = 43;
+pub const Col_TableBorderLight = 44;
+pub const Col_TableRowBg = 45;
+pub const Col_TableRowBgAlt = 46;
+pub const Col_TextSelectedBg = 47;
+pub const Col_DragDropTarget = 48;
+pub const Col_NavHighlight = 49;
+pub const Col_NavWindowingHighlight = 50;
+pub const Col_NavWindowingDimBg = 51;
+pub const Col_ModalWindowDimBg = 52;
+pub const Col_COUNT = 53;
+pub const StyleVar_Alpha = 0;
+pub const StyleVar_DisabledAlpha = 1;
+pub const StyleVar_WindowPadding = 2;
+pub const StyleVar_WindowRounding = 3;
+pub const StyleVar_WindowBorderSize = 4;
+pub const StyleVar_WindowMinSize = 5;
+pub const StyleVar_WindowTitleAlign = 6;
+pub const StyleVar_ChildRounding = 7;
+pub const StyleVar_ChildBorderSize = 8;
+pub const StyleVar_PopupRounding = 9;
+pub const StyleVar_PopupBorderSize = 10;
+pub const StyleVar_FramePadding = 11;
+pub const StyleVar_FrameRounding = 12;
+pub const StyleVar_FrameBorderSize = 13;
+pub const StyleVar_ItemSpacing = 14;
+pub const StyleVar_ItemInnerSpacing = 15;
+pub const StyleVar_IndentSpacing = 16;
+pub const StyleVar_CellPadding = 17;
+pub const StyleVar_ScrollbarSize = 18;
+pub const StyleVar_ScrollbarRounding = 19;
+pub const StyleVar_GrabMinSize = 20;
+pub const StyleVar_GrabRounding = 21;
+pub const StyleVar_TabRounding = 22;
+pub const StyleVar_TabBarBorderSize = 23;
+pub const StyleVar_ButtonTextAlign = 24;
+pub const StyleVar_SelectableTextAlign = 25;
+pub const StyleVar_SeparatorTextBorderSize = 26;
+pub const StyleVar_SeparatorTextAlign = 27;
+pub const StyleVar_SeparatorTextPadding = 28;
+pub const StyleVar_COUNT = 29;
+pub const ButtonFlags_None = 0;
+pub const ButtonFlags_MouseButtonLeft = 1;
+pub const ButtonFlags_MouseButtonRight = 2;
+pub const ButtonFlags_MouseButtonMiddle = 4;
+pub const ButtonFlags_MouseButtonMask_ = 7;
+pub const ButtonFlags_MouseButtonDefault_ = 1;
+pub const ColorEditFlags_None = 0;
+pub const ColorEditFlags_NoAlpha = 2;
+pub const ColorEditFlags_NoPicker = 4;
+pub const ColorEditFlags_NoOptions = 8;
+pub const ColorEditFlags_NoSmallPreview = 16;
+pub const ColorEditFlags_NoInputs = 32;
+pub const ColorEditFlags_NoTooltip = 64;
+pub const ColorEditFlags_NoLabel = 128;
+pub const ColorEditFlags_NoSidePreview = 256;
+pub const ColorEditFlags_NoDragDrop = 512;
+pub const ColorEditFlags_NoBorder = 1024;
+pub const ColorEditFlags_AlphaBar = 65536;
+pub const ColorEditFlags_AlphaPreview = 131072;
+pub const ColorEditFlags_AlphaPreviewHalf = 262144;
+pub const ColorEditFlags_HDR = 524288;
+pub const ColorEditFlags_DisplayRGB = 1048576;
+pub const ColorEditFlags_DisplayHSV = 2097152;
+pub const ColorEditFlags_DisplayHex = 4194304;
+pub const ColorEditFlags_Uint8 = 8388608;
+pub const ColorEditFlags_Float = 16777216;
+pub const ColorEditFlags_PickerHueBar = 33554432;
+pub const ColorEditFlags_PickerHueWheel = 67108864;
+pub const ColorEditFlags_InputRGB = 134217728;
+pub const ColorEditFlags_InputHSV = 268435456;
+pub const ColorEditFlags_DefaultOptions_ = 177209344;
+pub const ColorEditFlags_DisplayMask_ = 7340032;
+pub const ColorEditFlags_DataTypeMask_ = 25165824;
+pub const ColorEditFlags_PickerMask_ = 100663296;
+pub const ColorEditFlags_InputMask_ = 402653184;
+pub const SliderFlags_None = 0;
+pub const SliderFlags_AlwaysClamp = 16;
+pub const SliderFlags_Logarithmic = 32;
+pub const SliderFlags_NoRoundToFormat = 64;
+pub const SliderFlags_NoInput = 128;
+pub const SliderFlags_InvalidMask_ = 1879048207;
+pub const MouseButton_Left = 0;
+pub const MouseButton_Right = 1;
+pub const MouseButton_Middle = 2;
+pub const MouseButton_COUNT = 5;
+pub const MouseCursor_None = -1;
+pub const MouseCursor_Arrow = 0;
+pub const MouseCursor_TextInput = 1;
+pub const MouseCursor_ResizeAll = 2;
+pub const MouseCursor_ResizeNS = 3;
+pub const MouseCursor_ResizeEW = 4;
+pub const MouseCursor_ResizeNESW = 5;
+pub const MouseCursor_ResizeNWSE = 6;
+pub const MouseCursor_Hand = 7;
+pub const MouseCursor_NotAllowed = 8;
+pub const MouseCursor_COUNT = 9;
+pub const MouseSource_Mouse = 0;
+pub const MouseSource_TouchScreen = 1;
+pub const MouseSource_Pen = 2;
+pub const MouseSource_COUNT = 3;
+pub const Cond_None = 0;
+pub const Cond_Always = 1;
+pub const Cond_Once = 2;
+pub const Cond_FirstUseEver = 4;
+pub const Cond_Appearing = 8;
+pub const DrawFlags_None = 0;
+pub const DrawFlags_Closed = 1;
+pub const DrawFlags_RoundCornersTopLeft = 16;
+pub const DrawFlags_RoundCornersTopRight = 32;
+pub const DrawFlags_RoundCornersBottomLeft = 64;
+pub const DrawFlags_RoundCornersBottomRight = 128;
+pub const DrawFlags_RoundCornersNone = 256;
+pub const DrawFlags_RoundCornersTop = 48;
+pub const DrawFlags_RoundCornersBottom = 192;
+pub const DrawFlags_RoundCornersLeft = 80;
+pub const DrawFlags_RoundCornersRight = 160;
+pub const DrawFlags_RoundCornersAll = 240;
+pub const DrawFlags_RoundCornersDefault_ = 240;
+pub const DrawFlags_RoundCornersMask_ = 496;
+pub const DrawListFlags_None = 0;
+pub const DrawListFlags_AntiAliasedLines = 1;
+pub const DrawListFlags_AntiAliasedLinesUseTex = 2;
+pub const DrawListFlags_AntiAliasedFill = 4;
+pub const DrawListFlags_AllowVtxOffset = 8;
+pub const FontAtlasFlags_None = 0;
+pub const FontAtlasFlags_NoPowerOfTwoHeight = 1;
+pub const FontAtlasFlags_NoMouseCursors = 2;
+pub const FontAtlasFlags_NoBakedLines = 4;
+pub const ViewportFlags_None = 0;
+pub const ViewportFlags_IsPlatformWindow = 1;
+pub const ViewportFlags_IsPlatformMonitor = 2;
+pub const ViewportFlags_OwnedByApp = 4;
+pub const Key = c_int;
+pub const MouseSource = c_int;
+pub const Col = c_int;
+pub const Cond = c_int;
+pub const DataType = c_int;
+pub const Dir = c_int;
+pub const MouseButton = c_int;
+pub const MouseCursor = c_int;
+pub const SortDirection = c_int;
+pub const StyleVar = c_int;
+pub const TableBgTarget = c_int;
+pub const DrawFlags = c_int;
+pub const DrawListFlags = c_int;
+pub const FontAtlasFlags = c_int;
+pub const BackendFlags = c_int;
+pub const ButtonFlags = c_int;
+pub const ColorEditFlags = c_int;
+pub const ConfigFlags = c_int;
+pub const ComboFlags = c_int;
+pub const DragDropFlags = c_int;
+pub const FocusedFlags = c_int;
+pub const HoveredFlags = c_int;
+pub const InputTextFlags = c_int;
 pub const KeyChord = c_int;
+pub const PopupFlags = c_int;
+pub const SelectableFlags = c_int;
+pub const SliderFlags = c_int;
+pub const TabBarFlags = c_int;
+pub const TabItemFlags = c_int;
+pub const TableFlags = c_int;
+pub const TableColumnFlags = c_int;
+pub const TableRowFlags = c_int;
+pub const TreeNodeFlags = c_int;
+pub const ViewportFlags = c_int;
+pub const WindowFlags = c_int;
 pub const TextureID = ?*anyopaque;
 pub const DrawIdx = c_ushort;
 pub const ID = c_uint;
@@ -706,9 +672,9 @@ pub const MemFreeFunc = ?*const fn (?*anyopaque, ?*anyopaque) callconv(.C) void;
 pub const DrawCallback = ?*const fn (?*const DrawList, ?*const DrawCmd) callconv(.C) void;
 pub fn Vector(comptime T: type) type {
     return extern struct {
-        Size: c_int,
-        Capacity: c_int,
-        Data: [*]T,
+        size: c_int,
+        capacity: c_int,
+        data: [*]T,
     };
 }
 pub const DrawListSharedData = extern struct {
@@ -728,207 +694,249 @@ pub const Vec4 = extern struct {
     w: f32,
 };
 pub const Style = extern struct {
-    Alpha: f32,
-    DisabledAlpha: f32,
-    WindowPadding: Vec2,
-    WindowRounding: f32,
-    WindowBorderSize: f32,
-    WindowMinSize: Vec2,
-    WindowTitleAlign: Vec2,
-    WindowMenuButtonPosition: Dir,
-    ChildRounding: f32,
-    ChildBorderSize: f32,
-    PopupRounding: f32,
-    PopupBorderSize: f32,
-    FramePadding: Vec2,
-    FrameRounding: f32,
-    FrameBorderSize: f32,
-    ItemSpacing: Vec2,
-    ItemInnerSpacing: Vec2,
-    CellPadding: Vec2,
-    TouchExtraPadding: Vec2,
-    IndentSpacing: f32,
-    ColumnsMinSpacing: f32,
-    ScrollbarSize: f32,
-    ScrollbarRounding: f32,
-    GrabMinSize: f32,
-    GrabRounding: f32,
-    LogSliderDeadzone: f32,
-    TabRounding: f32,
-    TabBorderSize: f32,
-    TabMinWidthForCloseButton: f32,
-    TabBarBorderSize: f32,
-    TableAngledHeadersAngle: f32,
-    ColorButtonPosition: Dir,
-    ButtonTextAlign: Vec2,
-    SelectableTextAlign: Vec2,
-    SeparatorTextBorderSize: f32,
-    SeparatorTextAlign: Vec2,
-    SeparatorTextPadding: Vec2,
-    DisplayWindowPadding: Vec2,
-    DisplaySafeAreaPadding: Vec2,
-    MouseCursorScale: f32,
-    AntiAliasedLines: bool,
-    AntiAliasedLinesUseTex: bool,
-    AntiAliasedFill: bool,
-    CurveTessellationTol: f32,
-    CircleTessellationMaxError: f32,
-    Colors: [@intFromEnum(Col.COUNT)]Vec4,
-    HoverStationaryDelay: f32,
-    HoverDelayShort: f32,
-    HoverDelayNormal: f32,
-    HoverFlagsForTooltipMouse: HoveredFlags,
-    HoverFlagsForTooltipNav: HoveredFlags,
+    alpha: f32,
+    disabled_alpha: f32,
+    window_padding: Vec2,
+    window_rounding: f32,
+    window_border_size: f32,
+    window_min_size: Vec2,
+    window_title_align: Vec2,
+    window_menu_button_position: Dir,
+    child_rounding: f32,
+    child_border_size: f32,
+    popup_rounding: f32,
+    popup_border_size: f32,
+    frame_padding: Vec2,
+    frame_rounding: f32,
+    frame_border_size: f32,
+    item_spacing: Vec2,
+    item_inner_spacing: Vec2,
+    cell_padding: Vec2,
+    touch_extra_padding: Vec2,
+    indent_spacing: f32,
+    columns_min_spacing: f32,
+    scrollbar_size: f32,
+    scrollbar_rounding: f32,
+    grab_min_size: f32,
+    grab_rounding: f32,
+    log_slider_deadzone: f32,
+    tab_rounding: f32,
+    tab_border_size: f32,
+    tab_min_width_for_close_button: f32,
+    tab_bar_border_size: f32,
+    table_angled_headers_angle: f32,
+    color_button_position: Dir,
+    button_text_align: Vec2,
+    selectable_text_align: Vec2,
+    separator_text_border_size: f32,
+    separator_text_align: Vec2,
+    separator_text_padding: Vec2,
+    display_window_padding: Vec2,
+    display_safe_area_padding: Vec2,
+    mouse_cursor_scale: f32,
+    anti_aliased_lines: bool,
+    anti_aliased_lines_use_tex: bool,
+    anti_aliased_fill: bool,
+    curve_tessellation_tol: f32,
+    circle_tessellation_max_error: f32,
+    colors: [Col_COUNT]Vec4,
+    hover_stationary_delay: f32,
+    hover_delay_short: f32,
+    hover_delay_normal: f32,
+    hover_flags_for_tooltip_mouse: HoveredFlags,
+    hover_flags_for_tooltip_nav: HoveredFlags,
+    pub const scaleAllSizes = ImGuiStyle_ScaleAllSizes;
 };
 pub const KeyData = extern struct {
-    Down: bool,
-    DownDuration: f32,
-    DownDurationPrev: f32,
-    AnalogValue: f32,
+    down: bool,
+    down_duration: f32,
+    down_duration_prev: f32,
+    analog_value: f32,
 };
 pub const IO = extern struct {
-    ConfigFlags: ConfigFlags,
-    BackendFlags: BackendFlags,
-    DisplaySize: Vec2,
-    DeltaTime: f32,
-    IniSavingRate: f32,
-    IniFilename: ?[*:0]const u8,
-    LogFilename: ?[*:0]const u8,
-    UserData: ?*anyopaque,
-    Fonts: ?*FontAtlas,
-    FontGlobalScale: f32,
-    FontAllowUserScaling: bool,
-    FontDefault: ?*Font,
-    DisplayFramebufferScale: Vec2,
-    MouseDrawCursor: bool,
-    ConfigMacOSXBehaviors: bool,
-    ConfigInputTrickleEventQueue: bool,
-    ConfigInputTextCursorBlink: bool,
-    ConfigInputTextEnterKeepActive: bool,
-    ConfigDragClickToInputText: bool,
-    ConfigWindowsResizeFromEdges: bool,
-    ConfigWindowsMoveFromTitleBarOnly: bool,
-    ConfigMemoryCompactTimer: f32,
-    MouseDoubleClickTime: f32,
-    MouseDoubleClickMaxDist: f32,
-    MouseDragThreshold: f32,
-    KeyRepeatDelay: f32,
-    KeyRepeatRate: f32,
-    ConfigDebugBeginReturnValueOnce: bool,
-    ConfigDebugBeginReturnValueLoop: bool,
-    ConfigDebugIgnoreFocusLoss: bool,
-    ConfigDebugIniSettings: bool,
-    BackendPlatformName: ?[*:0]const u8,
-    BackendRendererName: ?[*:0]const u8,
-    BackendPlatformUserData: ?*anyopaque,
-    BackendRendererUserData: ?*anyopaque,
-    BackendLanguageUserData: ?*anyopaque,
-    GetClipboardTextFn: ?*const fn (?*anyopaque) callconv(.C) ?[*:0]const u8,
-    SetClipboardTextFn: ?*const fn (?*anyopaque, ?[*:0]const u8) callconv(.C) void,
-    ClipboardUserData: ?*anyopaque,
-    SetPlatformImeDataFn: ?*const fn (?*Viewport, ?*PlatformImeData) callconv(.C) void,
-    PlatformLocaleDecimalPoint: Wchar,
-    WantCaptureMouse: bool,
-    WantCaptureKeyboard: bool,
-    WantTextInput: bool,
-    WantSetMousePos: bool,
-    WantSaveIniSettings: bool,
-    NavActive: bool,
-    NavVisible: bool,
-    Framerate: f32,
-    MetricsRenderVertices: c_int,
-    MetricsRenderIndices: c_int,
-    MetricsRenderWindows: c_int,
-    MetricsActiveWindows: c_int,
-    MouseDelta: Vec2,
-    Ctx: ?*Context,
-    MousePos: Vec2,
-    MouseDown: [5]bool,
-    MouseWheel: f32,
-    MouseWheelH: f32,
-    MouseSource: MouseSource,
-    KeyCtrl: bool,
-    KeyShift: bool,
-    KeyAlt: bool,
-    KeySuper: bool,
-    KeyMods: KeyChord,
-    KeysData: [@intFromEnum(Key.KeysData_SIZE)]KeyData,
-    WantCaptureMouseUnlessPopupClose: bool,
-    MousePosPrev: Vec2,
-    MouseClickedPos: [5]Vec2,
-    MouseClickedTime: [5]f64,
-    MouseClicked: [5]bool,
-    MouseDoubleClicked: [5]bool,
-    MouseClickedCount: [5]U16,
-    MouseClickedLastCount: [5]U16,
-    MouseReleased: [5]bool,
-    MouseDownOwned: [5]bool,
-    MouseDownOwnedUnlessPopupClose: [5]bool,
-    MouseWheelRequestAxisSwap: bool,
-    MouseDownDuration: [5]f32,
-    MouseDownDurationPrev: [5]f32,
-    MouseDragMaxDistanceSqr: [5]f32,
-    PenPressure: f32,
-    AppFocusLost: bool,
-    AppAcceptingEvents: bool,
-    BackendUsingLegacyKeyArrays: S8,
-    BackendUsingLegacyNavInputArray: bool,
-    InputQueueSurrogate: Wchar16,
-    InputQueueCharacters: Vector(Wchar),
+    config_flags: ConfigFlags,
+    backend_flags: BackendFlags,
+    display_size: Vec2,
+    delta_time: f32,
+    ini_saving_rate: f32,
+    ini_filename: ?[*:0]const u8,
+    log_filename: ?[*:0]const u8,
+    user_data: ?*anyopaque,
+    fonts: ?*FontAtlas,
+    font_global_scale: f32,
+    font_allow_user_scaling: bool,
+    font_default: ?*Font,
+    display_framebuffer_scale: Vec2,
+    mouse_draw_cursor: bool,
+    config_mac_osxbehaviors: bool,
+    config_input_trickle_event_queue: bool,
+    config_input_text_cursor_blink: bool,
+    config_input_text_enter_keep_active: bool,
+    config_drag_click_to_input_text: bool,
+    config_windows_resize_from_edges: bool,
+    config_windows_move_from_title_bar_only: bool,
+    config_memory_compact_timer: f32,
+    mouse_double_click_time: f32,
+    mouse_double_click_max_dist: f32,
+    mouse_drag_threshold: f32,
+    key_repeat_delay: f32,
+    key_repeat_rate: f32,
+    config_debug_begin_return_value_once: bool,
+    config_debug_begin_return_value_loop: bool,
+    config_debug_ignore_focus_loss: bool,
+    config_debug_ini_settings: bool,
+    backend_platform_name: ?[*:0]const u8,
+    backend_renderer_name: ?[*:0]const u8,
+    backend_platform_user_data: ?*anyopaque,
+    backend_renderer_user_data: ?*anyopaque,
+    backend_language_user_data: ?*anyopaque,
+    get_clipboard_text_fn: ?*const fn (?*anyopaque) callconv(.C) ?[*:0]const u8,
+    set_clipboard_text_fn: ?*const fn (?*anyopaque, ?[*:0]const u8) callconv(.C) void,
+    clipboard_user_data: ?*anyopaque,
+    set_platform_ime_data_fn: ?*const fn (?*Viewport, ?*PlatformImeData) callconv(.C) void,
+    platform_locale_decimal_point: Wchar,
+    want_capture_mouse: bool,
+    want_capture_keyboard: bool,
+    want_text_input: bool,
+    want_set_mouse_pos: bool,
+    want_save_ini_settings: bool,
+    nav_active: bool,
+    nav_visible: bool,
+    framerate: f32,
+    metrics_render_vertices: c_int,
+    metrics_render_indices: c_int,
+    metrics_render_windows: c_int,
+    metrics_active_windows: c_int,
+    mouse_delta: Vec2,
+    ctx: ?*Context,
+    mouse_pos: Vec2,
+    mouse_down: [5]bool,
+    mouse_wheel: f32,
+    mouse_wheel_h: f32,
+    mouse_source: MouseSource,
+    key_ctrl: bool,
+    key_shift: bool,
+    key_alt: bool,
+    key_super: bool,
+    key_mods: KeyChord,
+    keys_data: [Key_KeysData_SIZE]KeyData,
+    want_capture_mouse_unless_popup_close: bool,
+    mouse_pos_prev: Vec2,
+    mouse_clicked_pos: [5]Vec2,
+    mouse_clicked_time: [5]f64,
+    mouse_clicked: [5]bool,
+    mouse_double_clicked: [5]bool,
+    mouse_clicked_count: [5]U16,
+    mouse_clicked_last_count: [5]U16,
+    mouse_released: [5]bool,
+    mouse_down_owned: [5]bool,
+    mouse_down_owned_unless_popup_close: [5]bool,
+    mouse_wheel_request_axis_swap: bool,
+    mouse_down_duration: [5]f32,
+    mouse_down_duration_prev: [5]f32,
+    mouse_drag_max_distance_sqr: [5]f32,
+    pen_pressure: f32,
+    app_focus_lost: bool,
+    app_accepting_events: bool,
+    backend_using_legacy_key_arrays: S8,
+    backend_using_legacy_nav_input_array: bool,
+    input_queue_surrogate: Wchar16,
+    input_queue_characters: Vector(Wchar),
+    pub const addKeyEvent = ImGuiIO_AddKeyEvent;
+    pub const addKeyAnalogEvent = ImGuiIO_AddKeyAnalogEvent;
+    pub const addMousePosEvent = ImGuiIO_AddMousePosEvent;
+    pub const addMouseButtonEvent = ImGuiIO_AddMouseButtonEvent;
+    pub const addMouseWheelEvent = ImGuiIO_AddMouseWheelEvent;
+    pub const addMouseSourceEvent = ImGuiIO_AddMouseSourceEvent;
+    pub const addFocusEvent = ImGuiIO_AddFocusEvent;
+    pub const addInputCharacter = ImGuiIO_AddInputCharacter;
+    pub const addInputCharacterUTF16 = ImGuiIO_AddInputCharacterUTF16;
+    pub const addInputCharactersUTF8 = ImGuiIO_AddInputCharactersUTF8;
+    pub const setKeyEventNativeData = ImGuiIO_SetKeyEventNativeData;
+    pub const setKeyEventNativeDataEx = ImGuiIO_SetKeyEventNativeDataEx;
+    pub const setAppAcceptingEvents = ImGuiIO_SetAppAcceptingEvents;
+    pub const clearEventsQueue = ImGuiIO_ClearEventsQueue;
+    pub const clearInputKeys = ImGuiIO_ClearInputKeys;
 };
 pub const InputTextCallbackData = extern struct {
-    Ctx: ?*Context,
-    EventFlag: InputTextFlags,
-    Flags: InputTextFlags,
-    UserData: ?*anyopaque,
-    EventChar: Wchar,
-    EventKey: Key,
-    Buf: ?[*:0]const u8,
-    BufTextLen: c_int,
-    BufSize: c_int,
-    BufDirty: bool,
-    CursorPos: c_int,
-    SelectionStart: c_int,
-    SelectionEnd: c_int,
+    ctx: ?*Context,
+    event_flag: InputTextFlags,
+    flags: InputTextFlags,
+    user_data: ?*anyopaque,
+    event_char: Wchar,
+    event_key: Key,
+    buf: ?[*:0]const u8,
+    buf_text_len: c_int,
+    buf_size: c_int,
+    buf_dirty: bool,
+    cursor_pos: c_int,
+    selection_start: c_int,
+    selection_end: c_int,
+    pub const deleteChars = ImGuiInputTextCallbackData_DeleteChars;
+    pub const insertChars = ImGuiInputTextCallbackData_InsertChars;
+    pub const selectAll = ImGuiInputTextCallbackData_SelectAll;
+    pub const clearSelection = ImGuiInputTextCallbackData_ClearSelection;
+    pub const hasSelection = ImGuiInputTextCallbackData_HasSelection;
 };
 pub const SizeCallbackData = extern struct {
-    UserData: ?*anyopaque,
-    Pos: Vec2,
-    CurrentSize: Vec2,
-    DesiredSize: Vec2,
+    user_data: ?*anyopaque,
+    pos: Vec2,
+    current_size: Vec2,
+    desired_size: Vec2,
 };
 pub const Payload = extern struct {
-    Data: ?*anyopaque,
-    DataSize: c_int,
-    SourceId: ID,
-    SourceParentId: ID,
-    DataFrameCount: c_int,
-    DataType: [32+1]c_char,
-    Preview: bool,
-    Delivery: bool,
+    data: ?*anyopaque,
+    data_size: c_int,
+    source_id: ID,
+    source_parent_id: ID,
+    data_frame_count: c_int,
+    data_type: [32+1]c_char,
+    preview: bool,
+    delivery: bool,
+    pub const clear = ImGuiPayload_Clear;
+    pub const isDataType = ImGuiPayload_IsDataType;
+    pub const isPreview = ImGuiPayload_IsPreview;
+    pub const isDelivery = ImGuiPayload_IsDelivery;
 };
 pub const TableColumnSortSpecs = extern struct {
-    ColumnUserID: ID,
-    ColumnIndex: S16,
-    SortOrder: S16,
-    SortDirection: SortDirection,
+    column_user_id: ID,
+    column_index: S16,
+    sort_order: S16,
+    sort_direction: SortDirection,
 };
 pub const TableSortSpecs = extern struct {
-    Specs: ?[*]const TableColumnSortSpecs,
-    SpecsCount: c_int,
-    SpecsDirty: bool,
+    specs: ?[*]const TableColumnSortSpecs,
+    specs_count: c_int,
+    specs_dirty: bool,
 };
 pub const TextFilter_ImGuiTextRange = extern struct {
     b: ?[*:0]const u8,
     e: ?[*:0]const u8,
 };
 pub const TextFilter = extern struct {
-    InputBuf: [256]c_char,
-    Filters: Vector(TextFilter_ImGuiTextRange),
-    CountGrep: c_int,
+    input_buf: [256]c_char,
+    filters: Vector(TextFilter_ImGuiTextRange),
+    count_grep: c_int,
+    pub const imGuiTextRange_empty = ImGuiTextFilter_ImGuiTextRange_empty;
+    pub const imGuiTextRange_split = ImGuiTextFilter_ImGuiTextRange_split;
+    pub const draw = ImGuiTextFilter_Draw;
+    pub const passFilter = ImGuiTextFilter_PassFilter;
+    pub const build = ImGuiTextFilter_Build;
+    pub const clear = ImGuiTextFilter_Clear;
+    pub const isActive = ImGuiTextFilter_IsActive;
 };
 pub const TextBuffer = extern struct {
-    Buf: Vector(u8),
+    buf: Vector(u8),
+    pub const begin = ImGuiTextBuffer_begin;
+    pub const end = ImGuiTextBuffer_end;
+    pub const size = ImGuiTextBuffer_size;
+    pub const empty = ImGuiTextBuffer_empty;
+    pub const clear = ImGuiTextBuffer_clear;
+    pub const reserve = ImGuiTextBuffer_reserve;
+    pub const c_str = ImGuiTextBuffer_c_str;
+    pub const append = ImGuiTextBuffer_append;
+    pub const appendf = ImGuiTextBuffer_appendf;
+    pub const appendfv = ImGuiTextBuffer_appendfv;
 };
 pub const Storage_ImGuiStoragePair = extern struct {
     key: ID,
@@ -940,28 +948,51 @@ pub const __anonymous_type0 = extern struct {
     val_p: ?*anyopaque,
 };
 pub const Storage = extern struct {
-    Data: Vector(Storage_ImGuiStoragePair),
+    data: Vector(Storage_ImGuiStoragePair),
+    pub const clear = ImGuiStorage_Clear;
+    pub const getInt = ImGuiStorage_GetInt;
+    pub const setInt = ImGuiStorage_SetInt;
+    pub const getBool = ImGuiStorage_GetBool;
+    pub const setBool = ImGuiStorage_SetBool;
+    pub const getFloat = ImGuiStorage_GetFloat;
+    pub const setFloat = ImGuiStorage_SetFloat;
+    pub const getVoidPtr = ImGuiStorage_GetVoidPtr;
+    pub const setVoidPtr = ImGuiStorage_SetVoidPtr;
+    pub const getIntRef = ImGuiStorage_GetIntRef;
+    pub const getBoolRef = ImGuiStorage_GetBoolRef;
+    pub const getFloatRef = ImGuiStorage_GetFloatRef;
+    pub const getVoidPtrRef = ImGuiStorage_GetVoidPtrRef;
+    pub const setAllInt = ImGuiStorage_SetAllInt;
+    pub const buildSortByKey = ImGuiStorage_BuildSortByKey;
 };
 pub const ListClipper = extern struct {
-    Ctx: ?*Context,
-    DisplayStart: c_int,
-    DisplayEnd: c_int,
-    ItemsCount: c_int,
-    ItemsHeight: f32,
-    StartPosY: f32,
-    TempData: ?*anyopaque,
+    ctx: ?*Context,
+    display_start: c_int,
+    display_end: c_int,
+    items_count: c_int,
+    items_height: f32,
+    start_pos_y: f32,
+    temp_data: ?*anyopaque,
+    pub const begin = ImGuiListClipper_Begin;
+    pub const end = ImGuiListClipper_End;
+    pub const step = ImGuiListClipper_Step;
+    pub const includeItemByIndex = ImGuiListClipper_IncludeItemByIndex;
+    pub const includeItemsByIndex = ImGuiListClipper_IncludeItemsByIndex;
 };
 pub const Color = extern struct {
-    Value: Vec4,
+    value: Vec4,
+    pub const setHSV = ImColor_SetHSV;
+    pub const hSV = ImColor_HSV;
 };
 pub const DrawCmd = extern struct {
-    ClipRect: Vec4,
-    TextureId: TextureID,
-    VtxOffset: c_uint,
-    IdxOffset: c_uint,
-    ElemCount: c_uint,
-    UserCallback: DrawCallback,
-    UserCallbackData: ?*anyopaque,
+    clip_rect: Vec4,
+    texture_id: TextureID,
+    vtx_offset: c_uint,
+    idx_offset: c_uint,
+    elem_count: c_uint,
+    user_callback: DrawCallback,
+    user_callback_data: ?*anyopaque,
+    pub const getTexID = ImDrawCmd_GetTexID;
 };
 pub const DrawVert = extern struct {
     pos: Vec2,
@@ -969,154 +1000,766 @@ pub const DrawVert = extern struct {
     col: U32,
 };
 pub const DrawCmdHeader = extern struct {
-    ClipRect: Vec4,
-    TextureId: TextureID,
-    VtxOffset: c_uint,
+    clip_rect: Vec4,
+    texture_id: TextureID,
+    vtx_offset: c_uint,
 };
 pub const DrawChannel = extern struct {
-    _CmdBuffer: Vector(DrawCmd),
-    _IdxBuffer: Vector(DrawIdx),
+    __cmd_buffer: Vector(DrawCmd),
+    __idx_buffer: Vector(DrawIdx),
 };
 pub const DrawListSplitter = extern struct {
-    _Current: c_int,
-    _Count: c_int,
-    _Channels: Vector(DrawChannel),
+    __current: c_int,
+    __count: c_int,
+    __channels: Vector(DrawChannel),
+    pub const clear = ImDrawListSplitter_Clear;
+    pub const clearFreeMemory = ImDrawListSplitter_ClearFreeMemory;
+    pub const split = ImDrawListSplitter_Split;
+    pub const merge = ImDrawListSplitter_Merge;
+    pub const setCurrentChannel = ImDrawListSplitter_SetCurrentChannel;
 };
 pub const DrawList = extern struct {
-    CmdBuffer: Vector(DrawCmd),
-    IdxBuffer: Vector(DrawIdx),
-    VtxBuffer: Vector(DrawVert),
-    Flags: DrawListFlags,
-    _VtxCurrentIdx: c_uint,
-    _Data: ?*DrawListSharedData,
-    _OwnerName: ?[*:0]const u8,
-    _VtxWritePtr: ?[*]DrawVert,
-    _IdxWritePtr: ?[*]DrawIdx,
-    _ClipRectStack: Vector(Vec4),
-    _TextureIdStack: Vector(TextureID),
-    _Path: Vector(Vec2),
-    _CmdHeader: DrawCmdHeader,
-    _Splitter: DrawListSplitter,
-    _FringeScale: f32,
+    cmd_buffer: Vector(DrawCmd),
+    idx_buffer: Vector(DrawIdx),
+    vtx_buffer: Vector(DrawVert),
+    flags: DrawListFlags,
+    __vtx_current_idx: c_uint,
+    __data: ?*DrawListSharedData,
+    __owner_name: ?[*:0]const u8,
+    __vtx_write_ptr: ?[*]DrawVert,
+    __idx_write_ptr: ?[*]DrawIdx,
+    __clip_rect_stack: Vector(Vec4),
+    __texture_id_stack: Vector(TextureID),
+    __path: Vector(Vec2),
+    __cmd_header: DrawCmdHeader,
+    __splitter: DrawListSplitter,
+    __fringe_scale: f32,
+    pub const pushClipRect = ImDrawList_PushClipRect;
+    pub const pushClipRectFullScreen = ImDrawList_PushClipRectFullScreen;
+    pub const popClipRect = ImDrawList_PopClipRect;
+    pub const pushTextureID = ImDrawList_PushTextureID;
+    pub const popTextureID = ImDrawList_PopTextureID;
+    pub const getClipRectMin = ImDrawList_GetClipRectMin;
+    pub const getClipRectMax = ImDrawList_GetClipRectMax;
+    pub const addLine = ImDrawList_AddLine;
+    pub const addLineEx = ImDrawList_AddLineEx;
+    pub const addRect = ImDrawList_AddRect;
+    pub const addRectEx = ImDrawList_AddRectEx;
+    pub const addRectFilled = ImDrawList_AddRectFilled;
+    pub const addRectFilledEx = ImDrawList_AddRectFilledEx;
+    pub const addRectFilledMultiColor = ImDrawList_AddRectFilledMultiColor;
+    pub const addQuad = ImDrawList_AddQuad;
+    pub const addQuadEx = ImDrawList_AddQuadEx;
+    pub const addQuadFilled = ImDrawList_AddQuadFilled;
+    pub const addTriangle = ImDrawList_AddTriangle;
+    pub const addTriangleEx = ImDrawList_AddTriangleEx;
+    pub const addTriangleFilled = ImDrawList_AddTriangleFilled;
+    pub const addCircle = ImDrawList_AddCircle;
+    pub const addCircleEx = ImDrawList_AddCircleEx;
+    pub const addCircleFilled = ImDrawList_AddCircleFilled;
+    pub const addNgon = ImDrawList_AddNgon;
+    pub const addNgonEx = ImDrawList_AddNgonEx;
+    pub const addNgonFilled = ImDrawList_AddNgonFilled;
+    pub const addEllipse = ImDrawList_AddEllipse;
+    pub const addEllipseEx = ImDrawList_AddEllipseEx;
+    pub const addEllipseFilled = ImDrawList_AddEllipseFilled;
+    pub const addEllipseFilledEx = ImDrawList_AddEllipseFilledEx;
+    pub const addText = ImDrawList_AddText;
+    pub const addTextEx = ImDrawList_AddTextEx;
+    pub const addTextImFontPtr = ImDrawList_AddTextImFontPtr;
+    pub const addTextImFontPtrEx = ImDrawList_AddTextImFontPtrEx;
+    pub const addPolyline = ImDrawList_AddPolyline;
+    pub const addConvexPolyFilled = ImDrawList_AddConvexPolyFilled;
+    pub const addBezierCubic = ImDrawList_AddBezierCubic;
+    pub const addBezierQuadratic = ImDrawList_AddBezierQuadratic;
+    pub const addImage = ImDrawList_AddImage;
+    pub const addImageEx = ImDrawList_AddImageEx;
+    pub const addImageQuad = ImDrawList_AddImageQuad;
+    pub const addImageQuadEx = ImDrawList_AddImageQuadEx;
+    pub const addImageRounded = ImDrawList_AddImageRounded;
+    pub const pathClear = ImDrawList_PathClear;
+    pub const pathLineTo = ImDrawList_PathLineTo;
+    pub const pathLineToMergeDuplicate = ImDrawList_PathLineToMergeDuplicate;
+    pub const pathFillConvex = ImDrawList_PathFillConvex;
+    pub const pathStroke = ImDrawList_PathStroke;
+    pub const pathArcTo = ImDrawList_PathArcTo;
+    pub const pathArcToFast = ImDrawList_PathArcToFast;
+    pub const pathEllipticalArcTo = ImDrawList_PathEllipticalArcTo;
+    pub const pathEllipticalArcToEx = ImDrawList_PathEllipticalArcToEx;
+    pub const pathBezierCubicCurveTo = ImDrawList_PathBezierCubicCurveTo;
+    pub const pathBezierQuadraticCurveTo = ImDrawList_PathBezierQuadraticCurveTo;
+    pub const pathRect = ImDrawList_PathRect;
+    pub const addCallback = ImDrawList_AddCallback;
+    pub const addDrawCmd = ImDrawList_AddDrawCmd;
+    pub const cloneOutput = ImDrawList_CloneOutput;
+    pub const channelsSplit = ImDrawList_ChannelsSplit;
+    pub const channelsMerge = ImDrawList_ChannelsMerge;
+    pub const channelsSetCurrent = ImDrawList_ChannelsSetCurrent;
+    pub const primReserve = ImDrawList_PrimReserve;
+    pub const primUnreserve = ImDrawList_PrimUnreserve;
+    pub const primRect = ImDrawList_PrimRect;
+    pub const primRectUV = ImDrawList_PrimRectUV;
+    pub const primQuadUV = ImDrawList_PrimQuadUV;
+    pub const primWriteVtx = ImDrawList_PrimWriteVtx;
+    pub const primWriteIdx = ImDrawList_PrimWriteIdx;
+    pub const primVtx = ImDrawList_PrimVtx;
+    pub const resetForNewFrame = ImDrawList__ResetForNewFrame;
+    pub const clearFreeMemory = ImDrawList__ClearFreeMemory;
+    pub const popUnusedDrawCmd = ImDrawList__PopUnusedDrawCmd;
+    pub const tryMergeDrawCmds = ImDrawList__TryMergeDrawCmds;
+    pub const onChangedClipRect = ImDrawList__OnChangedClipRect;
+    pub const onChangedTextureID = ImDrawList__OnChangedTextureID;
+    pub const onChangedVtxOffset = ImDrawList__OnChangedVtxOffset;
+    pub const calcCircleAutoSegmentCount = ImDrawList__CalcCircleAutoSegmentCount;
+    pub const pathArcToFastEx = ImDrawList__PathArcToFastEx;
+    pub const pathArcToN = ImDrawList__PathArcToN;
 };
 pub const DrawData = extern struct {
-    Valid: bool,
-    CmdListsCount: c_int,
-    TotalIdxCount: c_int,
-    TotalVtxCount: c_int,
-    CmdLists: Vector(*DrawList),
-    DisplayPos: Vec2,
-    DisplaySize: Vec2,
-    FramebufferScale: Vec2,
-    OwnerViewport: ?*Viewport,
+    valid: bool,
+    cmd_lists_count: c_int,
+    total_idx_count: c_int,
+    total_vtx_count: c_int,
+    cmd_lists: Vector(*DrawList),
+    display_pos: Vec2,
+    display_size: Vec2,
+    framebuffer_scale: Vec2,
+    owner_viewport: ?*Viewport,
+    pub const clear = ImDrawData_Clear;
+    pub const addDrawList = ImDrawData_AddDrawList;
+    pub const deIndexAllBuffers = ImDrawData_DeIndexAllBuffers;
+    pub const scaleClipRects = ImDrawData_ScaleClipRects;
 };
 pub const FontConfig = extern struct {
-    FontData: ?*anyopaque,
-    FontDataSize: c_int,
-    FontDataOwnedByAtlas: bool,
-    FontNo: c_int,
-    SizePixels: f32,
-    OversampleH: c_int,
-    OversampleV: c_int,
-    PixelSnapH: bool,
-    GlyphExtraSpacing: Vec2,
-    GlyphOffset: Vec2,
-    GlyphRanges: ?[*]const Wchar,
-    GlyphMinAdvanceX: f32,
-    GlyphMaxAdvanceX: f32,
-    MergeMode: bool,
-    FontBuilderFlags: c_uint,
-    RasterizerMultiply: f32,
-    EllipsisChar: Wchar,
-    Name: [40]c_char,
-    DstFont: ?*Font,
+    font_data: ?*anyopaque,
+    font_data_size: c_int,
+    font_data_owned_by_atlas: bool,
+    font_no: c_int,
+    size_pixels: f32,
+    oversample_h: c_int,
+    oversample_v: c_int,
+    pixel_snap_h: bool,
+    glyph_extra_spacing: Vec2,
+    glyph_offset: Vec2,
+    glyph_ranges: ?[*]const Wchar,
+    glyph_min_advance_x: f32,
+    glyph_max_advance_x: f32,
+    merge_mode: bool,
+    font_builder_flags: c_uint,
+    rasterizer_multiply: f32,
+    ellipsis_char: Wchar,
+    name: [40]c_char,
+    dst_font: ?*Font,
 };
 pub const FontGlyph = extern struct {
-    Colored: c_uint,
-    Visible: c_uint,
-    Codepoint: c_uint,
-    AdvanceX: f32,
-    X0: f32,
-    Y0: f32,
-    X1: f32,
-    Y1: f32,
-    U0: f32,
-    V0: f32,
-    U1: f32,
-    V1: f32,
+    colored: c_uint,
+    visible: c_uint,
+    codepoint: c_uint,
+    advance_x: f32,
+    x0: f32,
+    y0: f32,
+    x1: f32,
+    y1: f32,
+    u0: f32,
+    v0: f32,
+    u1: f32,
+    v1: f32,
 };
 pub const FontGlyphRangesBuilder = extern struct {
-    UsedChars: Vector(U32),
+    used_chars: Vector(U32),
+    pub const clear = ImFontGlyphRangesBuilder_Clear;
+    pub const getBit = ImFontGlyphRangesBuilder_GetBit;
+    pub const setBit = ImFontGlyphRangesBuilder_SetBit;
+    pub const addChar = ImFontGlyphRangesBuilder_AddChar;
+    pub const addText = ImFontGlyphRangesBuilder_AddText;
+    pub const addRanges = ImFontGlyphRangesBuilder_AddRanges;
+    pub const buildRanges = ImFontGlyphRangesBuilder_BuildRanges;
 };
 pub const FontAtlasCustomRect = extern struct {
-    Width: c_ushort,
-    Height: c_ushort,
-    X: c_ushort,
-    Y: c_ushort,
-    GlyphID: c_uint,
-    GlyphAdvanceX: f32,
-    GlyphOffset: Vec2,
-    Font: ?*Font,
+    width: c_ushort,
+    height: c_ushort,
+    x: c_ushort,
+    y: c_ushort,
+    glyph_id: c_uint,
+    glyph_advance_x: f32,
+    glyph_offset: Vec2,
+    font: ?*Font,
+    pub const isPacked = ImFontAtlasCustomRect_IsPacked;
 };
 pub const FontAtlas = extern struct {
-    Flags: FontAtlasFlags,
-    TexID: TextureID,
-    TexDesiredWidth: c_int,
-    TexGlyphPadding: c_int,
-    Locked: bool,
-    UserData: ?*anyopaque,
-    TexReady: bool,
-    TexPixelsUseColors: bool,
-    TexPixelsAlpha8: ?[*]c_char,
-    TexPixelsRGBA32: ?[*]c_uint,
-    TexWidth: c_int,
-    TexHeight: c_int,
-    TexUvScale: Vec2,
-    TexUvWhitePixel: Vec2,
-    Fonts: Vector(*Font),
-    CustomRects: Vector(FontAtlasCustomRect),
-    ConfigData: Vector(FontConfig),
-    TexUvLines: [DRAWLIST_TEX_LINES_WIDTH_MAX+1]Vec4,
-    FontBuilderIO: ?*const FontBuilderIO,
-    FontBuilderFlags: c_uint,
-    PackIdMouseCursors: c_int,
-    PackIdLines: c_int,
+    flags: FontAtlasFlags,
+    tex_id: TextureID,
+    tex_desired_width: c_int,
+    tex_glyph_padding: c_int,
+    locked: bool,
+    user_data: ?*anyopaque,
+    tex_ready: bool,
+    tex_pixels_use_colors: bool,
+    tex_pixels_alpha8: ?[*]c_char,
+    tex_pixels_rgba32: ?[*]c_uint,
+    tex_width: c_int,
+    tex_height: c_int,
+    tex_uv_scale: Vec2,
+    tex_uv_white_pixel: Vec2,
+    fonts: Vector(*Font),
+    custom_rects: Vector(FontAtlasCustomRect),
+    config_data: Vector(FontConfig),
+    tex_uv_lines: [DRAWLIST_TEX_LINES_WIDTH_MAX+1]Vec4,
+    font_builder_io: ?*const FontBuilderIO,
+    font_builder_flags: c_uint,
+    pack_id_mouse_cursors: c_int,
+    pack_id_lines: c_int,
+    pub const addFont = ImFontAtlas_AddFont;
+    pub const addFontDefault = ImFontAtlas_AddFontDefault;
+    pub const addFontFromFileTTF = ImFontAtlas_AddFontFromFileTTF;
+    pub const addFontFromMemoryTTF = ImFontAtlas_AddFontFromMemoryTTF;
+    pub const addFontFromMemoryCompressedTTF = ImFontAtlas_AddFontFromMemoryCompressedTTF;
+    pub const addFontFromMemoryCompressedBase85TTF = ImFontAtlas_AddFontFromMemoryCompressedBase85TTF;
+    pub const clearInputData = ImFontAtlas_ClearInputData;
+    pub const clearTexData = ImFontAtlas_ClearTexData;
+    pub const clearFonts = ImFontAtlas_ClearFonts;
+    pub const clear = ImFontAtlas_Clear;
+    pub const build = ImFontAtlas_Build;
+    pub const getTexDataAsAlpha8 = ImFontAtlas_GetTexDataAsAlpha8;
+    pub const getTexDataAsRGBA32 = ImFontAtlas_GetTexDataAsRGBA32;
+    pub const isBuilt = ImFontAtlas_IsBuilt;
+    pub const setTexID = ImFontAtlas_SetTexID;
+    pub const getGlyphRangesDefault = ImFontAtlas_GetGlyphRangesDefault;
+    pub const getGlyphRangesGreek = ImFontAtlas_GetGlyphRangesGreek;
+    pub const getGlyphRangesKorean = ImFontAtlas_GetGlyphRangesKorean;
+    pub const getGlyphRangesJapanese = ImFontAtlas_GetGlyphRangesJapanese;
+    pub const getGlyphRangesChineseFull = ImFontAtlas_GetGlyphRangesChineseFull;
+    pub const getGlyphRangesChineseSimplifiedCommon = ImFontAtlas_GetGlyphRangesChineseSimplifiedCommon;
+    pub const getGlyphRangesCyrillic = ImFontAtlas_GetGlyphRangesCyrillic;
+    pub const getGlyphRangesThai = ImFontAtlas_GetGlyphRangesThai;
+    pub const getGlyphRangesVietnamese = ImFontAtlas_GetGlyphRangesVietnamese;
+    pub const addCustomRectRegular = ImFontAtlas_AddCustomRectRegular;
+    pub const addCustomRectFontGlyph = ImFontAtlas_AddCustomRectFontGlyph;
+    pub const getCustomRectByIndex = ImFontAtlas_GetCustomRectByIndex;
+    pub const calcCustomRectUV = ImFontAtlas_CalcCustomRectUV;
+    pub const getMouseCursorTexData = ImFontAtlas_GetMouseCursorTexData;
 };
 pub const Font = extern struct {
-    IndexAdvanceX: Vector(f32),
-    FallbackAdvanceX: f32,
-    FontSize: f32,
-    IndexLookup: Vector(Wchar),
-    Glyphs: Vector(FontGlyph),
-    FallbackGlyph: ?*const FontGlyph,
-    ContainerAtlas: ?*FontAtlas,
-    ConfigData: ?*const FontConfig,
-    ConfigDataCount: c_short,
-    FallbackChar: Wchar,
-    EllipsisChar: Wchar,
-    EllipsisCharCount: c_short,
-    EllipsisWidth: f32,
-    EllipsisCharStep: f32,
-    DirtyLookupTables: bool,
-    Scale: f32,
-    Ascent: f32,
-    Descent: f32,
-    MetricsTotalSurface: c_int,
-    Used4kPagesMap: [(UNICODE_CODEPOINT_MAX+1)/4096/8]U8,
+    index_advance_x: Vector(f32),
+    fallback_advance_x: f32,
+    font_size: f32,
+    index_lookup: Vector(Wchar),
+    glyphs: Vector(FontGlyph),
+    fallback_glyph: ?*const FontGlyph,
+    container_atlas: ?*FontAtlas,
+    config_data: ?*const FontConfig,
+    config_data_count: c_short,
+    fallback_char: Wchar,
+    ellipsis_char: Wchar,
+    ellipsis_char_count: c_short,
+    ellipsis_width: f32,
+    ellipsis_char_step: f32,
+    dirty_lookup_tables: bool,
+    scale: f32,
+    ascent: f32,
+    descent: f32,
+    metrics_total_surface: c_int,
+    used4k_pages_map: [(UNICODE_CODEPOINT_MAX+1)/4096/8]U8,
+    pub const findGlyph = ImFont_FindGlyph;
+    pub const findGlyphNoFallback = ImFont_FindGlyphNoFallback;
+    pub const getCharAdvance = ImFont_GetCharAdvance;
+    pub const isLoaded = ImFont_IsLoaded;
+    pub const getDebugName = ImFont_GetDebugName;
+    pub const calcTextSizeA = ImFont_CalcTextSizeA;
+    pub const calcTextSizeAEx = ImFont_CalcTextSizeAEx;
+    pub const calcWordWrapPositionA = ImFont_CalcWordWrapPositionA;
+    pub const renderChar = ImFont_RenderChar;
+    pub const renderText = ImFont_RenderText;
+    pub const buildLookupTable = ImFont_BuildLookupTable;
+    pub const clearOutputData = ImFont_ClearOutputData;
+    pub const growIndex = ImFont_GrowIndex;
+    pub const addGlyph = ImFont_AddGlyph;
+    pub const addRemapChar = ImFont_AddRemapChar;
+    pub const setGlyphVisible = ImFont_SetGlyphVisible;
+    pub const isGlyphRangeUnused = ImFont_IsGlyphRangeUnused;
 };
 pub const Viewport = extern struct {
-    Flags: ViewportFlags,
-    Pos: Vec2,
-    Size: Vec2,
-    WorkPos: Vec2,
-    WorkSize: Vec2,
-    PlatformHandleRaw: ?*anyopaque,
+    flags: ViewportFlags,
+    pos: Vec2,
+    size: Vec2,
+    work_pos: Vec2,
+    work_size: Vec2,
+    platform_handle_raw: ?*anyopaque,
+    pub const getCenter = ImGuiViewport_GetCenter;
+    pub const getWorkCenter = ImGuiViewport_GetWorkCenter;
 };
 pub const PlatformImeData = extern struct {
-    WantVisible: bool,
-    InputPos: Vec2,
-    InputLineHeight: f32,
+    want_visible: bool,
+    input_pos: Vec2,
+    input_line_height: f32,
 };
+pub const createContext = ImGui_CreateContext;
+pub const destroyContext = ImGui_DestroyContext;
+pub const getCurrentContext = ImGui_GetCurrentContext;
+pub const setCurrentContext = ImGui_SetCurrentContext;
+pub const getIO = ImGui_GetIO;
+pub const getStyle = ImGui_GetStyle;
+pub const newFrame = ImGui_NewFrame;
+pub const endFrame = ImGui_EndFrame;
+pub const render = ImGui_Render;
+pub const getDrawData = ImGui_GetDrawData;
+pub const showDemoWindow = ImGui_ShowDemoWindow;
+pub const showMetricsWindow = ImGui_ShowMetricsWindow;
+pub const showDebugLogWindow = ImGui_ShowDebugLogWindow;
+pub const showIDStackToolWindow = ImGui_ShowIDStackToolWindow;
+pub const showIDStackToolWindowEx = ImGui_ShowIDStackToolWindowEx;
+pub const showAboutWindow = ImGui_ShowAboutWindow;
+pub const showStyleEditor = ImGui_ShowStyleEditor;
+pub const showStyleSelector = ImGui_ShowStyleSelector;
+pub const showFontSelector = ImGui_ShowFontSelector;
+pub const showUserGuide = ImGui_ShowUserGuide;
+pub const getVersion = ImGui_GetVersion;
+pub const styleColorsDark = ImGui_StyleColorsDark;
+pub const styleColorsLight = ImGui_StyleColorsLight;
+pub const styleColorsClassic = ImGui_StyleColorsClassic;
+pub const begin = ImGui_Begin;
+pub const end = ImGui_End;
+pub const beginChild = ImGui_BeginChild;
+pub const beginChildID = ImGui_BeginChildID;
+pub const endChild = ImGui_EndChild;
+pub const isWindowAppearing = ImGui_IsWindowAppearing;
+pub const isWindowCollapsed = ImGui_IsWindowCollapsed;
+pub const isWindowFocused = ImGui_IsWindowFocused;
+pub const isWindowHovered = ImGui_IsWindowHovered;
+pub const getWindowDrawList = ImGui_GetWindowDrawList;
+pub const getWindowPos = ImGui_GetWindowPos;
+pub const getWindowSize = ImGui_GetWindowSize;
+pub const getWindowWidth = ImGui_GetWindowWidth;
+pub const getWindowHeight = ImGui_GetWindowHeight;
+pub const setNextWindowPos = ImGui_SetNextWindowPos;
+pub const setNextWindowPosEx = ImGui_SetNextWindowPosEx;
+pub const setNextWindowSize = ImGui_SetNextWindowSize;
+pub const setNextWindowSizeConstraints = ImGui_SetNextWindowSizeConstraints;
+pub const setNextWindowContentSize = ImGui_SetNextWindowContentSize;
+pub const setNextWindowCollapsed = ImGui_SetNextWindowCollapsed;
+pub const setNextWindowFocus = ImGui_SetNextWindowFocus;
+pub const setNextWindowScroll = ImGui_SetNextWindowScroll;
+pub const setNextWindowBgAlpha = ImGui_SetNextWindowBgAlpha;
+pub const setWindowPos = ImGui_SetWindowPos;
+pub const setWindowSize = ImGui_SetWindowSize;
+pub const setWindowCollapsed = ImGui_SetWindowCollapsed;
+pub const setWindowFocus = ImGui_SetWindowFocus;
+pub const setWindowFontScale = ImGui_SetWindowFontScale;
+pub const setWindowPosStr = ImGui_SetWindowPosStr;
+pub const setWindowSizeStr = ImGui_SetWindowSizeStr;
+pub const setWindowCollapsedStr = ImGui_SetWindowCollapsedStr;
+pub const setWindowFocusStr = ImGui_SetWindowFocusStr;
+pub const getContentRegionAvail = ImGui_GetContentRegionAvail;
+pub const getContentRegionMax = ImGui_GetContentRegionMax;
+pub const getWindowContentRegionMin = ImGui_GetWindowContentRegionMin;
+pub const getWindowContentRegionMax = ImGui_GetWindowContentRegionMax;
+pub const getScrollX = ImGui_GetScrollX;
+pub const getScrollY = ImGui_GetScrollY;
+pub const setScrollX = ImGui_SetScrollX;
+pub const setScrollY = ImGui_SetScrollY;
+pub const getScrollMaxX = ImGui_GetScrollMaxX;
+pub const getScrollMaxY = ImGui_GetScrollMaxY;
+pub const setScrollHereX = ImGui_SetScrollHereX;
+pub const setScrollHereY = ImGui_SetScrollHereY;
+pub const setScrollFromPosX = ImGui_SetScrollFromPosX;
+pub const setScrollFromPosY = ImGui_SetScrollFromPosY;
+pub const pushFont = ImGui_PushFont;
+pub const popFont = ImGui_PopFont;
+pub const pushStyleColor = ImGui_PushStyleColor;
+pub const pushStyleColorImVec4 = ImGui_PushStyleColorImVec4;
+pub const popStyleColor = ImGui_PopStyleColor;
+pub const popStyleColorEx = ImGui_PopStyleColorEx;
+pub const pushStyleVar = ImGui_PushStyleVar;
+pub const pushStyleVarImVec2 = ImGui_PushStyleVarImVec2;
+pub const popStyleVar = ImGui_PopStyleVar;
+pub const popStyleVarEx = ImGui_PopStyleVarEx;
+pub const pushTabStop = ImGui_PushTabStop;
+pub const popTabStop = ImGui_PopTabStop;
+pub const pushButtonRepeat = ImGui_PushButtonRepeat;
+pub const popButtonRepeat = ImGui_PopButtonRepeat;
+pub const pushItemWidth = ImGui_PushItemWidth;
+pub const popItemWidth = ImGui_PopItemWidth;
+pub const setNextItemWidth = ImGui_SetNextItemWidth;
+pub const calcItemWidth = ImGui_CalcItemWidth;
+pub const pushTextWrapPos = ImGui_PushTextWrapPos;
+pub const popTextWrapPos = ImGui_PopTextWrapPos;
+pub const getFont = ImGui_GetFont;
+pub const getFontSize = ImGui_GetFontSize;
+pub const getFontTexUvWhitePixel = ImGui_GetFontTexUvWhitePixel;
+pub const getColorU32 = ImGui_GetColorU32;
+pub const getColorU32Ex = ImGui_GetColorU32Ex;
+pub const getColorU32ImVec4 = ImGui_GetColorU32ImVec4;
+pub const getColorU32ImU32 = ImGui_GetColorU32ImU32;
+pub const getStyleColorVec4 = ImGui_GetStyleColorVec4;
+pub const getCursorScreenPos = ImGui_GetCursorScreenPos;
+pub const setCursorScreenPos = ImGui_SetCursorScreenPos;
+pub const getCursorPos = ImGui_GetCursorPos;
+pub const getCursorPosX = ImGui_GetCursorPosX;
+pub const getCursorPosY = ImGui_GetCursorPosY;
+pub const setCursorPos = ImGui_SetCursorPos;
+pub const setCursorPosX = ImGui_SetCursorPosX;
+pub const setCursorPosY = ImGui_SetCursorPosY;
+pub const getCursorStartPos = ImGui_GetCursorStartPos;
+pub const separator = ImGui_Separator;
+pub const sameLine = ImGui_SameLine;
+pub const sameLineEx = ImGui_SameLineEx;
+pub const newLine = ImGui_NewLine;
+pub const spacing = ImGui_Spacing;
+pub const dummy = ImGui_Dummy;
+pub const indent = ImGui_Indent;
+pub const indentEx = ImGui_IndentEx;
+pub const unindent = ImGui_Unindent;
+pub const unindentEx = ImGui_UnindentEx;
+pub const beginGroup = ImGui_BeginGroup;
+pub const endGroup = ImGui_EndGroup;
+pub const alignTextToFramePadding = ImGui_AlignTextToFramePadding;
+pub const getTextLineHeight = ImGui_GetTextLineHeight;
+pub const getTextLineHeightWithSpacing = ImGui_GetTextLineHeightWithSpacing;
+pub const getFrameHeight = ImGui_GetFrameHeight;
+pub const getFrameHeightWithSpacing = ImGui_GetFrameHeightWithSpacing;
+pub const pushID = ImGui_PushID;
+pub const pushIDStr = ImGui_PushIDStr;
+pub const pushIDPtr = ImGui_PushIDPtr;
+pub const pushIDInt = ImGui_PushIDInt;
+pub const popID = ImGui_PopID;
+pub const getID = ImGui_GetID;
+pub const getIDStr = ImGui_GetIDStr;
+pub const getIDPtr = ImGui_GetIDPtr;
+pub const textUnformatted = ImGui_TextUnformatted;
+pub const textUnformattedEx = ImGui_TextUnformattedEx;
+pub const text = ImGui_Text;
+pub const textV = ImGui_TextV;
+pub const textColored = ImGui_TextColored;
+pub const textColoredUnformatted = ImGui_TextColoredUnformatted;
+pub const textColoredV = ImGui_TextColoredV;
+pub const textDisabled = ImGui_TextDisabled;
+pub const textDisabledUnformatted = ImGui_TextDisabledUnformatted;
+pub const textDisabledV = ImGui_TextDisabledV;
+pub const textWrapped = ImGui_TextWrapped;
+pub const textWrappedUnformatted = ImGui_TextWrappedUnformatted;
+pub const textWrappedV = ImGui_TextWrappedV;
+pub const labelText = ImGui_LabelText;
+pub const labelTextUnformatted = ImGui_LabelTextUnformatted;
+pub const labelTextV = ImGui_LabelTextV;
+pub const bulletText = ImGui_BulletText;
+pub const bulletTextUnformatted = ImGui_BulletTextUnformatted;
+pub const bulletTextV = ImGui_BulletTextV;
+pub const separatorText = ImGui_SeparatorText;
+pub const button = ImGui_Button;
+pub const buttonEx = ImGui_ButtonEx;
+pub const smallButton = ImGui_SmallButton;
+pub const invisibleButton = ImGui_InvisibleButton;
+pub const arrowButton = ImGui_ArrowButton;
+pub const checkbox = ImGui_Checkbox;
+pub const checkboxFlagsIntPtr = ImGui_CheckboxFlagsIntPtr;
+pub const checkboxFlagsUintPtr = ImGui_CheckboxFlagsUintPtr;
+pub const radioButton = ImGui_RadioButton;
+pub const radioButtonIntPtr = ImGui_RadioButtonIntPtr;
+pub const progressBar = ImGui_ProgressBar;
+pub const bullet = ImGui_Bullet;
+pub const image = ImGui_Image;
+pub const imageEx = ImGui_ImageEx;
+pub const imageButton = ImGui_ImageButton;
+pub const imageButtonEx = ImGui_ImageButtonEx;
+pub const beginCombo = ImGui_BeginCombo;
+pub const endCombo = ImGui_EndCombo;
+pub const comboChar = ImGui_ComboChar;
+pub const comboCharEx = ImGui_ComboCharEx;
+pub const combo = ImGui_Combo;
+pub const comboEx = ImGui_ComboEx;
+pub const comboCallback = ImGui_ComboCallback;
+pub const comboCallbackEx = ImGui_ComboCallbackEx;
+pub const dragFloat = ImGui_DragFloat;
+pub const dragFloatEx = ImGui_DragFloatEx;
+pub const dragFloat2 = ImGui_DragFloat2;
+pub const dragFloat2Ex = ImGui_DragFloat2Ex;
+pub const dragFloat3 = ImGui_DragFloat3;
+pub const dragFloat3Ex = ImGui_DragFloat3Ex;
+pub const dragFloat4 = ImGui_DragFloat4;
+pub const dragFloat4Ex = ImGui_DragFloat4Ex;
+pub const dragFloatRange2 = ImGui_DragFloatRange2;
+pub const dragFloatRange2Ex = ImGui_DragFloatRange2Ex;
+pub const dragInt = ImGui_DragInt;
+pub const dragIntEx = ImGui_DragIntEx;
+pub const dragInt2 = ImGui_DragInt2;
+pub const dragInt2Ex = ImGui_DragInt2Ex;
+pub const dragInt3 = ImGui_DragInt3;
+pub const dragInt3Ex = ImGui_DragInt3Ex;
+pub const dragInt4 = ImGui_DragInt4;
+pub const dragInt4Ex = ImGui_DragInt4Ex;
+pub const dragIntRange2 = ImGui_DragIntRange2;
+pub const dragIntRange2Ex = ImGui_DragIntRange2Ex;
+pub const dragScalar = ImGui_DragScalar;
+pub const dragScalarEx = ImGui_DragScalarEx;
+pub const dragScalarN = ImGui_DragScalarN;
+pub const dragScalarNEx = ImGui_DragScalarNEx;
+pub const sliderFloat = ImGui_SliderFloat;
+pub const sliderFloatEx = ImGui_SliderFloatEx;
+pub const sliderFloat2 = ImGui_SliderFloat2;
+pub const sliderFloat2Ex = ImGui_SliderFloat2Ex;
+pub const sliderFloat3 = ImGui_SliderFloat3;
+pub const sliderFloat3Ex = ImGui_SliderFloat3Ex;
+pub const sliderFloat4 = ImGui_SliderFloat4;
+pub const sliderFloat4Ex = ImGui_SliderFloat4Ex;
+pub const sliderAngle = ImGui_SliderAngle;
+pub const sliderAngleEx = ImGui_SliderAngleEx;
+pub const sliderInt = ImGui_SliderInt;
+pub const sliderIntEx = ImGui_SliderIntEx;
+pub const sliderInt2 = ImGui_SliderInt2;
+pub const sliderInt2Ex = ImGui_SliderInt2Ex;
+pub const sliderInt3 = ImGui_SliderInt3;
+pub const sliderInt3Ex = ImGui_SliderInt3Ex;
+pub const sliderInt4 = ImGui_SliderInt4;
+pub const sliderInt4Ex = ImGui_SliderInt4Ex;
+pub const sliderScalar = ImGui_SliderScalar;
+pub const sliderScalarEx = ImGui_SliderScalarEx;
+pub const sliderScalarN = ImGui_SliderScalarN;
+pub const sliderScalarNEx = ImGui_SliderScalarNEx;
+pub const vSliderFloat = ImGui_VSliderFloat;
+pub const vSliderFloatEx = ImGui_VSliderFloatEx;
+pub const vSliderInt = ImGui_VSliderInt;
+pub const vSliderIntEx = ImGui_VSliderIntEx;
+pub const vSliderScalar = ImGui_VSliderScalar;
+pub const vSliderScalarEx = ImGui_VSliderScalarEx;
+pub const inputText = ImGui_InputText;
+pub const inputTextEx = ImGui_InputTextEx;
+pub const inputTextMultiline = ImGui_InputTextMultiline;
+pub const inputTextMultilineEx = ImGui_InputTextMultilineEx;
+pub const inputTextWithHint = ImGui_InputTextWithHint;
+pub const inputTextWithHintEx = ImGui_InputTextWithHintEx;
+pub const inputFloat = ImGui_InputFloat;
+pub const inputFloatEx = ImGui_InputFloatEx;
+pub const inputFloat2 = ImGui_InputFloat2;
+pub const inputFloat2Ex = ImGui_InputFloat2Ex;
+pub const inputFloat3 = ImGui_InputFloat3;
+pub const inputFloat3Ex = ImGui_InputFloat3Ex;
+pub const inputFloat4 = ImGui_InputFloat4;
+pub const inputFloat4Ex = ImGui_InputFloat4Ex;
+pub const inputInt = ImGui_InputInt;
+pub const inputIntEx = ImGui_InputIntEx;
+pub const inputInt2 = ImGui_InputInt2;
+pub const inputInt3 = ImGui_InputInt3;
+pub const inputInt4 = ImGui_InputInt4;
+pub const inputDouble = ImGui_InputDouble;
+pub const inputDoubleEx = ImGui_InputDoubleEx;
+pub const inputScalar = ImGui_InputScalar;
+pub const inputScalarEx = ImGui_InputScalarEx;
+pub const inputScalarN = ImGui_InputScalarN;
+pub const inputScalarNEx = ImGui_InputScalarNEx;
+pub const colorEdit3 = ImGui_ColorEdit3;
+pub const colorEdit4 = ImGui_ColorEdit4;
+pub const colorPicker3 = ImGui_ColorPicker3;
+pub const colorPicker4 = ImGui_ColorPicker4;
+pub const colorButton = ImGui_ColorButton;
+pub const colorButtonEx = ImGui_ColorButtonEx;
+pub const setColorEditOptions = ImGui_SetColorEditOptions;
+pub const treeNode = ImGui_TreeNode;
+pub const treeNodeStr = ImGui_TreeNodeStr;
+pub const treeNodeStrUnformatted = ImGui_TreeNodeStrUnformatted;
+pub const treeNodePtr = ImGui_TreeNodePtr;
+pub const treeNodePtrUnformatted = ImGui_TreeNodePtrUnformatted;
+pub const treeNodeV = ImGui_TreeNodeV;
+pub const treeNodeVPtr = ImGui_TreeNodeVPtr;
+pub const treeNodeEx = ImGui_TreeNodeEx;
+pub const treeNodeExStr = ImGui_TreeNodeExStr;
+pub const treeNodeExStrUnformatted = ImGui_TreeNodeExStrUnformatted;
+pub const treeNodeExPtr = ImGui_TreeNodeExPtr;
+pub const treeNodeExPtrUnformatted = ImGui_TreeNodeExPtrUnformatted;
+pub const treeNodeExV = ImGui_TreeNodeExV;
+pub const treeNodeExVPtr = ImGui_TreeNodeExVPtr;
+pub const treePush = ImGui_TreePush;
+pub const treePushPtr = ImGui_TreePushPtr;
+pub const treePop = ImGui_TreePop;
+pub const getTreeNodeToLabelSpacing = ImGui_GetTreeNodeToLabelSpacing;
+pub const collapsingHeader = ImGui_CollapsingHeader;
+pub const collapsingHeaderBoolPtr = ImGui_CollapsingHeaderBoolPtr;
+pub const setNextItemOpen = ImGui_SetNextItemOpen;
+pub const selectable = ImGui_Selectable;
+pub const selectableEx = ImGui_SelectableEx;
+pub const selectableBoolPtr = ImGui_SelectableBoolPtr;
+pub const selectableBoolPtrEx = ImGui_SelectableBoolPtrEx;
+pub const beginListBox = ImGui_BeginListBox;
+pub const endListBox = ImGui_EndListBox;
+pub const listBox = ImGui_ListBox;
+pub const listBoxCallback = ImGui_ListBoxCallback;
+pub const listBoxCallbackEx = ImGui_ListBoxCallbackEx;
+pub const plotLines = ImGui_PlotLines;
+pub const plotLinesEx = ImGui_PlotLinesEx;
+pub const plotLinesCallback = ImGui_PlotLinesCallback;
+pub const plotLinesCallbackEx = ImGui_PlotLinesCallbackEx;
+pub const plotHistogram = ImGui_PlotHistogram;
+pub const plotHistogramEx = ImGui_PlotHistogramEx;
+pub const plotHistogramCallback = ImGui_PlotHistogramCallback;
+pub const plotHistogramCallbackEx = ImGui_PlotHistogramCallbackEx;
+pub const beginMenuBar = ImGui_BeginMenuBar;
+pub const endMenuBar = ImGui_EndMenuBar;
+pub const beginMainMenuBar = ImGui_BeginMainMenuBar;
+pub const endMainMenuBar = ImGui_EndMainMenuBar;
+pub const beginMenu = ImGui_BeginMenu;
+pub const beginMenuEx = ImGui_BeginMenuEx;
+pub const endMenu = ImGui_EndMenu;
+pub const menuItem = ImGui_MenuItem;
+pub const menuItemEx = ImGui_MenuItemEx;
+pub const menuItemBoolPtr = ImGui_MenuItemBoolPtr;
+pub const beginTooltip = ImGui_BeginTooltip;
+pub const endTooltip = ImGui_EndTooltip;
+pub const setTooltip = ImGui_SetTooltip;
+pub const setTooltipUnformatted = ImGui_SetTooltipUnformatted;
+pub const setTooltipV = ImGui_SetTooltipV;
+pub const beginItemTooltip = ImGui_BeginItemTooltip;
+pub const setItemTooltip = ImGui_SetItemTooltip;
+pub const setItemTooltipUnformatted = ImGui_SetItemTooltipUnformatted;
+pub const setItemTooltipV = ImGui_SetItemTooltipV;
+pub const beginPopup = ImGui_BeginPopup;
+pub const beginPopupModal = ImGui_BeginPopupModal;
+pub const endPopup = ImGui_EndPopup;
+pub const openPopup = ImGui_OpenPopup;
+pub const openPopupID = ImGui_OpenPopupID;
+pub const openPopupOnItemClick = ImGui_OpenPopupOnItemClick;
+pub const closeCurrentPopup = ImGui_CloseCurrentPopup;
+pub const beginPopupContextItem = ImGui_BeginPopupContextItem;
+pub const beginPopupContextItemEx = ImGui_BeginPopupContextItemEx;
+pub const beginPopupContextWindow = ImGui_BeginPopupContextWindow;
+pub const beginPopupContextWindowEx = ImGui_BeginPopupContextWindowEx;
+pub const beginPopupContextVoid = ImGui_BeginPopupContextVoid;
+pub const beginPopupContextVoidEx = ImGui_BeginPopupContextVoidEx;
+pub const isPopupOpen = ImGui_IsPopupOpen;
+pub const beginTable = ImGui_BeginTable;
+pub const beginTableEx = ImGui_BeginTableEx;
+pub const endTable = ImGui_EndTable;
+pub const tableNextRow = ImGui_TableNextRow;
+pub const tableNextRowEx = ImGui_TableNextRowEx;
+pub const tableNextColumn = ImGui_TableNextColumn;
+pub const tableSetColumnIndex = ImGui_TableSetColumnIndex;
+pub const tableSetupColumn = ImGui_TableSetupColumn;
+pub const tableSetupColumnEx = ImGui_TableSetupColumnEx;
+pub const tableSetupScrollFreeze = ImGui_TableSetupScrollFreeze;
+pub const tableHeader = ImGui_TableHeader;
+pub const tableHeadersRow = ImGui_TableHeadersRow;
+pub const tableAngledHeadersRow = ImGui_TableAngledHeadersRow;
+pub const tableGetSortSpecs = ImGui_TableGetSortSpecs;
+pub const tableGetColumnCount = ImGui_TableGetColumnCount;
+pub const tableGetColumnIndex = ImGui_TableGetColumnIndex;
+pub const tableGetRowIndex = ImGui_TableGetRowIndex;
+pub const tableGetColumnName = ImGui_TableGetColumnName;
+pub const tableGetColumnFlags = ImGui_TableGetColumnFlags;
+pub const tableSetColumnEnabled = ImGui_TableSetColumnEnabled;
+pub const tableSetBgColor = ImGui_TableSetBgColor;
+pub const columns = ImGui_Columns;
+pub const columnsEx = ImGui_ColumnsEx;
+pub const nextColumn = ImGui_NextColumn;
+pub const getColumnIndex = ImGui_GetColumnIndex;
+pub const getColumnWidth = ImGui_GetColumnWidth;
+pub const setColumnWidth = ImGui_SetColumnWidth;
+pub const getColumnOffset = ImGui_GetColumnOffset;
+pub const setColumnOffset = ImGui_SetColumnOffset;
+pub const getColumnsCount = ImGui_GetColumnsCount;
+pub const beginTabBar = ImGui_BeginTabBar;
+pub const endTabBar = ImGui_EndTabBar;
+pub const beginTabItem = ImGui_BeginTabItem;
+pub const endTabItem = ImGui_EndTabItem;
+pub const tabItemButton = ImGui_TabItemButton;
+pub const setTabItemClosed = ImGui_SetTabItemClosed;
+pub const logToTTY = ImGui_LogToTTY;
+pub const logToFile = ImGui_LogToFile;
+pub const logToClipboard = ImGui_LogToClipboard;
+pub const logFinish = ImGui_LogFinish;
+pub const logButtons = ImGui_LogButtons;
+pub const logText = ImGui_LogText;
+pub const logTextUnformatted = ImGui_LogTextUnformatted;
+pub const logTextV = ImGui_LogTextV;
+pub const beginDragDropSource = ImGui_BeginDragDropSource;
+pub const setDragDropPayload = ImGui_SetDragDropPayload;
+pub const endDragDropSource = ImGui_EndDragDropSource;
+pub const beginDragDropTarget = ImGui_BeginDragDropTarget;
+pub const acceptDragDropPayload = ImGui_AcceptDragDropPayload;
+pub const endDragDropTarget = ImGui_EndDragDropTarget;
+pub const getDragDropPayload = ImGui_GetDragDropPayload;
+pub const beginDisabled = ImGui_BeginDisabled;
+pub const endDisabled = ImGui_EndDisabled;
+pub const pushClipRect = ImGui_PushClipRect;
+pub const popClipRect = ImGui_PopClipRect;
+pub const setItemDefaultFocus = ImGui_SetItemDefaultFocus;
+pub const setKeyboardFocusHere = ImGui_SetKeyboardFocusHere;
+pub const setKeyboardFocusHereEx = ImGui_SetKeyboardFocusHereEx;
+pub const setNextItemAllowOverlap = ImGui_SetNextItemAllowOverlap;
+pub const isItemHovered = ImGui_IsItemHovered;
+pub const isItemActive = ImGui_IsItemActive;
+pub const isItemFocused = ImGui_IsItemFocused;
+pub const isItemClicked = ImGui_IsItemClicked;
+pub const isItemClickedEx = ImGui_IsItemClickedEx;
+pub const isItemVisible = ImGui_IsItemVisible;
+pub const isItemEdited = ImGui_IsItemEdited;
+pub const isItemActivated = ImGui_IsItemActivated;
+pub const isItemDeactivated = ImGui_IsItemDeactivated;
+pub const isItemDeactivatedAfterEdit = ImGui_IsItemDeactivatedAfterEdit;
+pub const isItemToggledOpen = ImGui_IsItemToggledOpen;
+pub const isAnyItemHovered = ImGui_IsAnyItemHovered;
+pub const isAnyItemActive = ImGui_IsAnyItemActive;
+pub const isAnyItemFocused = ImGui_IsAnyItemFocused;
+pub const getItemID = ImGui_GetItemID;
+pub const getItemRectMin = ImGui_GetItemRectMin;
+pub const getItemRectMax = ImGui_GetItemRectMax;
+pub const getItemRectSize = ImGui_GetItemRectSize;
+pub const getMainViewport = ImGui_GetMainViewport;
+pub const getBackgroundDrawList = ImGui_GetBackgroundDrawList;
+pub const getForegroundDrawList = ImGui_GetForegroundDrawList;
+pub const isRectVisibleBySize = ImGui_IsRectVisibleBySize;
+pub const isRectVisible = ImGui_IsRectVisible;
+pub const getTime = ImGui_GetTime;
+pub const getFrameCount = ImGui_GetFrameCount;
+pub const getDrawListSharedData = ImGui_GetDrawListSharedData;
+pub const getStyleColorName = ImGui_GetStyleColorName;
+pub const setStateStorage = ImGui_SetStateStorage;
+pub const getStateStorage = ImGui_GetStateStorage;
+pub const beginChildFrame = ImGui_BeginChildFrame;
+pub const endChildFrame = ImGui_EndChildFrame;
+pub const calcTextSize = ImGui_CalcTextSize;
+pub const calcTextSizeEx = ImGui_CalcTextSizeEx;
+pub const colorConvertU32ToFloat4 = ImGui_ColorConvertU32ToFloat4;
+pub const colorConvertFloat4ToU32 = ImGui_ColorConvertFloat4ToU32;
+pub const colorConvertRGBtoHSV = ImGui_ColorConvertRGBtoHSV;
+pub const colorConvertHSVtoRGB = ImGui_ColorConvertHSVtoRGB;
+pub const isKeyDown = ImGui_IsKeyDown;
+pub const isKeyPressed = ImGui_IsKeyPressed;
+pub const isKeyPressedEx = ImGui_IsKeyPressedEx;
+pub const isKeyReleased = ImGui_IsKeyReleased;
+pub const getKeyPressedAmount = ImGui_GetKeyPressedAmount;
+pub const getKeyName = ImGui_GetKeyName;
+pub const setNextFrameWantCaptureKeyboard = ImGui_SetNextFrameWantCaptureKeyboard;
+pub const isMouseDown = ImGui_IsMouseDown;
+pub const isMouseClicked = ImGui_IsMouseClicked;
+pub const isMouseClickedEx = ImGui_IsMouseClickedEx;
+pub const isMouseReleased = ImGui_IsMouseReleased;
+pub const isMouseDoubleClicked = ImGui_IsMouseDoubleClicked;
+pub const getMouseClickedCount = ImGui_GetMouseClickedCount;
+pub const isMouseHoveringRect = ImGui_IsMouseHoveringRect;
+pub const isMouseHoveringRectEx = ImGui_IsMouseHoveringRectEx;
+pub const isMousePosValid = ImGui_IsMousePosValid;
+pub const isAnyMouseDown = ImGui_IsAnyMouseDown;
+pub const getMousePos = ImGui_GetMousePos;
+pub const getMousePosOnOpeningCurrentPopup = ImGui_GetMousePosOnOpeningCurrentPopup;
+pub const isMouseDragging = ImGui_IsMouseDragging;
+pub const getMouseDragDelta = ImGui_GetMouseDragDelta;
+pub const resetMouseDragDelta = ImGui_ResetMouseDragDelta;
+pub const resetMouseDragDeltaEx = ImGui_ResetMouseDragDeltaEx;
+pub const getMouseCursor = ImGui_GetMouseCursor;
+pub const setMouseCursor = ImGui_SetMouseCursor;
+pub const setNextFrameWantCaptureMouse = ImGui_SetNextFrameWantCaptureMouse;
+pub const getClipboardText = ImGui_GetClipboardText;
+pub const setClipboardText = ImGui_SetClipboardText;
+pub const loadIniSettingsFromDisk = ImGui_LoadIniSettingsFromDisk;
+pub const loadIniSettingsFromMemory = ImGui_LoadIniSettingsFromMemory;
+pub const saveIniSettingsToDisk = ImGui_SaveIniSettingsToDisk;
+pub const saveIniSettingsToMemory = ImGui_SaveIniSettingsToMemory;
+pub const debugTextEncoding = ImGui_DebugTextEncoding;
+pub const debugCheckVersionAndDataLayout = ImGui_DebugCheckVersionAndDataLayout;
+pub const setAllocatorFunctions = ImGui_SetAllocatorFunctions;
+pub const getAllocatorFunctions = ImGui_GetAllocatorFunctions;
+pub const memAlloc = ImGui_MemAlloc;
+pub const memFree = ImGui_MemFree;
+pub const vector_Construct = ImVector_Construct;
+pub const vector_Destruct = ImVector_Destruct;
+pub const getKeyIndex = ImGui_GetKeyIndex;
 extern fn ImGui_CreateContext(shared_font_atlas: ?*FontAtlas) ?*Context;
 extern fn ImGui_DestroyContext(ctx: ?*Context) void;
 extern fn ImGui_GetCurrentContext() ?*Context;
@@ -1794,683 +2437,6 @@ extern fn ImFont_IsGlyphRangeUnused(self: *Font, c_begin: c_uint, c_last: c_uint
 extern fn ImGuiViewport_GetCenter(self: *const Viewport) Vec2;
 extern fn ImGuiViewport_GetWorkCenter(self: *const Viewport) Vec2;
 extern fn ImGui_GetKeyIndex(key: Key) Key;
-pub const CreateContext = ImGui_CreateContext;
-pub const DestroyContext = ImGui_DestroyContext;
-pub const GetCurrentContext = ImGui_GetCurrentContext;
-pub const SetCurrentContext = ImGui_SetCurrentContext;
-pub const GetIO = ImGui_GetIO;
-pub const GetStyle = ImGui_GetStyle;
-pub const NewFrame = ImGui_NewFrame;
-pub const EndFrame = ImGui_EndFrame;
-pub const Render = ImGui_Render;
-pub const GetDrawData = ImGui_GetDrawData;
-pub const ShowDemoWindow = ImGui_ShowDemoWindow;
-pub const ShowMetricsWindow = ImGui_ShowMetricsWindow;
-pub const ShowDebugLogWindow = ImGui_ShowDebugLogWindow;
-pub const ShowIDStackToolWindow = ImGui_ShowIDStackToolWindow;
-pub const ShowIDStackToolWindowEx = ImGui_ShowIDStackToolWindowEx;
-pub const ShowAboutWindow = ImGui_ShowAboutWindow;
-pub const ShowStyleEditor = ImGui_ShowStyleEditor;
-pub const ShowStyleSelector = ImGui_ShowStyleSelector;
-pub const ShowFontSelector = ImGui_ShowFontSelector;
-pub const ShowUserGuide = ImGui_ShowUserGuide;
-pub const GetVersion = ImGui_GetVersion;
-pub const StyleColorsDark = ImGui_StyleColorsDark;
-pub const StyleColorsLight = ImGui_StyleColorsLight;
-pub const StyleColorsClassic = ImGui_StyleColorsClassic;
-pub const Begin = ImGui_Begin;
-pub const End = ImGui_End;
-pub const BeginChild = ImGui_BeginChild;
-pub const BeginChildID = ImGui_BeginChildID;
-pub const EndChild = ImGui_EndChild;
-pub const IsWindowAppearing = ImGui_IsWindowAppearing;
-pub const IsWindowCollapsed = ImGui_IsWindowCollapsed;
-pub const IsWindowFocused = ImGui_IsWindowFocused;
-pub const IsWindowHovered = ImGui_IsWindowHovered;
-pub const GetWindowDrawList = ImGui_GetWindowDrawList;
-pub const GetWindowPos = ImGui_GetWindowPos;
-pub const GetWindowSize = ImGui_GetWindowSize;
-pub const GetWindowWidth = ImGui_GetWindowWidth;
-pub const GetWindowHeight = ImGui_GetWindowHeight;
-pub const SetNextWindowPos = ImGui_SetNextWindowPos;
-pub const SetNextWindowPosEx = ImGui_SetNextWindowPosEx;
-pub const SetNextWindowSize = ImGui_SetNextWindowSize;
-pub const SetNextWindowSizeConstraints = ImGui_SetNextWindowSizeConstraints;
-pub const SetNextWindowContentSize = ImGui_SetNextWindowContentSize;
-pub const SetNextWindowCollapsed = ImGui_SetNextWindowCollapsed;
-pub const SetNextWindowFocus = ImGui_SetNextWindowFocus;
-pub const SetNextWindowScroll = ImGui_SetNextWindowScroll;
-pub const SetNextWindowBgAlpha = ImGui_SetNextWindowBgAlpha;
-pub const SetWindowPos = ImGui_SetWindowPos;
-pub const SetWindowSize = ImGui_SetWindowSize;
-pub const SetWindowCollapsed = ImGui_SetWindowCollapsed;
-pub const SetWindowFocus = ImGui_SetWindowFocus;
-pub const SetWindowFontScale = ImGui_SetWindowFontScale;
-pub const SetWindowPosStr = ImGui_SetWindowPosStr;
-pub const SetWindowSizeStr = ImGui_SetWindowSizeStr;
-pub const SetWindowCollapsedStr = ImGui_SetWindowCollapsedStr;
-pub const SetWindowFocusStr = ImGui_SetWindowFocusStr;
-pub const GetContentRegionAvail = ImGui_GetContentRegionAvail;
-pub const GetContentRegionMax = ImGui_GetContentRegionMax;
-pub const GetWindowContentRegionMin = ImGui_GetWindowContentRegionMin;
-pub const GetWindowContentRegionMax = ImGui_GetWindowContentRegionMax;
-pub const GetScrollX = ImGui_GetScrollX;
-pub const GetScrollY = ImGui_GetScrollY;
-pub const SetScrollX = ImGui_SetScrollX;
-pub const SetScrollY = ImGui_SetScrollY;
-pub const GetScrollMaxX = ImGui_GetScrollMaxX;
-pub const GetScrollMaxY = ImGui_GetScrollMaxY;
-pub const SetScrollHereX = ImGui_SetScrollHereX;
-pub const SetScrollHereY = ImGui_SetScrollHereY;
-pub const SetScrollFromPosX = ImGui_SetScrollFromPosX;
-pub const SetScrollFromPosY = ImGui_SetScrollFromPosY;
-pub const PushFont = ImGui_PushFont;
-pub const PopFont = ImGui_PopFont;
-pub const PushStyleColor = ImGui_PushStyleColor;
-pub const PushStyleColorImVec4 = ImGui_PushStyleColorImVec4;
-pub const PopStyleColor = ImGui_PopStyleColor;
-pub const PopStyleColorEx = ImGui_PopStyleColorEx;
-pub const PushStyleVar = ImGui_PushStyleVar;
-pub const PushStyleVarImVec2 = ImGui_PushStyleVarImVec2;
-pub const PopStyleVar = ImGui_PopStyleVar;
-pub const PopStyleVarEx = ImGui_PopStyleVarEx;
-pub const PushTabStop = ImGui_PushTabStop;
-pub const PopTabStop = ImGui_PopTabStop;
-pub const PushButtonRepeat = ImGui_PushButtonRepeat;
-pub const PopButtonRepeat = ImGui_PopButtonRepeat;
-pub const PushItemWidth = ImGui_PushItemWidth;
-pub const PopItemWidth = ImGui_PopItemWidth;
-pub const SetNextItemWidth = ImGui_SetNextItemWidth;
-pub const CalcItemWidth = ImGui_CalcItemWidth;
-pub const PushTextWrapPos = ImGui_PushTextWrapPos;
-pub const PopTextWrapPos = ImGui_PopTextWrapPos;
-pub const GetFont = ImGui_GetFont;
-pub const GetFontSize = ImGui_GetFontSize;
-pub const GetFontTexUvWhitePixel = ImGui_GetFontTexUvWhitePixel;
-pub const GetColorU32 = ImGui_GetColorU32;
-pub const GetColorU32Ex = ImGui_GetColorU32Ex;
-pub const GetColorU32ImVec4 = ImGui_GetColorU32ImVec4;
-pub const GetColorU32ImU32 = ImGui_GetColorU32ImU32;
-pub const GetStyleColorVec4 = ImGui_GetStyleColorVec4;
-pub const GetCursorScreenPos = ImGui_GetCursorScreenPos;
-pub const SetCursorScreenPos = ImGui_SetCursorScreenPos;
-pub const GetCursorPos = ImGui_GetCursorPos;
-pub const GetCursorPosX = ImGui_GetCursorPosX;
-pub const GetCursorPosY = ImGui_GetCursorPosY;
-pub const SetCursorPos = ImGui_SetCursorPos;
-pub const SetCursorPosX = ImGui_SetCursorPosX;
-pub const SetCursorPosY = ImGui_SetCursorPosY;
-pub const GetCursorStartPos = ImGui_GetCursorStartPos;
-pub const Separator = ImGui_Separator;
-pub const SameLine = ImGui_SameLine;
-pub const SameLineEx = ImGui_SameLineEx;
-pub const NewLine = ImGui_NewLine;
-pub const Spacing = ImGui_Spacing;
-pub const Dummy = ImGui_Dummy;
-pub const Indent = ImGui_Indent;
-pub const IndentEx = ImGui_IndentEx;
-pub const Unindent = ImGui_Unindent;
-pub const UnindentEx = ImGui_UnindentEx;
-pub const BeginGroup = ImGui_BeginGroup;
-pub const EndGroup = ImGui_EndGroup;
-pub const AlignTextToFramePadding = ImGui_AlignTextToFramePadding;
-pub const GetTextLineHeight = ImGui_GetTextLineHeight;
-pub const GetTextLineHeightWithSpacing = ImGui_GetTextLineHeightWithSpacing;
-pub const GetFrameHeight = ImGui_GetFrameHeight;
-pub const GetFrameHeightWithSpacing = ImGui_GetFrameHeightWithSpacing;
-pub const PushID = ImGui_PushID;
-pub const PushIDStr = ImGui_PushIDStr;
-pub const PushIDPtr = ImGui_PushIDPtr;
-pub const PushIDInt = ImGui_PushIDInt;
-pub const PopID = ImGui_PopID;
-pub const GetID = ImGui_GetID;
-pub const GetIDStr = ImGui_GetIDStr;
-pub const GetIDPtr = ImGui_GetIDPtr;
-pub const TextUnformatted = ImGui_TextUnformatted;
-pub const TextUnformattedEx = ImGui_TextUnformattedEx;
-pub const Text = ImGui_Text;
-pub const TextV = ImGui_TextV;
-pub const TextColored = ImGui_TextColored;
-pub const TextColoredUnformatted = ImGui_TextColoredUnformatted;
-pub const TextColoredV = ImGui_TextColoredV;
-pub const TextDisabled = ImGui_TextDisabled;
-pub const TextDisabledUnformatted = ImGui_TextDisabledUnformatted;
-pub const TextDisabledV = ImGui_TextDisabledV;
-pub const TextWrapped = ImGui_TextWrapped;
-pub const TextWrappedUnformatted = ImGui_TextWrappedUnformatted;
-pub const TextWrappedV = ImGui_TextWrappedV;
-pub const LabelText = ImGui_LabelText;
-pub const LabelTextUnformatted = ImGui_LabelTextUnformatted;
-pub const LabelTextV = ImGui_LabelTextV;
-pub const BulletText = ImGui_BulletText;
-pub const BulletTextUnformatted = ImGui_BulletTextUnformatted;
-pub const BulletTextV = ImGui_BulletTextV;
-pub const SeparatorText = ImGui_SeparatorText;
-pub const Button = ImGui_Button;
-pub const ButtonEx = ImGui_ButtonEx;
-pub const SmallButton = ImGui_SmallButton;
-pub const InvisibleButton = ImGui_InvisibleButton;
-pub const ArrowButton = ImGui_ArrowButton;
-pub const Checkbox = ImGui_Checkbox;
-pub const CheckboxFlagsIntPtr = ImGui_CheckboxFlagsIntPtr;
-pub const CheckboxFlagsUintPtr = ImGui_CheckboxFlagsUintPtr;
-pub const RadioButton = ImGui_RadioButton;
-pub const RadioButtonIntPtr = ImGui_RadioButtonIntPtr;
-pub const ProgressBar = ImGui_ProgressBar;
-pub const Bullet = ImGui_Bullet;
-pub const Image = ImGui_Image;
-pub const ImageEx = ImGui_ImageEx;
-pub const ImageButton = ImGui_ImageButton;
-pub const ImageButtonEx = ImGui_ImageButtonEx;
-pub const BeginCombo = ImGui_BeginCombo;
-pub const EndCombo = ImGui_EndCombo;
-pub const ComboChar = ImGui_ComboChar;
-pub const ComboCharEx = ImGui_ComboCharEx;
-pub const Combo = ImGui_Combo;
-pub const ComboEx = ImGui_ComboEx;
-pub const ComboCallback = ImGui_ComboCallback;
-pub const ComboCallbackEx = ImGui_ComboCallbackEx;
-pub const DragFloat = ImGui_DragFloat;
-pub const DragFloatEx = ImGui_DragFloatEx;
-pub const DragFloat2 = ImGui_DragFloat2;
-pub const DragFloat2Ex = ImGui_DragFloat2Ex;
-pub const DragFloat3 = ImGui_DragFloat3;
-pub const DragFloat3Ex = ImGui_DragFloat3Ex;
-pub const DragFloat4 = ImGui_DragFloat4;
-pub const DragFloat4Ex = ImGui_DragFloat4Ex;
-pub const DragFloatRange2 = ImGui_DragFloatRange2;
-pub const DragFloatRange2Ex = ImGui_DragFloatRange2Ex;
-pub const DragInt = ImGui_DragInt;
-pub const DragIntEx = ImGui_DragIntEx;
-pub const DragInt2 = ImGui_DragInt2;
-pub const DragInt2Ex = ImGui_DragInt2Ex;
-pub const DragInt3 = ImGui_DragInt3;
-pub const DragInt3Ex = ImGui_DragInt3Ex;
-pub const DragInt4 = ImGui_DragInt4;
-pub const DragInt4Ex = ImGui_DragInt4Ex;
-pub const DragIntRange2 = ImGui_DragIntRange2;
-pub const DragIntRange2Ex = ImGui_DragIntRange2Ex;
-pub const DragScalar = ImGui_DragScalar;
-pub const DragScalarEx = ImGui_DragScalarEx;
-pub const DragScalarN = ImGui_DragScalarN;
-pub const DragScalarNEx = ImGui_DragScalarNEx;
-pub const SliderFloat = ImGui_SliderFloat;
-pub const SliderFloatEx = ImGui_SliderFloatEx;
-pub const SliderFloat2 = ImGui_SliderFloat2;
-pub const SliderFloat2Ex = ImGui_SliderFloat2Ex;
-pub const SliderFloat3 = ImGui_SliderFloat3;
-pub const SliderFloat3Ex = ImGui_SliderFloat3Ex;
-pub const SliderFloat4 = ImGui_SliderFloat4;
-pub const SliderFloat4Ex = ImGui_SliderFloat4Ex;
-pub const SliderAngle = ImGui_SliderAngle;
-pub const SliderAngleEx = ImGui_SliderAngleEx;
-pub const SliderInt = ImGui_SliderInt;
-pub const SliderIntEx = ImGui_SliderIntEx;
-pub const SliderInt2 = ImGui_SliderInt2;
-pub const SliderInt2Ex = ImGui_SliderInt2Ex;
-pub const SliderInt3 = ImGui_SliderInt3;
-pub const SliderInt3Ex = ImGui_SliderInt3Ex;
-pub const SliderInt4 = ImGui_SliderInt4;
-pub const SliderInt4Ex = ImGui_SliderInt4Ex;
-pub const SliderScalar = ImGui_SliderScalar;
-pub const SliderScalarEx = ImGui_SliderScalarEx;
-pub const SliderScalarN = ImGui_SliderScalarN;
-pub const SliderScalarNEx = ImGui_SliderScalarNEx;
-pub const VSliderFloat = ImGui_VSliderFloat;
-pub const VSliderFloatEx = ImGui_VSliderFloatEx;
-pub const VSliderInt = ImGui_VSliderInt;
-pub const VSliderIntEx = ImGui_VSliderIntEx;
-pub const VSliderScalar = ImGui_VSliderScalar;
-pub const VSliderScalarEx = ImGui_VSliderScalarEx;
-pub const InputText = ImGui_InputText;
-pub const InputTextEx = ImGui_InputTextEx;
-pub const InputTextMultiline = ImGui_InputTextMultiline;
-pub const InputTextMultilineEx = ImGui_InputTextMultilineEx;
-pub const InputTextWithHint = ImGui_InputTextWithHint;
-pub const InputTextWithHintEx = ImGui_InputTextWithHintEx;
-pub const InputFloat = ImGui_InputFloat;
-pub const InputFloatEx = ImGui_InputFloatEx;
-pub const InputFloat2 = ImGui_InputFloat2;
-pub const InputFloat2Ex = ImGui_InputFloat2Ex;
-pub const InputFloat3 = ImGui_InputFloat3;
-pub const InputFloat3Ex = ImGui_InputFloat3Ex;
-pub const InputFloat4 = ImGui_InputFloat4;
-pub const InputFloat4Ex = ImGui_InputFloat4Ex;
-pub const InputInt = ImGui_InputInt;
-pub const InputIntEx = ImGui_InputIntEx;
-pub const InputInt2 = ImGui_InputInt2;
-pub const InputInt3 = ImGui_InputInt3;
-pub const InputInt4 = ImGui_InputInt4;
-pub const InputDouble = ImGui_InputDouble;
-pub const InputDoubleEx = ImGui_InputDoubleEx;
-pub const InputScalar = ImGui_InputScalar;
-pub const InputScalarEx = ImGui_InputScalarEx;
-pub const InputScalarN = ImGui_InputScalarN;
-pub const InputScalarNEx = ImGui_InputScalarNEx;
-pub const ColorEdit3 = ImGui_ColorEdit3;
-pub const ColorEdit4 = ImGui_ColorEdit4;
-pub const ColorPicker3 = ImGui_ColorPicker3;
-pub const ColorPicker4 = ImGui_ColorPicker4;
-pub const ColorButton = ImGui_ColorButton;
-pub const ColorButtonEx = ImGui_ColorButtonEx;
-pub const SetColorEditOptions = ImGui_SetColorEditOptions;
-pub const TreeNode = ImGui_TreeNode;
-pub const TreeNodeStr = ImGui_TreeNodeStr;
-pub const TreeNodeStrUnformatted = ImGui_TreeNodeStrUnformatted;
-pub const TreeNodePtr = ImGui_TreeNodePtr;
-pub const TreeNodePtrUnformatted = ImGui_TreeNodePtrUnformatted;
-pub const TreeNodeV = ImGui_TreeNodeV;
-pub const TreeNodeVPtr = ImGui_TreeNodeVPtr;
-pub const TreeNodeEx = ImGui_TreeNodeEx;
-pub const TreeNodeExStr = ImGui_TreeNodeExStr;
-pub const TreeNodeExStrUnformatted = ImGui_TreeNodeExStrUnformatted;
-pub const TreeNodeExPtr = ImGui_TreeNodeExPtr;
-pub const TreeNodeExPtrUnformatted = ImGui_TreeNodeExPtrUnformatted;
-pub const TreeNodeExV = ImGui_TreeNodeExV;
-pub const TreeNodeExVPtr = ImGui_TreeNodeExVPtr;
-pub const TreePush = ImGui_TreePush;
-pub const TreePushPtr = ImGui_TreePushPtr;
-pub const TreePop = ImGui_TreePop;
-pub const GetTreeNodeToLabelSpacing = ImGui_GetTreeNodeToLabelSpacing;
-pub const CollapsingHeader = ImGui_CollapsingHeader;
-pub const CollapsingHeaderBoolPtr = ImGui_CollapsingHeaderBoolPtr;
-pub const SetNextItemOpen = ImGui_SetNextItemOpen;
-pub const Selectable = ImGui_Selectable;
-pub const SelectableEx = ImGui_SelectableEx;
-pub const SelectableBoolPtr = ImGui_SelectableBoolPtr;
-pub const SelectableBoolPtrEx = ImGui_SelectableBoolPtrEx;
-pub const BeginListBox = ImGui_BeginListBox;
-pub const EndListBox = ImGui_EndListBox;
-pub const ListBox = ImGui_ListBox;
-pub const ListBoxCallback = ImGui_ListBoxCallback;
-pub const ListBoxCallbackEx = ImGui_ListBoxCallbackEx;
-pub const PlotLines = ImGui_PlotLines;
-pub const PlotLinesEx = ImGui_PlotLinesEx;
-pub const PlotLinesCallback = ImGui_PlotLinesCallback;
-pub const PlotLinesCallbackEx = ImGui_PlotLinesCallbackEx;
-pub const PlotHistogram = ImGui_PlotHistogram;
-pub const PlotHistogramEx = ImGui_PlotHistogramEx;
-pub const PlotHistogramCallback = ImGui_PlotHistogramCallback;
-pub const PlotHistogramCallbackEx = ImGui_PlotHistogramCallbackEx;
-pub const BeginMenuBar = ImGui_BeginMenuBar;
-pub const EndMenuBar = ImGui_EndMenuBar;
-pub const BeginMainMenuBar = ImGui_BeginMainMenuBar;
-pub const EndMainMenuBar = ImGui_EndMainMenuBar;
-pub const BeginMenu = ImGui_BeginMenu;
-pub const BeginMenuEx = ImGui_BeginMenuEx;
-pub const EndMenu = ImGui_EndMenu;
-pub const MenuItem = ImGui_MenuItem;
-pub const MenuItemEx = ImGui_MenuItemEx;
-pub const MenuItemBoolPtr = ImGui_MenuItemBoolPtr;
-pub const BeginTooltip = ImGui_BeginTooltip;
-pub const EndTooltip = ImGui_EndTooltip;
-pub const SetTooltip = ImGui_SetTooltip;
-pub const SetTooltipUnformatted = ImGui_SetTooltipUnformatted;
-pub const SetTooltipV = ImGui_SetTooltipV;
-pub const BeginItemTooltip = ImGui_BeginItemTooltip;
-pub const SetItemTooltip = ImGui_SetItemTooltip;
-pub const SetItemTooltipUnformatted = ImGui_SetItemTooltipUnformatted;
-pub const SetItemTooltipV = ImGui_SetItemTooltipV;
-pub const BeginPopup = ImGui_BeginPopup;
-pub const BeginPopupModal = ImGui_BeginPopupModal;
-pub const EndPopup = ImGui_EndPopup;
-pub const OpenPopup = ImGui_OpenPopup;
-pub const OpenPopupID = ImGui_OpenPopupID;
-pub const OpenPopupOnItemClick = ImGui_OpenPopupOnItemClick;
-pub const CloseCurrentPopup = ImGui_CloseCurrentPopup;
-pub const BeginPopupContextItem = ImGui_BeginPopupContextItem;
-pub const BeginPopupContextItemEx = ImGui_BeginPopupContextItemEx;
-pub const BeginPopupContextWindow = ImGui_BeginPopupContextWindow;
-pub const BeginPopupContextWindowEx = ImGui_BeginPopupContextWindowEx;
-pub const BeginPopupContextVoid = ImGui_BeginPopupContextVoid;
-pub const BeginPopupContextVoidEx = ImGui_BeginPopupContextVoidEx;
-pub const IsPopupOpen = ImGui_IsPopupOpen;
-pub const BeginTable = ImGui_BeginTable;
-pub const BeginTableEx = ImGui_BeginTableEx;
-pub const EndTable = ImGui_EndTable;
-pub const TableNextRow = ImGui_TableNextRow;
-pub const TableNextRowEx = ImGui_TableNextRowEx;
-pub const TableNextColumn = ImGui_TableNextColumn;
-pub const TableSetColumnIndex = ImGui_TableSetColumnIndex;
-pub const TableSetupColumn = ImGui_TableSetupColumn;
-pub const TableSetupColumnEx = ImGui_TableSetupColumnEx;
-pub const TableSetupScrollFreeze = ImGui_TableSetupScrollFreeze;
-pub const TableHeader = ImGui_TableHeader;
-pub const TableHeadersRow = ImGui_TableHeadersRow;
-pub const TableAngledHeadersRow = ImGui_TableAngledHeadersRow;
-pub const TableGetSortSpecs = ImGui_TableGetSortSpecs;
-pub const TableGetColumnCount = ImGui_TableGetColumnCount;
-pub const TableGetColumnIndex = ImGui_TableGetColumnIndex;
-pub const TableGetRowIndex = ImGui_TableGetRowIndex;
-pub const TableGetColumnName = ImGui_TableGetColumnName;
-pub const TableGetColumnFlags = ImGui_TableGetColumnFlags;
-pub const TableSetColumnEnabled = ImGui_TableSetColumnEnabled;
-pub const TableSetBgColor = ImGui_TableSetBgColor;
-pub const Columns = ImGui_Columns;
-pub const ColumnsEx = ImGui_ColumnsEx;
-pub const NextColumn = ImGui_NextColumn;
-pub const GetColumnIndex = ImGui_GetColumnIndex;
-pub const GetColumnWidth = ImGui_GetColumnWidth;
-pub const SetColumnWidth = ImGui_SetColumnWidth;
-pub const GetColumnOffset = ImGui_GetColumnOffset;
-pub const SetColumnOffset = ImGui_SetColumnOffset;
-pub const GetColumnsCount = ImGui_GetColumnsCount;
-pub const BeginTabBar = ImGui_BeginTabBar;
-pub const EndTabBar = ImGui_EndTabBar;
-pub const BeginTabItem = ImGui_BeginTabItem;
-pub const EndTabItem = ImGui_EndTabItem;
-pub const TabItemButton = ImGui_TabItemButton;
-pub const SetTabItemClosed = ImGui_SetTabItemClosed;
-pub const LogToTTY = ImGui_LogToTTY;
-pub const LogToFile = ImGui_LogToFile;
-pub const LogToClipboard = ImGui_LogToClipboard;
-pub const LogFinish = ImGui_LogFinish;
-pub const LogButtons = ImGui_LogButtons;
-pub const LogText = ImGui_LogText;
-pub const LogTextUnformatted = ImGui_LogTextUnformatted;
-pub const LogTextV = ImGui_LogTextV;
-pub const BeginDragDropSource = ImGui_BeginDragDropSource;
-pub const SetDragDropPayload = ImGui_SetDragDropPayload;
-pub const EndDragDropSource = ImGui_EndDragDropSource;
-pub const BeginDragDropTarget = ImGui_BeginDragDropTarget;
-pub const AcceptDragDropPayload = ImGui_AcceptDragDropPayload;
-pub const EndDragDropTarget = ImGui_EndDragDropTarget;
-pub const GetDragDropPayload = ImGui_GetDragDropPayload;
-pub const BeginDisabled = ImGui_BeginDisabled;
-pub const EndDisabled = ImGui_EndDisabled;
-pub const PushClipRect = ImGui_PushClipRect;
-pub const PopClipRect = ImGui_PopClipRect;
-pub const SetItemDefaultFocus = ImGui_SetItemDefaultFocus;
-pub const SetKeyboardFocusHere = ImGui_SetKeyboardFocusHere;
-pub const SetKeyboardFocusHereEx = ImGui_SetKeyboardFocusHereEx;
-pub const SetNextItemAllowOverlap = ImGui_SetNextItemAllowOverlap;
-pub const IsItemHovered = ImGui_IsItemHovered;
-pub const IsItemActive = ImGui_IsItemActive;
-pub const IsItemFocused = ImGui_IsItemFocused;
-pub const IsItemClicked = ImGui_IsItemClicked;
-pub const IsItemClickedEx = ImGui_IsItemClickedEx;
-pub const IsItemVisible = ImGui_IsItemVisible;
-pub const IsItemEdited = ImGui_IsItemEdited;
-pub const IsItemActivated = ImGui_IsItemActivated;
-pub const IsItemDeactivated = ImGui_IsItemDeactivated;
-pub const IsItemDeactivatedAfterEdit = ImGui_IsItemDeactivatedAfterEdit;
-pub const IsItemToggledOpen = ImGui_IsItemToggledOpen;
-pub const IsAnyItemHovered = ImGui_IsAnyItemHovered;
-pub const IsAnyItemActive = ImGui_IsAnyItemActive;
-pub const IsAnyItemFocused = ImGui_IsAnyItemFocused;
-pub const GetItemID = ImGui_GetItemID;
-pub const GetItemRectMin = ImGui_GetItemRectMin;
-pub const GetItemRectMax = ImGui_GetItemRectMax;
-pub const GetItemRectSize = ImGui_GetItemRectSize;
-pub const GetMainViewport = ImGui_GetMainViewport;
-pub const GetBackgroundDrawList = ImGui_GetBackgroundDrawList;
-pub const GetForegroundDrawList = ImGui_GetForegroundDrawList;
-pub const IsRectVisibleBySize = ImGui_IsRectVisibleBySize;
-pub const IsRectVisible = ImGui_IsRectVisible;
-pub const GetTime = ImGui_GetTime;
-pub const GetFrameCount = ImGui_GetFrameCount;
-pub const GetDrawListSharedData = ImGui_GetDrawListSharedData;
-pub const GetStyleColorName = ImGui_GetStyleColorName;
-pub const SetStateStorage = ImGui_SetStateStorage;
-pub const GetStateStorage = ImGui_GetStateStorage;
-pub const BeginChildFrame = ImGui_BeginChildFrame;
-pub const EndChildFrame = ImGui_EndChildFrame;
-pub const CalcTextSize = ImGui_CalcTextSize;
-pub const CalcTextSizeEx = ImGui_CalcTextSizeEx;
-pub const ColorConvertU32ToFloat4 = ImGui_ColorConvertU32ToFloat4;
-pub const ColorConvertFloat4ToU32 = ImGui_ColorConvertFloat4ToU32;
-pub const ColorConvertRGBtoHSV = ImGui_ColorConvertRGBtoHSV;
-pub const ColorConvertHSVtoRGB = ImGui_ColorConvertHSVtoRGB;
-pub const IsKeyDown = ImGui_IsKeyDown;
-pub const IsKeyPressed = ImGui_IsKeyPressed;
-pub const IsKeyPressedEx = ImGui_IsKeyPressedEx;
-pub const IsKeyReleased = ImGui_IsKeyReleased;
-pub const GetKeyPressedAmount = ImGui_GetKeyPressedAmount;
-pub const GetKeyName = ImGui_GetKeyName;
-pub const SetNextFrameWantCaptureKeyboard = ImGui_SetNextFrameWantCaptureKeyboard;
-pub const IsMouseDown = ImGui_IsMouseDown;
-pub const IsMouseClicked = ImGui_IsMouseClicked;
-pub const IsMouseClickedEx = ImGui_IsMouseClickedEx;
-pub const IsMouseReleased = ImGui_IsMouseReleased;
-pub const IsMouseDoubleClicked = ImGui_IsMouseDoubleClicked;
-pub const GetMouseClickedCount = ImGui_GetMouseClickedCount;
-pub const IsMouseHoveringRect = ImGui_IsMouseHoveringRect;
-pub const IsMouseHoveringRectEx = ImGui_IsMouseHoveringRectEx;
-pub const IsMousePosValid = ImGui_IsMousePosValid;
-pub const IsAnyMouseDown = ImGui_IsAnyMouseDown;
-pub const GetMousePos = ImGui_GetMousePos;
-pub const GetMousePosOnOpeningCurrentPopup = ImGui_GetMousePosOnOpeningCurrentPopup;
-pub const IsMouseDragging = ImGui_IsMouseDragging;
-pub const GetMouseDragDelta = ImGui_GetMouseDragDelta;
-pub const ResetMouseDragDelta = ImGui_ResetMouseDragDelta;
-pub const ResetMouseDragDeltaEx = ImGui_ResetMouseDragDeltaEx;
-pub const GetMouseCursor = ImGui_GetMouseCursor;
-pub const SetMouseCursor = ImGui_SetMouseCursor;
-pub const SetNextFrameWantCaptureMouse = ImGui_SetNextFrameWantCaptureMouse;
-pub const GetClipboardText = ImGui_GetClipboardText;
-pub const SetClipboardText = ImGui_SetClipboardText;
-pub const LoadIniSettingsFromDisk = ImGui_LoadIniSettingsFromDisk;
-pub const LoadIniSettingsFromMemory = ImGui_LoadIniSettingsFromMemory;
-pub const SaveIniSettingsToDisk = ImGui_SaveIniSettingsToDisk;
-pub const SaveIniSettingsToMemory = ImGui_SaveIniSettingsToMemory;
-pub const DebugTextEncoding = ImGui_DebugTextEncoding;
-pub const DebugCheckVersionAndDataLayout = ImGui_DebugCheckVersionAndDataLayout;
-pub const SetAllocatorFunctions = ImGui_SetAllocatorFunctions;
-pub const GetAllocatorFunctions = ImGui_GetAllocatorFunctions;
-pub const MemAlloc = ImGui_MemAlloc;
-pub const MemFree = ImGui_MemFree;
-pub const Vector_Construct = ImVector_Construct;
-pub const Vector_Destruct = ImVector_Destruct;
-pub const Style_ScaleAllSizes = ImGuiStyle_ScaleAllSizes;
-pub const IO_AddKeyEvent = ImGuiIO_AddKeyEvent;
-pub const IO_AddKeyAnalogEvent = ImGuiIO_AddKeyAnalogEvent;
-pub const IO_AddMousePosEvent = ImGuiIO_AddMousePosEvent;
-pub const IO_AddMouseButtonEvent = ImGuiIO_AddMouseButtonEvent;
-pub const IO_AddMouseWheelEvent = ImGuiIO_AddMouseWheelEvent;
-pub const IO_AddMouseSourceEvent = ImGuiIO_AddMouseSourceEvent;
-pub const IO_AddFocusEvent = ImGuiIO_AddFocusEvent;
-pub const IO_AddInputCharacter = ImGuiIO_AddInputCharacter;
-pub const IO_AddInputCharacterUTF16 = ImGuiIO_AddInputCharacterUTF16;
-pub const IO_AddInputCharactersUTF8 = ImGuiIO_AddInputCharactersUTF8;
-pub const IO_SetKeyEventNativeData = ImGuiIO_SetKeyEventNativeData;
-pub const IO_SetKeyEventNativeDataEx = ImGuiIO_SetKeyEventNativeDataEx;
-pub const IO_SetAppAcceptingEvents = ImGuiIO_SetAppAcceptingEvents;
-pub const IO_ClearEventsQueue = ImGuiIO_ClearEventsQueue;
-pub const IO_ClearInputKeys = ImGuiIO_ClearInputKeys;
-pub const InputTextCallbackData_DeleteChars = ImGuiInputTextCallbackData_DeleteChars;
-pub const InputTextCallbackData_InsertChars = ImGuiInputTextCallbackData_InsertChars;
-pub const InputTextCallbackData_SelectAll = ImGuiInputTextCallbackData_SelectAll;
-pub const InputTextCallbackData_ClearSelection = ImGuiInputTextCallbackData_ClearSelection;
-pub const InputTextCallbackData_HasSelection = ImGuiInputTextCallbackData_HasSelection;
-pub const Payload_Clear = ImGuiPayload_Clear;
-pub const Payload_IsDataType = ImGuiPayload_IsDataType;
-pub const Payload_IsPreview = ImGuiPayload_IsPreview;
-pub const Payload_IsDelivery = ImGuiPayload_IsDelivery;
-pub const TextFilter_ImGuiTextRange_empty = ImGuiTextFilter_ImGuiTextRange_empty;
-pub const TextFilter_ImGuiTextRange_split = ImGuiTextFilter_ImGuiTextRange_split;
-pub const TextFilter_Draw = ImGuiTextFilter_Draw;
-pub const TextFilter_PassFilter = ImGuiTextFilter_PassFilter;
-pub const TextFilter_Build = ImGuiTextFilter_Build;
-pub const TextFilter_Clear = ImGuiTextFilter_Clear;
-pub const TextFilter_IsActive = ImGuiTextFilter_IsActive;
-pub const TextBuffer_begin = ImGuiTextBuffer_begin;
-pub const TextBuffer_end = ImGuiTextBuffer_end;
-pub const TextBuffer_size = ImGuiTextBuffer_size;
-pub const TextBuffer_empty = ImGuiTextBuffer_empty;
-pub const TextBuffer_clear = ImGuiTextBuffer_clear;
-pub const TextBuffer_reserve = ImGuiTextBuffer_reserve;
-pub const TextBuffer_c_str = ImGuiTextBuffer_c_str;
-pub const TextBuffer_append = ImGuiTextBuffer_append;
-pub const TextBuffer_appendf = ImGuiTextBuffer_appendf;
-pub const TextBuffer_appendfv = ImGuiTextBuffer_appendfv;
-pub const Storage_Clear = ImGuiStorage_Clear;
-pub const Storage_GetInt = ImGuiStorage_GetInt;
-pub const Storage_SetInt = ImGuiStorage_SetInt;
-pub const Storage_GetBool = ImGuiStorage_GetBool;
-pub const Storage_SetBool = ImGuiStorage_SetBool;
-pub const Storage_GetFloat = ImGuiStorage_GetFloat;
-pub const Storage_SetFloat = ImGuiStorage_SetFloat;
-pub const Storage_GetVoidPtr = ImGuiStorage_GetVoidPtr;
-pub const Storage_SetVoidPtr = ImGuiStorage_SetVoidPtr;
-pub const Storage_GetIntRef = ImGuiStorage_GetIntRef;
-pub const Storage_GetBoolRef = ImGuiStorage_GetBoolRef;
-pub const Storage_GetFloatRef = ImGuiStorage_GetFloatRef;
-pub const Storage_GetVoidPtrRef = ImGuiStorage_GetVoidPtrRef;
-pub const Storage_SetAllInt = ImGuiStorage_SetAllInt;
-pub const Storage_BuildSortByKey = ImGuiStorage_BuildSortByKey;
-pub const ListClipper_Begin = ImGuiListClipper_Begin;
-pub const ListClipper_End = ImGuiListClipper_End;
-pub const ListClipper_Step = ImGuiListClipper_Step;
-pub const ListClipper_IncludeItemByIndex = ImGuiListClipper_IncludeItemByIndex;
-pub const ListClipper_IncludeItemsByIndex = ImGuiListClipper_IncludeItemsByIndex;
-pub const Color_SetHSV = ImColor_SetHSV;
-pub const Color_HSV = ImColor_HSV;
-pub const DrawCmd_GetTexID = ImDrawCmd_GetTexID;
-pub const DrawListSplitter_Clear = ImDrawListSplitter_Clear;
-pub const DrawListSplitter_ClearFreeMemory = ImDrawListSplitter_ClearFreeMemory;
-pub const DrawListSplitter_Split = ImDrawListSplitter_Split;
-pub const DrawListSplitter_Merge = ImDrawListSplitter_Merge;
-pub const DrawListSplitter_SetCurrentChannel = ImDrawListSplitter_SetCurrentChannel;
-pub const DrawList_PushClipRect = ImDrawList_PushClipRect;
-pub const DrawList_PushClipRectFullScreen = ImDrawList_PushClipRectFullScreen;
-pub const DrawList_PopClipRect = ImDrawList_PopClipRect;
-pub const DrawList_PushTextureID = ImDrawList_PushTextureID;
-pub const DrawList_PopTextureID = ImDrawList_PopTextureID;
-pub const DrawList_GetClipRectMin = ImDrawList_GetClipRectMin;
-pub const DrawList_GetClipRectMax = ImDrawList_GetClipRectMax;
-pub const DrawList_AddLine = ImDrawList_AddLine;
-pub const DrawList_AddLineEx = ImDrawList_AddLineEx;
-pub const DrawList_AddRect = ImDrawList_AddRect;
-pub const DrawList_AddRectEx = ImDrawList_AddRectEx;
-pub const DrawList_AddRectFilled = ImDrawList_AddRectFilled;
-pub const DrawList_AddRectFilledEx = ImDrawList_AddRectFilledEx;
-pub const DrawList_AddRectFilledMultiColor = ImDrawList_AddRectFilledMultiColor;
-pub const DrawList_AddQuad = ImDrawList_AddQuad;
-pub const DrawList_AddQuadEx = ImDrawList_AddQuadEx;
-pub const DrawList_AddQuadFilled = ImDrawList_AddQuadFilled;
-pub const DrawList_AddTriangle = ImDrawList_AddTriangle;
-pub const DrawList_AddTriangleEx = ImDrawList_AddTriangleEx;
-pub const DrawList_AddTriangleFilled = ImDrawList_AddTriangleFilled;
-pub const DrawList_AddCircle = ImDrawList_AddCircle;
-pub const DrawList_AddCircleEx = ImDrawList_AddCircleEx;
-pub const DrawList_AddCircleFilled = ImDrawList_AddCircleFilled;
-pub const DrawList_AddNgon = ImDrawList_AddNgon;
-pub const DrawList_AddNgonEx = ImDrawList_AddNgonEx;
-pub const DrawList_AddNgonFilled = ImDrawList_AddNgonFilled;
-pub const DrawList_AddEllipse = ImDrawList_AddEllipse;
-pub const DrawList_AddEllipseEx = ImDrawList_AddEllipseEx;
-pub const DrawList_AddEllipseFilled = ImDrawList_AddEllipseFilled;
-pub const DrawList_AddEllipseFilledEx = ImDrawList_AddEllipseFilledEx;
-pub const DrawList_AddText = ImDrawList_AddText;
-pub const DrawList_AddTextEx = ImDrawList_AddTextEx;
-pub const DrawList_AddTextImFontPtr = ImDrawList_AddTextImFontPtr;
-pub const DrawList_AddTextImFontPtrEx = ImDrawList_AddTextImFontPtrEx;
-pub const DrawList_AddPolyline = ImDrawList_AddPolyline;
-pub const DrawList_AddConvexPolyFilled = ImDrawList_AddConvexPolyFilled;
-pub const DrawList_AddBezierCubic = ImDrawList_AddBezierCubic;
-pub const DrawList_AddBezierQuadratic = ImDrawList_AddBezierQuadratic;
-pub const DrawList_AddImage = ImDrawList_AddImage;
-pub const DrawList_AddImageEx = ImDrawList_AddImageEx;
-pub const DrawList_AddImageQuad = ImDrawList_AddImageQuad;
-pub const DrawList_AddImageQuadEx = ImDrawList_AddImageQuadEx;
-pub const DrawList_AddImageRounded = ImDrawList_AddImageRounded;
-pub const DrawList_PathClear = ImDrawList_PathClear;
-pub const DrawList_PathLineTo = ImDrawList_PathLineTo;
-pub const DrawList_PathLineToMergeDuplicate = ImDrawList_PathLineToMergeDuplicate;
-pub const DrawList_PathFillConvex = ImDrawList_PathFillConvex;
-pub const DrawList_PathStroke = ImDrawList_PathStroke;
-pub const DrawList_PathArcTo = ImDrawList_PathArcTo;
-pub const DrawList_PathArcToFast = ImDrawList_PathArcToFast;
-pub const DrawList_PathEllipticalArcTo = ImDrawList_PathEllipticalArcTo;
-pub const DrawList_PathEllipticalArcToEx = ImDrawList_PathEllipticalArcToEx;
-pub const DrawList_PathBezierCubicCurveTo = ImDrawList_PathBezierCubicCurveTo;
-pub const DrawList_PathBezierQuadraticCurveTo = ImDrawList_PathBezierQuadraticCurveTo;
-pub const DrawList_PathRect = ImDrawList_PathRect;
-pub const DrawList_AddCallback = ImDrawList_AddCallback;
-pub const DrawList_AddDrawCmd = ImDrawList_AddDrawCmd;
-pub const DrawList_CloneOutput = ImDrawList_CloneOutput;
-pub const DrawList_ChannelsSplit = ImDrawList_ChannelsSplit;
-pub const DrawList_ChannelsMerge = ImDrawList_ChannelsMerge;
-pub const DrawList_ChannelsSetCurrent = ImDrawList_ChannelsSetCurrent;
-pub const DrawList_PrimReserve = ImDrawList_PrimReserve;
-pub const DrawList_PrimUnreserve = ImDrawList_PrimUnreserve;
-pub const DrawList_PrimRect = ImDrawList_PrimRect;
-pub const DrawList_PrimRectUV = ImDrawList_PrimRectUV;
-pub const DrawList_PrimQuadUV = ImDrawList_PrimQuadUV;
-pub const DrawList_PrimWriteVtx = ImDrawList_PrimWriteVtx;
-pub const DrawList_PrimWriteIdx = ImDrawList_PrimWriteIdx;
-pub const DrawList_PrimVtx = ImDrawList_PrimVtx;
-pub const DrawList__ResetForNewFrame = ImDrawList__ResetForNewFrame;
-pub const DrawList__ClearFreeMemory = ImDrawList__ClearFreeMemory;
-pub const DrawList__PopUnusedDrawCmd = ImDrawList__PopUnusedDrawCmd;
-pub const DrawList__TryMergeDrawCmds = ImDrawList__TryMergeDrawCmds;
-pub const DrawList__OnChangedClipRect = ImDrawList__OnChangedClipRect;
-pub const DrawList__OnChangedTextureID = ImDrawList__OnChangedTextureID;
-pub const DrawList__OnChangedVtxOffset = ImDrawList__OnChangedVtxOffset;
-pub const DrawList__CalcCircleAutoSegmentCount = ImDrawList__CalcCircleAutoSegmentCount;
-pub const DrawList__PathArcToFastEx = ImDrawList__PathArcToFastEx;
-pub const DrawList__PathArcToN = ImDrawList__PathArcToN;
-pub const DrawData_Clear = ImDrawData_Clear;
-pub const DrawData_AddDrawList = ImDrawData_AddDrawList;
-pub const DrawData_DeIndexAllBuffers = ImDrawData_DeIndexAllBuffers;
-pub const DrawData_ScaleClipRects = ImDrawData_ScaleClipRects;
-pub const FontGlyphRangesBuilder_Clear = ImFontGlyphRangesBuilder_Clear;
-pub const FontGlyphRangesBuilder_GetBit = ImFontGlyphRangesBuilder_GetBit;
-pub const FontGlyphRangesBuilder_SetBit = ImFontGlyphRangesBuilder_SetBit;
-pub const FontGlyphRangesBuilder_AddChar = ImFontGlyphRangesBuilder_AddChar;
-pub const FontGlyphRangesBuilder_AddText = ImFontGlyphRangesBuilder_AddText;
-pub const FontGlyphRangesBuilder_AddRanges = ImFontGlyphRangesBuilder_AddRanges;
-pub const FontGlyphRangesBuilder_BuildRanges = ImFontGlyphRangesBuilder_BuildRanges;
-pub const FontAtlasCustomRect_IsPacked = ImFontAtlasCustomRect_IsPacked;
-pub const FontAtlas_AddFont = ImFontAtlas_AddFont;
-pub const FontAtlas_AddFontDefault = ImFontAtlas_AddFontDefault;
-pub const FontAtlas_AddFontFromFileTTF = ImFontAtlas_AddFontFromFileTTF;
-pub const FontAtlas_AddFontFromMemoryTTF = ImFontAtlas_AddFontFromMemoryTTF;
-pub const FontAtlas_AddFontFromMemoryCompressedTTF = ImFontAtlas_AddFontFromMemoryCompressedTTF;
-pub const FontAtlas_AddFontFromMemoryCompressedBase85TTF = ImFontAtlas_AddFontFromMemoryCompressedBase85TTF;
-pub const FontAtlas_ClearInputData = ImFontAtlas_ClearInputData;
-pub const FontAtlas_ClearTexData = ImFontAtlas_ClearTexData;
-pub const FontAtlas_ClearFonts = ImFontAtlas_ClearFonts;
-pub const FontAtlas_Clear = ImFontAtlas_Clear;
-pub const FontAtlas_Build = ImFontAtlas_Build;
-pub const FontAtlas_GetTexDataAsAlpha8 = ImFontAtlas_GetTexDataAsAlpha8;
-pub const FontAtlas_GetTexDataAsRGBA32 = ImFontAtlas_GetTexDataAsRGBA32;
-pub const FontAtlas_IsBuilt = ImFontAtlas_IsBuilt;
-pub const FontAtlas_SetTexID = ImFontAtlas_SetTexID;
-pub const FontAtlas_GetGlyphRangesDefault = ImFontAtlas_GetGlyphRangesDefault;
-pub const FontAtlas_GetGlyphRangesGreek = ImFontAtlas_GetGlyphRangesGreek;
-pub const FontAtlas_GetGlyphRangesKorean = ImFontAtlas_GetGlyphRangesKorean;
-pub const FontAtlas_GetGlyphRangesJapanese = ImFontAtlas_GetGlyphRangesJapanese;
-pub const FontAtlas_GetGlyphRangesChineseFull = ImFontAtlas_GetGlyphRangesChineseFull;
-pub const FontAtlas_GetGlyphRangesChineseSimplifiedCommon = ImFontAtlas_GetGlyphRangesChineseSimplifiedCommon;
-pub const FontAtlas_GetGlyphRangesCyrillic = ImFontAtlas_GetGlyphRangesCyrillic;
-pub const FontAtlas_GetGlyphRangesThai = ImFontAtlas_GetGlyphRangesThai;
-pub const FontAtlas_GetGlyphRangesVietnamese = ImFontAtlas_GetGlyphRangesVietnamese;
-pub const FontAtlas_AddCustomRectRegular = ImFontAtlas_AddCustomRectRegular;
-pub const FontAtlas_AddCustomRectFontGlyph = ImFontAtlas_AddCustomRectFontGlyph;
-pub const FontAtlas_GetCustomRectByIndex = ImFontAtlas_GetCustomRectByIndex;
-pub const FontAtlas_CalcCustomRectUV = ImFontAtlas_CalcCustomRectUV;
-pub const FontAtlas_GetMouseCursorTexData = ImFontAtlas_GetMouseCursorTexData;
-pub const Font_FindGlyph = ImFont_FindGlyph;
-pub const Font_FindGlyphNoFallback = ImFont_FindGlyphNoFallback;
-pub const Font_GetCharAdvance = ImFont_GetCharAdvance;
-pub const Font_IsLoaded = ImFont_IsLoaded;
-pub const Font_GetDebugName = ImFont_GetDebugName;
-pub const Font_CalcTextSizeA = ImFont_CalcTextSizeA;
-pub const Font_CalcTextSizeAEx = ImFont_CalcTextSizeAEx;
-pub const Font_CalcWordWrapPositionA = ImFont_CalcWordWrapPositionA;
-pub const Font_RenderChar = ImFont_RenderChar;
-pub const Font_RenderText = ImFont_RenderText;
-pub const Font_BuildLookupTable = ImFont_BuildLookupTable;
-pub const Font_ClearOutputData = ImFont_ClearOutputData;
-pub const Font_GrowIndex = ImFont_GrowIndex;
-pub const Font_AddGlyph = ImFont_AddGlyph;
-pub const Font_AddRemapChar = ImFont_AddRemapChar;
-pub const Font_SetGlyphVisible = ImFont_SetGlyphVisible;
-pub const Font_IsGlyphRangeUnused = ImFont_IsGlyphRangeUnused;
-pub const Viewport_GetCenter = ImGuiViewport_GetCenter;
-pub const Viewport_GetWorkCenter = ImGuiViewport_GetWorkCenter;
-pub const GetKeyIndex = ImGui_GetKeyIndex;
 test {
     std.testing.refAllDeclsRecursive(@This());
 }

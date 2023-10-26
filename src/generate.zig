@@ -62,9 +62,11 @@ var defines_set: std.StringHashMapUnmanaged(void) = .{};
 var type_aliases_map: std.StringHashMapUnmanaged([]const u8) = .{};
 var bounds_aliases_map: std.StringHashMapUnmanaged([]const u8) = .{};
 var is_many_item_field_set: std.StringHashMapUnmanaged(std.StringHashMapUnmanaged(void)) = .{};
-var known_enums: std.StringHashMapUnmanaged(void) = .{};
-var known_enum_element_values: std.AutoHashMapUnmanaged(i64, []const u8) = .{};
-var skip_enum_element_names: std.StringHashMapUnmanaged(void) = .{};
+var known_structs: std.StringHashMapUnmanaged(void) = .{};
+
+fn writeByte(ch: u8) void {
+    writer.writeByte(ch) catch unreachable;
+}
 
 fn write(str: []const u8) void {
     writer.writeAll(str) catch unreachable;
@@ -99,7 +101,7 @@ fn trimNamespace(name: []const u8) []const u8 {
 }
 
 fn trimLeadingUnderscore(name: []const u8) []const u8 {
-    return if (name.len > 2 and name[0] == '_' and std.ascii.isAlphanumeric(name[1])) name[1..name.len] else name;
+    return if (name.len > 2 and name[0] == '_' and (std.ascii.isAlphanumeric(name[1]) or name[1] == '_')) name[1..name.len] else name;
 }
 
 fn trimTrailingUnderscore(name: []const u8) []const u8 {
@@ -133,6 +135,25 @@ fn keepElement(x: std.json.Value) bool {
     return true;
 }
 
+fn emitSnakeCase(name: []const u8) void {
+    var last_upper = true;
+    for (name) |ch| {
+        const is_upper = std.ascii.isUpper(ch);
+        if (is_upper and last_upper != is_upper) {
+            writeByte('_');
+        }
+        last_upper = is_upper;
+        writeByte(std.ascii.toLower(ch));
+    }
+}
+
+fn emitCamelCase(name: []const u8) void {
+    if (name.len > 0) {
+        writeByte(std.ascii.toLower(name[0]));
+        write(name[1..name.len]);
+    }
+}
+
 fn emitDefine(x: std.json.Value) void {
     if (!keepElement(x)) return;
     const full_name = x.object.get("name").?.string;
@@ -146,53 +167,25 @@ fn emitDefines(x: std.json.Value) void {
     for (x.array.items) |item| emitDefine(item);
 }
 
-fn emitDuplicateEnumElement(x: std.json.Value, enum_full_name: []const u8) void {
+fn emitEnumElement(x: std.json.Value) void {
     if (!keepElement(x)) return;
     const full_name = x.object.get("name").?.string;
+    const name = trimNamespace(full_name);
     if (x.object.get("value")) |value| {
-        if (known_enum_element_values.get(value.integer)) |other_full_name| {
-            const name = trimLeadingUnderscore(trimPrefix(full_name, enum_full_name));
-            const enum_name = trimTrailingUnderscore(trimNamespace(enum_full_name));
-            const other_name = trimLeadingUnderscore(trimPrefix(other_full_name, enum_full_name));
-            print("    const {s} = {s}.{s};\n", .{ name, enum_name, other_name });
-            skip_enum_element_names.put(allocator, full_name, {}) catch @panic("OutOfMemory");
-        }
-        known_enum_element_values.put(allocator, value.integer, full_name) catch @panic("OutOfMemory");
-    }
-}
-
-fn emitDuplicateEnumElements(x: std.json.Value, enum_name: []const u8) void {
-    for (x.array.items) |item| emitDuplicateEnumElement(item, enum_name);
-}
-
-fn emitEnumElement(x: std.json.Value, enum_name: []const u8) void {
-    if (!keepElement(x)) return;
-    const full_name = x.object.get("name").?.string;
-    if (skip_enum_element_names.contains(full_name)) return;
-    const name = trimLeadingUnderscore(trimPrefix(full_name, enum_name));
-    if (x.object.get("value")) |value| {
-        print("    {s} = {},\n", .{ name, value.integer });
+        print("pub const {s} = {};\n", .{ name, value.integer });
     } else {
-        print("    {s},\n", .{name});
+        print("pub const {s};\n", .{name});
     }
 }
 
-fn emitEnumElements(x: std.json.Value, enum_name: []const u8) void {
-    for (x.array.items) |item| emitEnumElement(item, enum_name);
+pub fn emitEnumElements(x: std.json.Value) void {
+    for (x.array.items) |item| emitEnumElement(item);
 }
 
 fn emitEnum(x: std.json.Value) void {
     if (!keepElement(x)) return;
-    const full_name = x.object.get("name").?.string;
-    const name = trimTrailingUnderscore(trimNamespace(full_name));
-    print("pub const {s} = enum(c_int) {{\n", .{name});
-    emitDuplicateEnumElements(x.object.get("elements").?, full_name);
-    emitEnumElements(x.object.get("elements").?, full_name);
-    write("};\n");
 
-    known_enums.put(allocator, name, {}) catch unreachable;
-    known_enum_element_values.clearRetainingCapacity();
-    skip_enum_element_names.clearRetainingCapacity();
+    emitEnumElements(x.object.get("elements").?);
 }
 
 fn emitEnums(x: std.json.Value) void {
@@ -304,13 +297,7 @@ fn emitArrayType(x: std.json.Value) void {
             write(alias);
         } else {
             if (trimPrefixOpt(bounds.string, "ImGui")) |name| {
-                if (std.mem.indexOfScalar(u8, name, '_')) |i| {
-                    const enum_name = name[0..i];
-                    const element_name = name[i + 1 .. name.len];
-                    print("@intFromEnum({s}.{s})", .{ enum_name, element_name });
-                } else {
-                    write(bounds.string);
-                }
+                write(name);
             } else {
                 write(bounds.string);
             }
@@ -348,11 +335,9 @@ fn emitTypedef(x: std.json.Value) void {
     if (!keepElement(x)) return;
     const full_name = x.object.get("name").?.string;
     const name = trimNamespace(full_name);
-    if (!known_enums.contains(name)) {
-        print("pub const {s} = ", .{name});
-        emitType(x.object.get("type").?, false);
-        write(";\n");
-    }
+    print("pub const {s} = ", .{name});
+    emitType(x.object.get("type").?, false);
+    write(";\n");
 }
 
 fn emitTypedefs(x: std.json.Value) void {
@@ -370,7 +355,9 @@ fn emitStructField(x: std.json.Value, struct_name: []const u8) void {
     const full_name = x.object.get("name").?.string;
     const name = full_name;
     const is_many_item = isManyItem(struct_name, name);
-    print("    {s}: ", .{name});
+    write("    ");
+    emitSnakeCase(name);
+    write(": ");
     emitType(x.object.get("type").?, is_many_item);
     write(",\n");
 }
@@ -379,26 +366,47 @@ fn emitStructFields(x: std.json.Value, struct_name: []const u8) void {
     for (x.array.items) |item| emitStructField(item, struct_name);
 }
 
-fn emitStruct(x: std.json.Value) void {
+fn emitStructFunction(x: std.json.Value, struct_name: []const u8) void {
+    if (!keepElement(x)) return;
+    const full_name = x.object.get("name").?.string;
+    if (std.mem.indexOfScalar(u8, full_name, '_')) |i| {
+        const func_struct_name = full_name[0..i];
+        const name = full_name[i + 1 .. full_name.len];
+        if (std.mem.eql(u8, func_struct_name, struct_name)) {
+            print("    pub const ", .{});
+            emitCamelCase(trimLeadingUnderscore(name));
+            print(" = {s};\n", .{full_name});
+        }
+    }
+}
+
+fn emitStructFunctions(x: std.json.Value, struct_name: []const u8) void {
+    for (x.array.items) |item| emitStructFunction(item, struct_name);
+}
+
+fn emitStruct(x: std.json.Value, functions: std.json.Value) void {
     if (!keepElement(x)) return;
     const full_name = x.object.get("name").?.string;
     if (type_aliases_map.contains(full_name)) return;
     const name = trimNamespace(full_name);
     print("pub const {s} = extern struct {{\n", .{name});
     emitStructFields(x.object.get("fields").?, name);
+    emitStructFunctions(functions, full_name);
     write("};\n");
+
+    known_structs.put(allocator, full_name, {}) catch unreachable;
 }
 
-fn emitStructs(x: std.json.Value) void {
+fn emitStructs(x: std.json.Value, functions: std.json.Value) void {
     write("pub fn Vector(comptime T: type) type {\n");
     write("    return extern struct {\n");
-    write("        Size: c_int,\n");
-    write("        Capacity: c_int,\n");
-    write("        Data: [*]T,\n");
+    write("        size: c_int,\n");
+    write("        capacity: c_int,\n");
+    write("        data: [*]T,\n");
     write("    };\n");
     write("}\n");
 
-    for (x.array.items) |item| emitStruct(item);
+    for (x.array.items) |item| emitStruct(item, functions);
 }
 
 fn emitFunctionArgument(x: std.json.Value) void {
@@ -438,13 +446,25 @@ fn emitPubFunction(x: std.json.Value) void {
     if (!keepElement(x)) return;
     const full_name = x.object.get("name").?.string;
 
-    const name = trimLeadingUnderscore(trimNamespace(full_name));
-    print("pub const {s} = {s};\n", .{ name, full_name });
+    if (std.mem.indexOfScalar(u8, full_name, '_')) |i| {
+        const func_struct_name = full_name[0..i];
+        if (!known_structs.contains(func_struct_name)) {
+            const name = trimLeadingUnderscore(trimNamespace(full_name));
+            print("pub const ", .{});
+            emitCamelCase(name);
+            print(" = {s};\n", .{full_name});
+        }
+    } else {
+        const name = trimLeadingUnderscore(trimNamespace(full_name));
+        print("pub const ", .{});
+        emitCamelCase(name);
+        print(" = {s};\n", .{full_name});
+    }
 }
 
 fn emitFunctions(x: std.json.Value) void {
-    for (x.array.items) |item| emitExternFunction(item);
     for (x.array.items) |item| emitPubFunction(item);
+    for (x.array.items) |item| emitExternFunction(item);
 }
 
 fn emit(x: std.json.Value) void {
@@ -452,11 +472,13 @@ fn emit(x: std.json.Value) void {
     write("const c = @cImport({\n");
     write("    @cInclude(\"stdarg.h\");\n");
     write("});\n");
+
+    const functions = x.object.get("functions").?;
     emitDefines(x.object.get("defines").?);
     emitEnums(x.object.get("enums").?);
     emitTypedefs(x.object.get("typedefs").?);
-    emitStructs(x.object.get("structs").?);
-    emitFunctions(x.object.get("functions").?);
+    emitStructs(x.object.get("structs").?, functions);
+    emitFunctions(functions);
     write("test {\n");
     write("    std.testing.refAllDeclsRecursive(@This());\n");
     write("}\n");
@@ -487,9 +509,7 @@ pub fn main() !void {
         }
         is_many_item_field_set.deinit(allocator);
     }
-    defer known_enums.deinit(allocator);
-    defer known_enum_element_values.deinit(allocator);
-    defer skip_enum_element_names.deinit(allocator);
+    defer known_structs.deinit(allocator);
 
     var file = try std.fs.cwd().openFile("cimgui.json", .{});
     defer file.close();
