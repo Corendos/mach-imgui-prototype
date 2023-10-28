@@ -491,6 +491,8 @@ const BackendRendererData = struct {
             var global_idx_offset: c_uint = 0;
             const clip_scale = draw_data.framebuffer_scale;
             const clip_off = draw_data.display_pos;
+            const fb_width = draw_data.display_size.x * clip_scale.x;
+            const fb_height = draw_data.display_size.y * clip_scale.y;
             for (0..@intCast(draw_data.cmd_lists_count)) |n| {
                 const cmd_list = draw_data.cmd_lists.data[n];
                 for (0..@intCast(cmd_list.cmd_buffer.size)) |cmd_i| {
@@ -518,12 +520,12 @@ const BackendRendererData = struct {
 
                         // Scissor
                         const clip_min: imgui.Vec2 = .{
-                            .x = (cmd.clip_rect.x - clip_off.x) * clip_scale.x,
-                            .y = (cmd.clip_rect.y - clip_off.y) * clip_scale.y,
+                            .x = @max(0.0, (cmd.clip_rect.x - clip_off.x) * clip_scale.x),
+                            .y = @max(0.0, (cmd.clip_rect.y - clip_off.y) * clip_scale.y),
                         };
                         const clip_max: imgui.Vec2 = .{
-                            .x = (cmd.clip_rect.z - clip_off.x) * clip_scale.x,
-                            .y = (cmd.clip_rect.w - clip_off.y) * clip_scale.y,
+                            .x = @min(fb_width, (cmd.clip_rect.z - clip_off.x) * clip_scale.x),
+                            .y = @min(fb_height, (cmd.clip_rect.w - clip_off.y) * clip_scale.y),
                         };
                         if (clip_max.x <= clip_min.x or clip_max.y <= clip_min.y)
                             continue;

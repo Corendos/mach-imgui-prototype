@@ -28,7 +28,7 @@ pub fn init(app: *App) !void {
     io.config_flags |= imgui.ConfigFlags_NavEnableKeyboard;
 
     const font_data = @embedFile("Roboto-Medium.ttf");
-    const size_pixels = 14 * io.display_framebuffer_scale.y;
+    const size_pixels = 12 * io.display_framebuffer_scale.y;
 
     var font_cfg: imgui.FontConfig = std.mem.zeroes(imgui.FontConfig); // TODO - constructors
     io.font_global_scale = 1.0 / io.display_framebuffer_scale.y;
