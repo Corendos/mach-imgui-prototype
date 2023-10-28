@@ -2,8 +2,13 @@ const std = @import("std");
 const c = @cImport({
     @cInclude("stdarg.h");
 });
-pub const VERSION = "1.90 WIP";
-pub const VERSION_NUM = 18995;
+pub const backends = struct {
+    pub const mach = @import("imgui_mach.zig");
+};
+
+pub const VERSION = "1.89.9";
+pub const VERSION_NUM = 18990;
+//pub const IMPL_API = IMGUI_API;
 pub const PAYLOAD_TYPE_COLOR_3F = "_COL3F";
 pub const PAYLOAD_TYPE_COLOR_4F = "_COL4F";
 pub const UNICODE_CODEPOINT_INVALID = 0xFFFD;
@@ -35,6 +40,7 @@ pub const WindowFlags_AlwaysUseWindowPadding = 65536;
 pub const WindowFlags_NoNavInputs = 262144;
 pub const WindowFlags_NoNavFocus = 524288;
 pub const WindowFlags_UnsavedDocument = 1048576;
+pub const WindowFlags_NoDocking = 2097152;
 pub const WindowFlags_NoNav = 786432;
 pub const WindowFlags_NoDecoration = 43;
 pub const WindowFlags_NoInputs = 786944;
@@ -44,6 +50,7 @@ pub const WindowFlags_Tooltip = 33554432;
 pub const WindowFlags_Popup = 67108864;
 pub const WindowFlags_Modal = 134217728;
 pub const WindowFlags_ChildMenu = 268435456;
+pub const WindowFlags_DockNodeHost = 536870912;
 pub const InputTextFlags_None = 0;
 pub const InputTextFlags_CharsDecimal = 1;
 pub const InputTextFlags_CharsHexadecimal = 2;
@@ -80,8 +87,7 @@ pub const TreeNodeFlags_Bullet = 512;
 pub const TreeNodeFlags_FramePadding = 1024;
 pub const TreeNodeFlags_SpanAvailWidth = 2048;
 pub const TreeNodeFlags_SpanFullWidth = 4096;
-pub const TreeNodeFlags_SpanAllColumns = 8192;
-pub const TreeNodeFlags_NavLeftJumpsBackHere = 16384;
+pub const TreeNodeFlags_NavLeftJumpsBackHere = 8192;
 pub const TreeNodeFlags_CollapsingHeader = 26;
 pub const PopupFlags_None = 0;
 pub const PopupFlags_MouseButtonLeft = 0;
@@ -108,7 +114,6 @@ pub const ComboFlags_HeightLarge = 8;
 pub const ComboFlags_HeightLargest = 16;
 pub const ComboFlags_NoArrowButton = 32;
 pub const ComboFlags_NoPreview = 64;
-pub const ComboFlags_WidthFitPreview = 128;
 pub const ComboFlags_HeightMask_ = 30;
 pub const TabBarFlags_None = 0;
 pub const TabBarFlags_Reorderable = 1;
@@ -165,7 +170,6 @@ pub const TableFlags_ScrollX = 16777216;
 pub const TableFlags_ScrollY = 33554432;
 pub const TableFlags_SortMulti = 67108864;
 pub const TableFlags_SortTristate = 134217728;
-pub const TableFlags_HighlightHoveredColumn = 268435456;
 pub const TableFlags_SizingMask_ = 57344;
 pub const TableColumnFlags_None = 0;
 pub const TableColumnFlags_Disabled = 1;
@@ -186,7 +190,6 @@ pub const TableColumnFlags_PreferSortAscending = 16384;
 pub const TableColumnFlags_PreferSortDescending = 32768;
 pub const TableColumnFlags_IndentEnable = 65536;
 pub const TableColumnFlags_IndentDisable = 131072;
-pub const TableColumnFlags_AngledHeader = 262144;
 pub const TableColumnFlags_IsEnabled = 16777216;
 pub const TableColumnFlags_IsVisible = 33554432;
 pub const TableColumnFlags_IsSorted = 67108864;
@@ -206,12 +209,14 @@ pub const FocusedFlags_ChildWindows = 1;
 pub const FocusedFlags_RootWindow = 2;
 pub const FocusedFlags_AnyWindow = 4;
 pub const FocusedFlags_NoPopupHierarchy = 8;
+pub const FocusedFlags_DockHierarchy = 16;
 pub const FocusedFlags_RootAndChildWindows = 3;
 pub const HoveredFlags_None = 0;
 pub const HoveredFlags_ChildWindows = 1;
 pub const HoveredFlags_RootWindow = 2;
 pub const HoveredFlags_AnyWindow = 4;
 pub const HoveredFlags_NoPopupHierarchy = 8;
+pub const HoveredFlags_DockHierarchy = 16;
 pub const HoveredFlags_AllowWhenBlockedByPopup = 32;
 pub const HoveredFlags_AllowWhenBlockedByActiveItem = 128;
 pub const HoveredFlags_AllowWhenOverlappedByItem = 256;
@@ -227,6 +232,13 @@ pub const HoveredFlags_DelayNone = 16384;
 pub const HoveredFlags_DelayShort = 32768;
 pub const HoveredFlags_DelayNormal = 65536;
 pub const HoveredFlags_NoSharedDelay = 131072;
+pub const DockNodeFlags_None = 0;
+pub const DockNodeFlags_KeepAliveOnly = 1;
+pub const DockNodeFlags_NoDockingInCentralNode = 4;
+pub const DockNodeFlags_PassthruCentralNode = 8;
+pub const DockNodeFlags_NoSplit = 16;
+pub const DockNodeFlags_NoResize = 32;
+pub const DockNodeFlags_AutoHideTabBar = 64;
 pub const DragDropFlags_None = 0;
 pub const DragDropFlags_SourceNoPreviewTooltip = 1;
 pub const DragDropFlags_SourceNoDisableHover = 2;
@@ -331,89 +343,75 @@ pub const Key_F9 = 580;
 pub const Key_F10 = 581;
 pub const Key_F11 = 582;
 pub const Key_F12 = 583;
-pub const Key_F13 = 584;
-pub const Key_F14 = 585;
-pub const Key_F15 = 586;
-pub const Key_F16 = 587;
-pub const Key_F17 = 588;
-pub const Key_F18 = 589;
-pub const Key_F19 = 590;
-pub const Key_F20 = 591;
-pub const Key_F21 = 592;
-pub const Key_F22 = 593;
-pub const Key_F23 = 594;
-pub const Key_F24 = 595;
-pub const Key_Apostrophe = 596;
-pub const Key_Comma = 597;
-pub const Key_Minus = 598;
-pub const Key_Period = 599;
-pub const Key_Slash = 600;
-pub const Key_Semicolon = 601;
-pub const Key_Equal = 602;
-pub const Key_LeftBracket = 603;
-pub const Key_Backslash = 604;
-pub const Key_RightBracket = 605;
-pub const Key_GraveAccent = 606;
-pub const Key_CapsLock = 607;
-pub const Key_ScrollLock = 608;
-pub const Key_NumLock = 609;
-pub const Key_PrintScreen = 610;
-pub const Key_Pause = 611;
-pub const Key_Keypad0 = 612;
-pub const Key_Keypad1 = 613;
-pub const Key_Keypad2 = 614;
-pub const Key_Keypad3 = 615;
-pub const Key_Keypad4 = 616;
-pub const Key_Keypad5 = 617;
-pub const Key_Keypad6 = 618;
-pub const Key_Keypad7 = 619;
-pub const Key_Keypad8 = 620;
-pub const Key_Keypad9 = 621;
-pub const Key_KeypadDecimal = 622;
-pub const Key_KeypadDivide = 623;
-pub const Key_KeypadMultiply = 624;
-pub const Key_KeypadSubtract = 625;
-pub const Key_KeypadAdd = 626;
-pub const Key_KeypadEnter = 627;
-pub const Key_KeypadEqual = 628;
-pub const Key_AppBack = 629;
-pub const Key_AppForward = 630;
-pub const Key_GamepadStart = 631;
-pub const Key_GamepadBack = 632;
-pub const Key_GamepadFaceLeft = 633;
-pub const Key_GamepadFaceRight = 634;
-pub const Key_GamepadFaceUp = 635;
-pub const Key_GamepadFaceDown = 636;
-pub const Key_GamepadDpadLeft = 637;
-pub const Key_GamepadDpadRight = 638;
-pub const Key_GamepadDpadUp = 639;
-pub const Key_GamepadDpadDown = 640;
-pub const Key_GamepadL1 = 641;
-pub const Key_GamepadR1 = 642;
-pub const Key_GamepadL2 = 643;
-pub const Key_GamepadR2 = 644;
-pub const Key_GamepadL3 = 645;
-pub const Key_GamepadR3 = 646;
-pub const Key_GamepadLStickLeft = 647;
-pub const Key_GamepadLStickRight = 648;
-pub const Key_GamepadLStickUp = 649;
-pub const Key_GamepadLStickDown = 650;
-pub const Key_GamepadRStickLeft = 651;
-pub const Key_GamepadRStickRight = 652;
-pub const Key_GamepadRStickUp = 653;
-pub const Key_GamepadRStickDown = 654;
-pub const Key_MouseLeft = 655;
-pub const Key_MouseRight = 656;
-pub const Key_MouseMiddle = 657;
-pub const Key_MouseX1 = 658;
-pub const Key_MouseX2 = 659;
-pub const Key_MouseWheelX = 660;
-pub const Key_MouseWheelY = 661;
-pub const Key_ReservedForModCtrl = 662;
-pub const Key_ReservedForModShift = 663;
-pub const Key_ReservedForModAlt = 664;
-pub const Key_ReservedForModSuper = 665;
-pub const Key_COUNT = 666;
+pub const Key_Apostrophe = 584;
+pub const Key_Comma = 585;
+pub const Key_Minus = 586;
+pub const Key_Period = 587;
+pub const Key_Slash = 588;
+pub const Key_Semicolon = 589;
+pub const Key_Equal = 590;
+pub const Key_LeftBracket = 591;
+pub const Key_Backslash = 592;
+pub const Key_RightBracket = 593;
+pub const Key_GraveAccent = 594;
+pub const Key_CapsLock = 595;
+pub const Key_ScrollLock = 596;
+pub const Key_NumLock = 597;
+pub const Key_PrintScreen = 598;
+pub const Key_Pause = 599;
+pub const Key_Keypad0 = 600;
+pub const Key_Keypad1 = 601;
+pub const Key_Keypad2 = 602;
+pub const Key_Keypad3 = 603;
+pub const Key_Keypad4 = 604;
+pub const Key_Keypad5 = 605;
+pub const Key_Keypad6 = 606;
+pub const Key_Keypad7 = 607;
+pub const Key_Keypad8 = 608;
+pub const Key_Keypad9 = 609;
+pub const Key_KeypadDecimal = 610;
+pub const Key_KeypadDivide = 611;
+pub const Key_KeypadMultiply = 612;
+pub const Key_KeypadSubtract = 613;
+pub const Key_KeypadAdd = 614;
+pub const Key_KeypadEnter = 615;
+pub const Key_KeypadEqual = 616;
+pub const Key_GamepadStart = 617;
+pub const Key_GamepadBack = 618;
+pub const Key_GamepadFaceLeft = 619;
+pub const Key_GamepadFaceRight = 620;
+pub const Key_GamepadFaceUp = 621;
+pub const Key_GamepadFaceDown = 622;
+pub const Key_GamepadDpadLeft = 623;
+pub const Key_GamepadDpadRight = 624;
+pub const Key_GamepadDpadUp = 625;
+pub const Key_GamepadDpadDown = 626;
+pub const Key_GamepadL1 = 627;
+pub const Key_GamepadR1 = 628;
+pub const Key_GamepadL2 = 629;
+pub const Key_GamepadR2 = 630;
+pub const Key_GamepadL3 = 631;
+pub const Key_GamepadR3 = 632;
+pub const Key_GamepadLStickLeft = 633;
+pub const Key_GamepadLStickRight = 634;
+pub const Key_GamepadLStickUp = 635;
+pub const Key_GamepadLStickDown = 636;
+pub const Key_GamepadRStickLeft = 637;
+pub const Key_GamepadRStickRight = 638;
+pub const Key_GamepadRStickUp = 639;
+pub const Key_GamepadRStickDown = 640;
+pub const Key_MouseLeft = 641;
+pub const Key_MouseRight = 642;
+pub const Key_MouseMiddle = 643;
+pub const Key_MouseX1 = 644;
+pub const Key_MouseX2 = 645;
+pub const Key_MouseWheelX = 646;
+pub const Key_MouseWheelY = 647;
+pub const Key_ReservedForModCtrl = 648;
+pub const Key_ReservedForModShift = 649;
+pub const Key_ReservedForModAlt = 650;
+pub const Key_ReservedForModSuper = 651;
+pub const Key_COUNT = 652;
 pub const Mod_None = 0;
 pub const Mod_Ctrl = 4096;
 pub const Mod_Shift = 8192;
@@ -422,9 +420,9 @@ pub const Mod_Super = 32768;
 pub const Mod_Shortcut = 2048;
 pub const Mod_Mask_ = 63488;
 pub const Key_NamedKey_BEGIN = 512;
-pub const Key_NamedKey_END = 666;
-pub const Key_NamedKey_COUNT = 154;
-pub const Key_KeysData_SIZE = 154;
+pub const Key_NamedKey_END = 652;
+pub const Key_NamedKey_COUNT = 140;
+pub const Key_KeysData_SIZE = 140;
 pub const Key_KeysData_OFFSET = 512;
 pub const ConfigFlags_None = 0;
 pub const ConfigFlags_NavEnableKeyboard = 1;
@@ -433,6 +431,10 @@ pub const ConfigFlags_NavEnableSetMousePos = 4;
 pub const ConfigFlags_NavNoCaptureKeyboard = 8;
 pub const ConfigFlags_NoMouse = 16;
 pub const ConfigFlags_NoMouseCursorChange = 32;
+pub const ConfigFlags_DockingEnable = 64;
+pub const ConfigFlags_ViewportsEnable = 1024;
+pub const ConfigFlags_DpiEnableScaleViewports = 16384;
+pub const ConfigFlags_DpiEnableScaleFonts = 32768;
 pub const ConfigFlags_IsSRGB = 1048576;
 pub const ConfigFlags_IsTouchScreen = 2097152;
 pub const BackendFlags_None = 0;
@@ -440,6 +442,9 @@ pub const BackendFlags_HasGamepad = 1;
 pub const BackendFlags_HasMouseCursors = 2;
 pub const BackendFlags_HasSetMousePos = 4;
 pub const BackendFlags_RendererHasVtxOffset = 8;
+pub const BackendFlags_PlatformHasViewports = 1024;
+pub const BackendFlags_HasMouseHoveredViewport = 2048;
+pub const BackendFlags_RendererHasViewports = 4096;
 pub const Col_Text = 0;
 pub const Col_TextDisabled = 1;
 pub const Col_WindowBg = 2;
@@ -478,22 +483,24 @@ pub const Col_TabHovered = 34;
 pub const Col_TabActive = 35;
 pub const Col_TabUnfocused = 36;
 pub const Col_TabUnfocusedActive = 37;
-pub const Col_PlotLines = 38;
-pub const Col_PlotLinesHovered = 39;
-pub const Col_PlotHistogram = 40;
-pub const Col_PlotHistogramHovered = 41;
-pub const Col_TableHeaderBg = 42;
-pub const Col_TableBorderStrong = 43;
-pub const Col_TableBorderLight = 44;
-pub const Col_TableRowBg = 45;
-pub const Col_TableRowBgAlt = 46;
-pub const Col_TextSelectedBg = 47;
-pub const Col_DragDropTarget = 48;
-pub const Col_NavHighlight = 49;
-pub const Col_NavWindowingHighlight = 50;
-pub const Col_NavWindowingDimBg = 51;
-pub const Col_ModalWindowDimBg = 52;
-pub const Col_COUNT = 53;
+pub const Col_DockingPreview = 38;
+pub const Col_DockingEmptyBg = 39;
+pub const Col_PlotLines = 40;
+pub const Col_PlotLinesHovered = 41;
+pub const Col_PlotHistogram = 42;
+pub const Col_PlotHistogramHovered = 43;
+pub const Col_TableHeaderBg = 44;
+pub const Col_TableBorderStrong = 45;
+pub const Col_TableBorderLight = 46;
+pub const Col_TableRowBg = 47;
+pub const Col_TableRowBgAlt = 48;
+pub const Col_TextSelectedBg = 49;
+pub const Col_DragDropTarget = 50;
+pub const Col_NavHighlight = 51;
+pub const Col_NavWindowingHighlight = 52;
+pub const Col_NavWindowingDimBg = 53;
+pub const Col_ModalWindowDimBg = 54;
+pub const Col_COUNT = 55;
 pub const StyleVar_Alpha = 0;
 pub const StyleVar_DisabledAlpha = 1;
 pub const StyleVar_WindowPadding = 2;
@@ -517,12 +524,12 @@ pub const StyleVar_ScrollbarRounding = 19;
 pub const StyleVar_GrabMinSize = 20;
 pub const StyleVar_GrabRounding = 21;
 pub const StyleVar_TabRounding = 22;
-pub const StyleVar_TabBarBorderSize = 23;
-pub const StyleVar_ButtonTextAlign = 24;
-pub const StyleVar_SelectableTextAlign = 25;
-pub const StyleVar_SeparatorTextBorderSize = 26;
-pub const StyleVar_SeparatorTextAlign = 27;
-pub const StyleVar_SeparatorTextPadding = 28;
+pub const StyleVar_ButtonTextAlign = 23;
+pub const StyleVar_SelectableTextAlign = 24;
+pub const StyleVar_SeparatorTextBorderSize = 25;
+pub const StyleVar_SeparatorTextAlign = 26;
+pub const StyleVar_SeparatorTextPadding = 27;
+pub const StyleVar_DockingSeparatorSize = 28;
 pub const StyleVar_COUNT = 29;
 pub const ButtonFlags_None = 0;
 pub const ButtonFlags_MouseButtonLeft = 1;
@@ -616,6 +623,17 @@ pub const ViewportFlags_None = 0;
 pub const ViewportFlags_IsPlatformWindow = 1;
 pub const ViewportFlags_IsPlatformMonitor = 2;
 pub const ViewportFlags_OwnedByApp = 4;
+pub const ViewportFlags_NoDecoration = 8;
+pub const ViewportFlags_NoTaskBarIcon = 16;
+pub const ViewportFlags_NoFocusOnAppearing = 32;
+pub const ViewportFlags_NoFocusOnClick = 64;
+pub const ViewportFlags_NoInputs = 128;
+pub const ViewportFlags_NoRendererClear = 256;
+pub const ViewportFlags_NoAutoMerge = 512;
+pub const ViewportFlags_TopMost = 1024;
+pub const ViewportFlags_CanHostOtherWindows = 2048;
+pub const ViewportFlags_IsMinimized = 4096;
+pub const ViewportFlags_IsFocused = 8192;
 pub const Key = c_int;
 pub const MouseSource = c_int;
 pub const Col = c_int;
@@ -635,6 +653,7 @@ pub const ButtonFlags = c_int;
 pub const ColorEditFlags = c_int;
 pub const ConfigFlags = c_int;
 pub const ComboFlags = c_int;
+pub const DockNodeFlags = c_int;
 pub const DragDropFlags = c_int;
 pub const FocusedFlags = c_int;
 pub const HoveredFlags = c_int;
@@ -662,8 +681,8 @@ pub const S32 = c_int;
 pub const U32 = c_uint;
 pub const S64 = c_longlong;
 pub const U64 = c_ulonglong;
-pub const Wchar32 = c_uint;
 pub const Wchar16 = c_ushort;
+pub const Wchar32 = c_uint;
 pub const Wchar = Wchar16;
 pub const InputTextCallback = ?*const fn (?*InputTextCallbackData) callconv(.C) c_int;
 pub const SizeCallback = ?*const fn (?*SizeCallbackData) callconv(.C) void;
@@ -677,12 +696,9 @@ pub fn Vector(comptime T: type) type {
         data: [*]T,
     };
 }
-pub const DrawListSharedData = extern struct {
-};
-pub const FontBuilderIO = extern struct {
-};
-pub const Context = extern struct {
-};
+pub const DrawListSharedData = extern struct {};
+pub const FontBuilderIO = extern struct {};
+pub const Context = extern struct {};
 pub const Vec2 = extern struct {
     x: f32,
     y: f32,
@@ -692,6 +708,16 @@ pub const Vec4 = extern struct {
     y: f32,
     z: f32,
     w: f32,
+};
+pub const Vector_ImGuiPlatformMonitor = extern struct {
+    size: c_int,
+    capacity: c_int,
+    data: ?*PlatformMonitor,
+};
+pub const Vector_ImGuiViewportPtr = extern struct {
+    size: c_int,
+    capacity: c_int,
+    data: ?*?*Viewport,
 };
 pub const Style = extern struct {
     alpha: f32,
@@ -723,8 +749,6 @@ pub const Style = extern struct {
     tab_rounding: f32,
     tab_border_size: f32,
     tab_min_width_for_close_button: f32,
-    tab_bar_border_size: f32,
-    table_angled_headers_angle: f32,
     color_button_position: Dir,
     button_text_align: Vec2,
     selectable_text_align: Vec2,
@@ -733,6 +757,7 @@ pub const Style = extern struct {
     separator_text_padding: Vec2,
     display_window_padding: Vec2,
     display_safe_area_padding: Vec2,
+    docking_separator_size: f32,
     mouse_cursor_scale: f32,
     anti_aliased_lines: bool,
     anti_aliased_lines_use_tex: bool,
@@ -767,6 +792,14 @@ pub const IO = extern struct {
     font_allow_user_scaling: bool,
     font_default: ?*Font,
     display_framebuffer_scale: Vec2,
+    config_docking_no_split: bool,
+    config_docking_with_shift: bool,
+    config_docking_always_tab_bar: bool,
+    config_docking_transparent_payload: bool,
+    config_viewports_no_auto_merge: bool,
+    config_viewports_no_task_bar_icon: bool,
+    config_viewports_no_decoration: bool,
+    config_viewports_no_default_parent: bool,
     mouse_draw_cursor: bool,
     config_mac_osxbehaviors: bool,
     config_input_trickle_event_queue: bool,
@@ -807,6 +840,7 @@ pub const IO = extern struct {
     metrics_render_indices: c_int,
     metrics_render_windows: c_int,
     metrics_active_windows: c_int,
+    metrics_active_allocations: c_int,
     mouse_delta: Vec2,
     ctx: ?*Context,
     mouse_pos: Vec2,
@@ -814,6 +848,7 @@ pub const IO = extern struct {
     mouse_wheel: f32,
     mouse_wheel_h: f32,
     mouse_source: MouseSource,
+    mouse_hovered_viewport: ID,
     key_ctrl: bool,
     key_shift: bool,
     key_alt: bool,
@@ -834,6 +869,7 @@ pub const IO = extern struct {
     mouse_wheel_request_axis_swap: bool,
     mouse_down_duration: [5]f32,
     mouse_down_duration_prev: [5]f32,
+    mouse_drag_max_distance_abs: [5]Vec2,
     mouse_drag_max_distance_sqr: [5]f32,
     pen_pressure: f32,
     app_focus_lost: bool,
@@ -848,6 +884,7 @@ pub const IO = extern struct {
     pub const addMouseButtonEvent = ImGuiIO_AddMouseButtonEvent;
     pub const addMouseWheelEvent = ImGuiIO_AddMouseWheelEvent;
     pub const addMouseSourceEvent = ImGuiIO_AddMouseSourceEvent;
+    pub const addMouseViewportEvent = ImGuiIO_AddMouseViewportEvent;
     pub const addFocusEvent = ImGuiIO_AddFocusEvent;
     pub const addInputCharacter = ImGuiIO_AddInputCharacter;
     pub const addInputCharacterUTF16 = ImGuiIO_AddInputCharacterUTF16;
@@ -884,13 +921,23 @@ pub const SizeCallbackData = extern struct {
     current_size: Vec2,
     desired_size: Vec2,
 };
+pub const WindowClass = extern struct {
+    class_id: ID,
+    parent_viewport_id: ID,
+    viewport_flags_override_set: ViewportFlags,
+    viewport_flags_override_clear: ViewportFlags,
+    tab_item_flags_override_set: TabItemFlags,
+    dock_node_flags_override_set: DockNodeFlags,
+    docking_always_tab_bar: bool,
+    docking_allow_unclassed: bool,
+};
 pub const Payload = extern struct {
     data: ?*anyopaque,
     data_size: c_int,
     source_id: ID,
     source_parent_id: ID,
     data_frame_count: c_int,
-    data_type: [32+1]c_char,
+    data_type: [32 + 1]c_char,
     preview: bool,
     delivery: bool,
     pub const clear = ImGuiPayload_Clear;
@@ -1060,10 +1107,6 @@ pub const DrawList = extern struct {
     pub const addNgon = ImDrawList_AddNgon;
     pub const addNgonEx = ImDrawList_AddNgonEx;
     pub const addNgonFilled = ImDrawList_AddNgonFilled;
-    pub const addEllipse = ImDrawList_AddEllipse;
-    pub const addEllipseEx = ImDrawList_AddEllipseEx;
-    pub const addEllipseFilled = ImDrawList_AddEllipseFilled;
-    pub const addEllipseFilledEx = ImDrawList_AddEllipseFilledEx;
     pub const addText = ImDrawList_AddText;
     pub const addTextEx = ImDrawList_AddTextEx;
     pub const addTextImFontPtr = ImDrawList_AddTextImFontPtr;
@@ -1084,8 +1127,6 @@ pub const DrawList = extern struct {
     pub const pathStroke = ImDrawList_PathStroke;
     pub const pathArcTo = ImDrawList_PathArcTo;
     pub const pathArcToFast = ImDrawList_PathArcToFast;
-    pub const pathEllipticalArcTo = ImDrawList_PathEllipticalArcTo;
-    pub const pathEllipticalArcToEx = ImDrawList_PathEllipticalArcToEx;
     pub const pathBezierCubicCurveTo = ImDrawList_PathBezierCubicCurveTo;
     pub const pathBezierQuadraticCurveTo = ImDrawList_PathBezierQuadraticCurveTo;
     pub const pathRect = ImDrawList_PathRect;
@@ -1203,7 +1244,7 @@ pub const FontAtlas = extern struct {
     fonts: Vector(*Font),
     custom_rects: Vector(FontAtlasCustomRect),
     config_data: Vector(FontConfig),
-    tex_uv_lines: [DRAWLIST_TEX_LINES_WIDTH_MAX+1]Vec4,
+    tex_uv_lines: [DRAWLIST_TEX_LINES_WIDTH_MAX + 1]Vec4,
     font_builder_io: ?*const FontBuilderIO,
     font_builder_flags: c_uint,
     pack_id_mouse_cursors: c_int,
@@ -1258,7 +1299,7 @@ pub const Font = extern struct {
     ascent: f32,
     descent: f32,
     metrics_total_surface: c_int,
-    used4k_pages_map: [(UNICODE_CODEPOINT_MAX+1)/4096/8]U8,
+    used4k_pages_map: [(UNICODE_CODEPOINT_MAX + 1) / 4096 / 8]U8,
     pub const findGlyph = ImFont_FindGlyph;
     pub const findGlyphNoFallback = ImFont_FindGlyphNoFallback;
     pub const getCharAdvance = ImFont_GetCharAdvance;
@@ -1278,14 +1319,60 @@ pub const Font = extern struct {
     pub const isGlyphRangeUnused = ImFont_IsGlyphRangeUnused;
 };
 pub const Viewport = extern struct {
+    id: ID,
     flags: ViewportFlags,
     pos: Vec2,
     size: Vec2,
     work_pos: Vec2,
     work_size: Vec2,
+    dpi_scale: f32,
+    parent_viewport_id: ID,
+    draw_data: ?*DrawData,
+    renderer_user_data: ?*anyopaque,
+    platform_user_data: ?*anyopaque,
+    platform_handle: ?*anyopaque,
     platform_handle_raw: ?*anyopaque,
+    platform_window_created: bool,
+    platform_request_move: bool,
+    platform_request_resize: bool,
+    platform_request_close: bool,
     pub const getCenter = ImGuiViewport_GetCenter;
     pub const getWorkCenter = ImGuiViewport_GetWorkCenter;
+};
+pub const PlatformIO = extern struct {
+    platform__create_window: ?*const fn (?*Viewport) callconv(.C) void,
+    platform__destroy_window: ?*const fn (?*Viewport) callconv(.C) void,
+    platform__show_window: ?*const fn (?*Viewport) callconv(.C) void,
+    platform__set_window_pos: ?*const fn (?*Viewport, Vec2) callconv(.C) void,
+    platform__get_window_pos: ?*const fn (?*Viewport) callconv(.C) Vec2,
+    platform__set_window_size: ?*const fn (?*Viewport, Vec2) callconv(.C) void,
+    platform__get_window_size: ?*const fn (?*Viewport) callconv(.C) Vec2,
+    platform__set_window_focus: ?*const fn (?*Viewport) callconv(.C) void,
+    platform__get_window_focus: ?*const fn (?*Viewport) callconv(.C) bool,
+    platform__get_window_minimized: ?*const fn (?*Viewport) callconv(.C) bool,
+    platform__set_window_title: ?*const fn (?*Viewport, ?[*:0]const u8) callconv(.C) void,
+    platform__set_window_alpha: ?*const fn (?*Viewport, f32) callconv(.C) void,
+    platform__update_window: ?*const fn (?*Viewport) callconv(.C) void,
+    platform__render_window: ?*const fn (?*Viewport, ?*anyopaque) callconv(.C) void,
+    platform__swap_buffers: ?*const fn (?*Viewport, ?*anyopaque) callconv(.C) void,
+    platform__get_window_dpi_scale: ?*const fn (?*Viewport) callconv(.C) f32,
+    platform__on_changed_viewport: ?*const fn (?*Viewport) callconv(.C) void,
+    platform__create_vk_surface: ?*const fn (?*Viewport, U64, ?*anyopaque, ?*U64) callconv(.C) c_int,
+    renderer__create_window: ?*const fn (?*Viewport) callconv(.C) void,
+    renderer__destroy_window: ?*const fn (?*Viewport) callconv(.C) void,
+    renderer__set_window_size: ?*const fn (?*Viewport, Vec2) callconv(.C) void,
+    renderer__render_window: ?*const fn (?*Viewport, ?*anyopaque) callconv(.C) void,
+    renderer__swap_buffers: ?*const fn (?*Viewport, ?*anyopaque) callconv(.C) void,
+    monitors: Vector_ImGuiPlatformMonitor,
+    viewports: Vector_ImGuiViewportPtr,
+};
+pub const PlatformMonitor = extern struct {
+    main_pos: Vec2,
+    main_size: Vec2,
+    work_pos: Vec2,
+    work_size: Vec2,
+    dpi_scale: f32,
+    platform_handle: ?*anyopaque,
 };
 pub const PlatformImeData = extern struct {
     want_visible: bool,
@@ -1305,8 +1392,7 @@ pub const getDrawData = ImGui_GetDrawData;
 pub const showDemoWindow = ImGui_ShowDemoWindow;
 pub const showMetricsWindow = ImGui_ShowMetricsWindow;
 pub const showDebugLogWindow = ImGui_ShowDebugLogWindow;
-pub const showIDStackToolWindow = ImGui_ShowIDStackToolWindow;
-pub const showIDStackToolWindowEx = ImGui_ShowIDStackToolWindowEx;
+pub const showStackToolWindow = ImGui_ShowStackToolWindow;
 pub const showAboutWindow = ImGui_ShowAboutWindow;
 pub const showStyleEditor = ImGui_ShowStyleEditor;
 pub const showStyleSelector = ImGui_ShowStyleSelector;
@@ -1326,10 +1412,12 @@ pub const isWindowCollapsed = ImGui_IsWindowCollapsed;
 pub const isWindowFocused = ImGui_IsWindowFocused;
 pub const isWindowHovered = ImGui_IsWindowHovered;
 pub const getWindowDrawList = ImGui_GetWindowDrawList;
+pub const getWindowDpiScale = ImGui_GetWindowDpiScale;
 pub const getWindowPos = ImGui_GetWindowPos;
 pub const getWindowSize = ImGui_GetWindowSize;
 pub const getWindowWidth = ImGui_GetWindowWidth;
 pub const getWindowHeight = ImGui_GetWindowHeight;
+pub const getWindowViewport = ImGui_GetWindowViewport;
 pub const setNextWindowPos = ImGui_SetNextWindowPos;
 pub const setNextWindowPosEx = ImGui_SetNextWindowPosEx;
 pub const setNextWindowSize = ImGui_SetNextWindowSize;
@@ -1339,6 +1427,7 @@ pub const setNextWindowCollapsed = ImGui_SetNextWindowCollapsed;
 pub const setNextWindowFocus = ImGui_SetNextWindowFocus;
 pub const setNextWindowScroll = ImGui_SetNextWindowScroll;
 pub const setNextWindowBgAlpha = ImGui_SetNextWindowBgAlpha;
+pub const setNextWindowViewport = ImGui_SetNextWindowViewport;
 pub const setWindowPos = ImGui_SetWindowPos;
 pub const setWindowSize = ImGui_SetWindowSize;
 pub const setWindowCollapsed = ImGui_SetWindowCollapsed;
@@ -1390,15 +1479,6 @@ pub const getColorU32Ex = ImGui_GetColorU32Ex;
 pub const getColorU32ImVec4 = ImGui_GetColorU32ImVec4;
 pub const getColorU32ImU32 = ImGui_GetColorU32ImU32;
 pub const getStyleColorVec4 = ImGui_GetStyleColorVec4;
-pub const getCursorScreenPos = ImGui_GetCursorScreenPos;
-pub const setCursorScreenPos = ImGui_SetCursorScreenPos;
-pub const getCursorPos = ImGui_GetCursorPos;
-pub const getCursorPosX = ImGui_GetCursorPosX;
-pub const getCursorPosY = ImGui_GetCursorPosY;
-pub const setCursorPos = ImGui_SetCursorPos;
-pub const setCursorPosX = ImGui_SetCursorPosX;
-pub const setCursorPosY = ImGui_SetCursorPosY;
-pub const getCursorStartPos = ImGui_GetCursorStartPos;
 pub const separator = ImGui_Separator;
 pub const sameLine = ImGui_SameLine;
 pub const sameLineEx = ImGui_SameLineEx;
@@ -1411,6 +1491,15 @@ pub const unindent = ImGui_Unindent;
 pub const unindentEx = ImGui_UnindentEx;
 pub const beginGroup = ImGui_BeginGroup;
 pub const endGroup = ImGui_EndGroup;
+pub const getCursorPos = ImGui_GetCursorPos;
+pub const getCursorPosX = ImGui_GetCursorPosX;
+pub const getCursorPosY = ImGui_GetCursorPosY;
+pub const setCursorPos = ImGui_SetCursorPos;
+pub const setCursorPosX = ImGui_SetCursorPosX;
+pub const setCursorPosY = ImGui_SetCursorPosY;
+pub const getCursorStartPos = ImGui_GetCursorStartPos;
+pub const getCursorScreenPos = ImGui_GetCursorScreenPos;
+pub const setCursorScreenPos = ImGui_SetCursorScreenPos;
 pub const alignTextToFramePadding = ImGui_AlignTextToFramePadding;
 pub const getTextLineHeight = ImGui_GetTextLineHeight;
 pub const getTextLineHeightWithSpacing = ImGui_GetTextLineHeightWithSpacing;
@@ -1429,19 +1518,14 @@ pub const textUnformattedEx = ImGui_TextUnformattedEx;
 pub const text = ImGui_Text;
 pub const textV = ImGui_TextV;
 pub const textColored = ImGui_TextColored;
-pub const textColoredUnformatted = ImGui_TextColoredUnformatted;
 pub const textColoredV = ImGui_TextColoredV;
 pub const textDisabled = ImGui_TextDisabled;
-pub const textDisabledUnformatted = ImGui_TextDisabledUnformatted;
 pub const textDisabledV = ImGui_TextDisabledV;
 pub const textWrapped = ImGui_TextWrapped;
-pub const textWrappedUnformatted = ImGui_TextWrappedUnformatted;
 pub const textWrappedV = ImGui_TextWrappedV;
 pub const labelText = ImGui_LabelText;
-pub const labelTextUnformatted = ImGui_LabelTextUnformatted;
 pub const labelTextV = ImGui_LabelTextV;
 pub const bulletText = ImGui_BulletText;
-pub const bulletTextUnformatted = ImGui_BulletTextUnformatted;
 pub const bulletTextV = ImGui_BulletTextV;
 pub const separatorText = ImGui_SeparatorText;
 pub const button = ImGui_Button;
@@ -1554,16 +1638,12 @@ pub const colorButtonEx = ImGui_ColorButtonEx;
 pub const setColorEditOptions = ImGui_SetColorEditOptions;
 pub const treeNode = ImGui_TreeNode;
 pub const treeNodeStr = ImGui_TreeNodeStr;
-pub const treeNodeStrUnformatted = ImGui_TreeNodeStrUnformatted;
 pub const treeNodePtr = ImGui_TreeNodePtr;
-pub const treeNodePtrUnformatted = ImGui_TreeNodePtrUnformatted;
 pub const treeNodeV = ImGui_TreeNodeV;
 pub const treeNodeVPtr = ImGui_TreeNodeVPtr;
 pub const treeNodeEx = ImGui_TreeNodeEx;
 pub const treeNodeExStr = ImGui_TreeNodeExStr;
-pub const treeNodeExStrUnformatted = ImGui_TreeNodeExStrUnformatted;
 pub const treeNodeExPtr = ImGui_TreeNodeExPtr;
-pub const treeNodeExPtrUnformatted = ImGui_TreeNodeExPtrUnformatted;
 pub const treeNodeExV = ImGui_TreeNodeExV;
 pub const treeNodeExVPtr = ImGui_TreeNodeExVPtr;
 pub const treePush = ImGui_TreePush;
@@ -1603,11 +1683,9 @@ pub const menuItemBoolPtr = ImGui_MenuItemBoolPtr;
 pub const beginTooltip = ImGui_BeginTooltip;
 pub const endTooltip = ImGui_EndTooltip;
 pub const setTooltip = ImGui_SetTooltip;
-pub const setTooltipUnformatted = ImGui_SetTooltipUnformatted;
 pub const setTooltipV = ImGui_SetTooltipV;
 pub const beginItemTooltip = ImGui_BeginItemTooltip;
 pub const setItemTooltip = ImGui_SetItemTooltip;
-pub const setItemTooltipUnformatted = ImGui_SetItemTooltipUnformatted;
 pub const setItemTooltipV = ImGui_SetItemTooltipV;
 pub const beginPopup = ImGui_BeginPopup;
 pub const beginPopupModal = ImGui_BeginPopupModal;
@@ -1633,9 +1711,8 @@ pub const tableSetColumnIndex = ImGui_TableSetColumnIndex;
 pub const tableSetupColumn = ImGui_TableSetupColumn;
 pub const tableSetupColumnEx = ImGui_TableSetupColumnEx;
 pub const tableSetupScrollFreeze = ImGui_TableSetupScrollFreeze;
-pub const tableHeader = ImGui_TableHeader;
 pub const tableHeadersRow = ImGui_TableHeadersRow;
-pub const tableAngledHeadersRow = ImGui_TableAngledHeadersRow;
+pub const tableHeader = ImGui_TableHeader;
 pub const tableGetSortSpecs = ImGui_TableGetSortSpecs;
 pub const tableGetColumnCount = ImGui_TableGetColumnCount;
 pub const tableGetColumnIndex = ImGui_TableGetColumnIndex;
@@ -1659,13 +1736,20 @@ pub const beginTabItem = ImGui_BeginTabItem;
 pub const endTabItem = ImGui_EndTabItem;
 pub const tabItemButton = ImGui_TabItemButton;
 pub const setTabItemClosed = ImGui_SetTabItemClosed;
+pub const dockSpace = ImGui_DockSpace;
+pub const dockSpaceEx = ImGui_DockSpaceEx;
+pub const dockSpaceOverViewport = ImGui_DockSpaceOverViewport;
+pub const dockSpaceOverViewportEx = ImGui_DockSpaceOverViewportEx;
+pub const setNextWindowDockID = ImGui_SetNextWindowDockID;
+pub const setNextWindowClass = ImGui_SetNextWindowClass;
+pub const getWindowDockID = ImGui_GetWindowDockID;
+pub const isWindowDocked = ImGui_IsWindowDocked;
 pub const logToTTY = ImGui_LogToTTY;
 pub const logToFile = ImGui_LogToFile;
 pub const logToClipboard = ImGui_LogToClipboard;
 pub const logFinish = ImGui_LogFinish;
 pub const logButtons = ImGui_LogButtons;
 pub const logText = ImGui_LogText;
-pub const logTextUnformatted = ImGui_LogTextUnformatted;
 pub const logTextV = ImGui_LogTextV;
 pub const beginDragDropSource = ImGui_BeginDragDropSource;
 pub const setDragDropPayload = ImGui_SetDragDropPayload;
@@ -1703,6 +1787,8 @@ pub const getItemRectSize = ImGui_GetItemRectSize;
 pub const getMainViewport = ImGui_GetMainViewport;
 pub const getBackgroundDrawList = ImGui_GetBackgroundDrawList;
 pub const getForegroundDrawList = ImGui_GetForegroundDrawList;
+pub const getBackgroundDrawListImGuiViewportPtr = ImGui_GetBackgroundDrawListImGuiViewportPtr;
+pub const getForegroundDrawListImGuiViewportPtr = ImGui_GetForegroundDrawListImGuiViewportPtr;
 pub const isRectVisibleBySize = ImGui_IsRectVisibleBySize;
 pub const isRectVisible = ImGui_IsRectVisible;
 pub const getTime = ImGui_GetTime;
@@ -1757,6 +1843,13 @@ pub const setAllocatorFunctions = ImGui_SetAllocatorFunctions;
 pub const getAllocatorFunctions = ImGui_GetAllocatorFunctions;
 pub const memAlloc = ImGui_MemAlloc;
 pub const memFree = ImGui_MemFree;
+pub const getPlatformIO = ImGui_GetPlatformIO;
+pub const updatePlatformWindows = ImGui_UpdatePlatformWindows;
+pub const renderPlatformWindowsDefault = ImGui_RenderPlatformWindowsDefault;
+pub const renderPlatformWindowsDefaultEx = ImGui_RenderPlatformWindowsDefaultEx;
+pub const destroyPlatformWindows = ImGui_DestroyPlatformWindows;
+pub const findViewportByID = ImGui_FindViewportByID;
+pub const findViewportByPlatformHandle = ImGui_FindViewportByPlatformHandle;
 pub const vector_Construct = ImVector_Construct;
 pub const vector_Destruct = ImVector_Destruct;
 pub const getKeyIndex = ImGui_GetKeyIndex;
@@ -1773,8 +1866,7 @@ extern fn ImGui_GetDrawData() ?*DrawData;
 extern fn ImGui_ShowDemoWindow(p_open: ?*bool) void;
 extern fn ImGui_ShowMetricsWindow(p_open: ?*bool) void;
 extern fn ImGui_ShowDebugLogWindow(p_open: ?*bool) void;
-extern fn ImGui_ShowIDStackToolWindow() void;
-extern fn ImGui_ShowIDStackToolWindowEx(p_open: ?*bool) void;
+extern fn ImGui_ShowStackToolWindow(p_open: ?*bool) void;
 extern fn ImGui_ShowAboutWindow(p_open: ?*bool) void;
 extern fn ImGui_ShowStyleEditor(ref: ?*Style) void;
 extern fn ImGui_ShowStyleSelector(label: ?[*:0]const u8) bool;
@@ -1794,10 +1886,12 @@ extern fn ImGui_IsWindowCollapsed() bool;
 extern fn ImGui_IsWindowFocused(flags: FocusedFlags) bool;
 extern fn ImGui_IsWindowHovered(flags: HoveredFlags) bool;
 extern fn ImGui_GetWindowDrawList() ?*DrawList;
+extern fn ImGui_GetWindowDpiScale() f32;
 extern fn ImGui_GetWindowPos() Vec2;
 extern fn ImGui_GetWindowSize() Vec2;
 extern fn ImGui_GetWindowWidth() f32;
 extern fn ImGui_GetWindowHeight() f32;
+extern fn ImGui_GetWindowViewport() ?*Viewport;
 extern fn ImGui_SetNextWindowPos(pos: Vec2, cond: Cond) void;
 extern fn ImGui_SetNextWindowPosEx(pos: Vec2, cond: Cond, pivot: Vec2) void;
 extern fn ImGui_SetNextWindowSize(size: Vec2, cond: Cond) void;
@@ -1807,6 +1901,7 @@ extern fn ImGui_SetNextWindowCollapsed(collapsed: bool, cond: Cond) void;
 extern fn ImGui_SetNextWindowFocus() void;
 extern fn ImGui_SetNextWindowScroll(scroll: Vec2) void;
 extern fn ImGui_SetNextWindowBgAlpha(alpha: f32) void;
+extern fn ImGui_SetNextWindowViewport(viewport_id: ID) void;
 extern fn ImGui_SetWindowPos(pos: Vec2, cond: Cond) void;
 extern fn ImGui_SetWindowSize(size: Vec2, cond: Cond) void;
 extern fn ImGui_SetWindowCollapsed(collapsed: bool, cond: Cond) void;
@@ -1858,15 +1953,6 @@ extern fn ImGui_GetColorU32Ex(idx: Col, alpha_mul: f32) U32;
 extern fn ImGui_GetColorU32ImVec4(col: Vec4) U32;
 extern fn ImGui_GetColorU32ImU32(col: U32) U32;
 extern fn ImGui_GetStyleColorVec4(idx: Col) *const Vec4;
-extern fn ImGui_GetCursorScreenPos() Vec2;
-extern fn ImGui_SetCursorScreenPos(pos: Vec2) void;
-extern fn ImGui_GetCursorPos() Vec2;
-extern fn ImGui_GetCursorPosX() f32;
-extern fn ImGui_GetCursorPosY() f32;
-extern fn ImGui_SetCursorPos(local_pos: Vec2) void;
-extern fn ImGui_SetCursorPosX(local_x: f32) void;
-extern fn ImGui_SetCursorPosY(local_y: f32) void;
-extern fn ImGui_GetCursorStartPos() Vec2;
 extern fn ImGui_Separator() void;
 extern fn ImGui_SameLine() void;
 extern fn ImGui_SameLineEx(offset_from_start_x: f32, spacing: f32) void;
@@ -1879,6 +1965,15 @@ extern fn ImGui_Unindent() void;
 extern fn ImGui_UnindentEx(indent_w: f32) void;
 extern fn ImGui_BeginGroup() void;
 extern fn ImGui_EndGroup() void;
+extern fn ImGui_GetCursorPos() Vec2;
+extern fn ImGui_GetCursorPosX() f32;
+extern fn ImGui_GetCursorPosY() f32;
+extern fn ImGui_SetCursorPos(local_pos: Vec2) void;
+extern fn ImGui_SetCursorPosX(local_x: f32) void;
+extern fn ImGui_SetCursorPosY(local_y: f32) void;
+extern fn ImGui_GetCursorStartPos() Vec2;
+extern fn ImGui_GetCursorScreenPos() Vec2;
+extern fn ImGui_SetCursorScreenPos(pos: Vec2) void;
 extern fn ImGui_AlignTextToFramePadding() void;
 extern fn ImGui_GetTextLineHeight() f32;
 extern fn ImGui_GetTextLineHeightWithSpacing() f32;
@@ -1897,19 +1992,14 @@ extern fn ImGui_TextUnformattedEx(text: ?[*:0]const u8, text_end: ?[*:0]const u8
 extern fn ImGui_Text(fmt: ?[*:0]const u8, ...) void;
 extern fn ImGui_TextV(fmt: ?[*:0]const u8, args: c.va_list) void;
 extern fn ImGui_TextColored(col: Vec4, fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_TextColoredUnformatted(col: Vec4, text: ?[*:0]const u8) void;
 extern fn ImGui_TextColoredV(col: Vec4, fmt: ?[*:0]const u8, args: c.va_list) void;
 extern fn ImGui_TextDisabled(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_TextDisabledUnformatted(text: ?[*:0]const u8) void;
 extern fn ImGui_TextDisabledV(fmt: ?[*:0]const u8, args: c.va_list) void;
 extern fn ImGui_TextWrapped(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_TextWrappedUnformatted(text: ?[*:0]const u8) void;
 extern fn ImGui_TextWrappedV(fmt: ?[*:0]const u8, args: c.va_list) void;
 extern fn ImGui_LabelText(label: ?[*:0]const u8, fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_LabelTextUnformatted(label: ?[*:0]const u8, text: ?[*:0]const u8) void;
 extern fn ImGui_LabelTextV(label: ?[*:0]const u8, fmt: ?[*:0]const u8, args: c.va_list) void;
 extern fn ImGui_BulletText(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_BulletTextUnformatted(text: ?[*:0]const u8) void;
 extern fn ImGui_BulletTextV(fmt: ?[*:0]const u8, args: c.va_list) void;
 extern fn ImGui_SeparatorText(label: ?[*:0]const u8) void;
 extern fn ImGui_Button(label: ?[*:0]const u8) bool;
@@ -1926,16 +2016,16 @@ extern fn ImGui_ProgressBar(fraction: f32, size_arg: Vec2, overlay: ?[*:0]const 
 extern fn ImGui_Bullet() void;
 extern fn ImGui_Image(user_texture_id: TextureID, size: Vec2) void;
 extern fn ImGui_ImageEx(user_texture_id: TextureID, size: Vec2, uv0: Vec2, uv1: Vec2, tint_col: Vec4, border_col: Vec4) void;
-extern fn ImGui_ImageButton(str_id: ?[*:0]const u8, user_texture_id: TextureID, image_size: Vec2) bool;
-extern fn ImGui_ImageButtonEx(str_id: ?[*:0]const u8, user_texture_id: TextureID, image_size: Vec2, uv0: Vec2, uv1: Vec2, bg_col: Vec4, tint_col: Vec4) bool;
+extern fn ImGui_ImageButton(str_id: ?[*:0]const u8, user_texture_id: TextureID, size: Vec2) bool;
+extern fn ImGui_ImageButtonEx(str_id: ?[*:0]const u8, user_texture_id: TextureID, size: Vec2, uv0: Vec2, uv1: Vec2, bg_col: Vec4, tint_col: Vec4) bool;
 extern fn ImGui_BeginCombo(label: ?[*:0]const u8, preview_value: ?[*:0]const u8, flags: ComboFlags) bool;
 extern fn ImGui_EndCombo() void;
 extern fn ImGui_ComboChar(label: ?[*:0]const u8, current_item: ?*c_int, items: [*]const ?[*:0]const u8, items_count: c_int) bool;
 extern fn ImGui_ComboCharEx(label: ?[*:0]const u8, current_item: ?*c_int, items: [*]const ?[*:0]const u8, items_count: c_int, popup_max_height_in_items: c_int) bool;
 extern fn ImGui_Combo(label: ?[*:0]const u8, current_item: ?*c_int, items_separated_by_zeros: ?[*:0]const u8) bool;
 extern fn ImGui_ComboEx(label: ?[*:0]const u8, current_item: ?*c_int, items_separated_by_zeros: ?[*:0]const u8, popup_max_height_in_items: c_int) bool;
-extern fn ImGui_ComboCallback(label: ?[*:0]const u8, current_item: ?*c_int, getter: ?*const fn (?*anyopaque, c_int) callconv(.C) ?[*:0]const u8, user_data: ?*anyopaque, items_count: c_int) bool;
-extern fn ImGui_ComboCallbackEx(label: ?[*:0]const u8, current_item: ?*c_int, getter: ?*const fn (?*anyopaque, c_int) callconv(.C) ?[*:0]const u8, user_data: ?*anyopaque, items_count: c_int, popup_max_height_in_items: c_int) bool;
+extern fn ImGui_ComboCallback(label: ?[*:0]const u8, current_item: ?*c_int, items_getter: ?*const fn (?*anyopaque, c_int, ?*?[*:0]const u8) callconv(.C) bool, data: ?*anyopaque, items_count: c_int) bool;
+extern fn ImGui_ComboCallbackEx(label: ?[*:0]const u8, current_item: ?*c_int, items_getter: ?*const fn (?*anyopaque, c_int, ?*?[*:0]const u8) callconv(.C) bool, data: ?*anyopaque, items_count: c_int, popup_max_height_in_items: c_int) bool;
 extern fn ImGui_DragFloat(label: ?[*:0]const u8, v: ?*f32) bool;
 extern fn ImGui_DragFloatEx(label: ?[*:0]const u8, v: ?*f32, v_speed: f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
 extern fn ImGui_DragFloat2(label: ?[*:0]const u8, v: [2]f32) bool;
@@ -2022,16 +2112,12 @@ extern fn ImGui_ColorButtonEx(desc_id: ?[*:0]const u8, col: Vec4, flags: ColorEd
 extern fn ImGui_SetColorEditOptions(flags: ColorEditFlags) void;
 extern fn ImGui_TreeNode(label: ?[*:0]const u8) bool;
 extern fn ImGui_TreeNodeStr(str_id: ?[*:0]const u8, fmt: ?[*:0]const u8, ...) bool;
-extern fn ImGui_TreeNodeStrUnformatted(str_id: ?[*:0]const u8, text: ?[*:0]const u8) bool;
 extern fn ImGui_TreeNodePtr(ptr_id: ?*anyopaque, fmt: ?[*:0]const u8, ...) bool;
-extern fn ImGui_TreeNodePtrUnformatted(ptr_id: ?*anyopaque, text: ?[*:0]const u8) bool;
 extern fn ImGui_TreeNodeV(str_id: ?[*:0]const u8, fmt: ?[*:0]const u8, args: c.va_list) bool;
 extern fn ImGui_TreeNodeVPtr(ptr_id: ?*anyopaque, fmt: ?[*:0]const u8, args: c.va_list) bool;
 extern fn ImGui_TreeNodeEx(label: ?[*:0]const u8, flags: TreeNodeFlags) bool;
 extern fn ImGui_TreeNodeExStr(str_id: ?[*:0]const u8, flags: TreeNodeFlags, fmt: ?[*:0]const u8, ...) bool;
-extern fn ImGui_TreeNodeExStrUnformatted(str_id: ?[*:0]const u8, flags: TreeNodeFlags, text: ?[*:0]const u8) bool;
 extern fn ImGui_TreeNodeExPtr(ptr_id: ?*anyopaque, flags: TreeNodeFlags, fmt: ?[*:0]const u8, ...) bool;
-extern fn ImGui_TreeNodeExPtrUnformatted(ptr_id: ?*anyopaque, flags: TreeNodeFlags, text: ?[*:0]const u8) bool;
 extern fn ImGui_TreeNodeExV(str_id: ?[*:0]const u8, flags: TreeNodeFlags, fmt: ?[*:0]const u8, args: c.va_list) bool;
 extern fn ImGui_TreeNodeExVPtr(ptr_id: ?*anyopaque, flags: TreeNodeFlags, fmt: ?[*:0]const u8, args: c.va_list) bool;
 extern fn ImGui_TreePush(str_id: ?[*:0]const u8) void;
@@ -2048,8 +2134,8 @@ extern fn ImGui_SelectableBoolPtrEx(label: ?[*:0]const u8, p_selected: ?*bool, f
 extern fn ImGui_BeginListBox(label: ?[*:0]const u8, size: Vec2) bool;
 extern fn ImGui_EndListBox() void;
 extern fn ImGui_ListBox(label: ?[*:0]const u8, current_item: ?*c_int, items: [*]const ?[*:0]const u8, items_count: c_int, height_in_items: c_int) bool;
-extern fn ImGui_ListBoxCallback(label: ?[*:0]const u8, current_item: ?*c_int, getter: ?*const fn (?*anyopaque, c_int) callconv(.C) ?[*:0]const u8, user_data: ?*anyopaque, items_count: c_int) bool;
-extern fn ImGui_ListBoxCallbackEx(label: ?[*:0]const u8, current_item: ?*c_int, getter: ?*const fn (?*anyopaque, c_int) callconv(.C) ?[*:0]const u8, user_data: ?*anyopaque, items_count: c_int, height_in_items: c_int) bool;
+extern fn ImGui_ListBoxCallback(label: ?[*:0]const u8, current_item: ?*c_int, items_getter: ?*const fn (?*anyopaque, c_int, ?*?[*:0]const u8) callconv(.C) bool, data: ?*anyopaque, items_count: c_int) bool;
+extern fn ImGui_ListBoxCallbackEx(label: ?[*:0]const u8, current_item: ?*c_int, items_getter: ?*const fn (?*anyopaque, c_int, ?*?[*:0]const u8) callconv(.C) bool, data: ?*anyopaque, items_count: c_int, height_in_items: c_int) bool;
 extern fn ImGui_PlotLines(label: ?[*:0]const u8, values: ?*const f32, values_count: c_int) void;
 extern fn ImGui_PlotLinesEx(label: ?[*:0]const u8, values: ?*const f32, values_count: c_int, values_offset: c_int, overlay_text: ?[*:0]const u8, scale_min: f32, scale_max: f32, graph_size: Vec2, stride: c_int) void;
 extern fn ImGui_PlotLinesCallback(label: ?[*:0]const u8, values_getter: ?*const fn (?*anyopaque, c_int) callconv(.C) f32, data: ?*anyopaque, values_count: c_int) void;
@@ -2071,11 +2157,9 @@ extern fn ImGui_MenuItemBoolPtr(label: ?[*:0]const u8, shortcut: ?[*:0]const u8,
 extern fn ImGui_BeginTooltip() bool;
 extern fn ImGui_EndTooltip() void;
 extern fn ImGui_SetTooltip(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_SetTooltipUnformatted(text: ?[*:0]const u8) void;
 extern fn ImGui_SetTooltipV(fmt: ?[*:0]const u8, args: c.va_list) void;
 extern fn ImGui_BeginItemTooltip() bool;
 extern fn ImGui_SetItemTooltip(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_SetItemTooltipUnformatted(text: ?[*:0]const u8) void;
 extern fn ImGui_SetItemTooltipV(fmt: ?[*:0]const u8, args: c.va_list) void;
 extern fn ImGui_BeginPopup(str_id: ?[*:0]const u8, flags: WindowFlags) bool;
 extern fn ImGui_BeginPopupModal(name: ?[*:0]const u8, p_open: ?*bool, flags: WindowFlags) bool;
@@ -2101,9 +2185,8 @@ extern fn ImGui_TableSetColumnIndex(column_n: c_int) bool;
 extern fn ImGui_TableSetupColumn(label: ?[*:0]const u8, flags: TableColumnFlags) void;
 extern fn ImGui_TableSetupColumnEx(label: ?[*:0]const u8, flags: TableColumnFlags, init_width_or_weight: f32, user_id: ID) void;
 extern fn ImGui_TableSetupScrollFreeze(cols: c_int, rows: c_int) void;
-extern fn ImGui_TableHeader(label: ?[*:0]const u8) void;
 extern fn ImGui_TableHeadersRow() void;
-extern fn ImGui_TableAngledHeadersRow() void;
+extern fn ImGui_TableHeader(label: ?[*:0]const u8) void;
 extern fn ImGui_TableGetSortSpecs() ?*TableSortSpecs;
 extern fn ImGui_TableGetColumnCount() c_int;
 extern fn ImGui_TableGetColumnIndex() c_int;
@@ -2127,13 +2210,20 @@ extern fn ImGui_BeginTabItem(label: ?[*:0]const u8, p_open: ?*bool, flags: TabIt
 extern fn ImGui_EndTabItem() void;
 extern fn ImGui_TabItemButton(label: ?[*:0]const u8, flags: TabItemFlags) bool;
 extern fn ImGui_SetTabItemClosed(tab_or_docked_window_label: ?[*:0]const u8) void;
+extern fn ImGui_DockSpace(id: ID) ID;
+extern fn ImGui_DockSpaceEx(id: ID, size: Vec2, flags: DockNodeFlags, window_class: ?*const WindowClass) ID;
+extern fn ImGui_DockSpaceOverViewport() ID;
+extern fn ImGui_DockSpaceOverViewportEx(viewport: ?*const Viewport, flags: DockNodeFlags, window_class: ?*const WindowClass) ID;
+extern fn ImGui_SetNextWindowDockID(dock_id: ID, cond: Cond) void;
+extern fn ImGui_SetNextWindowClass(window_class: ?*const WindowClass) void;
+extern fn ImGui_GetWindowDockID() ID;
+extern fn ImGui_IsWindowDocked() bool;
 extern fn ImGui_LogToTTY(auto_open_depth: c_int) void;
 extern fn ImGui_LogToFile(auto_open_depth: c_int, filename: ?[*:0]const u8) void;
 extern fn ImGui_LogToClipboard(auto_open_depth: c_int) void;
 extern fn ImGui_LogFinish() void;
 extern fn ImGui_LogButtons() void;
 extern fn ImGui_LogText(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_LogTextUnformatted(text: ?[*:0]const u8) void;
 extern fn ImGui_LogTextV(fmt: ?[*:0]const u8, args: c.va_list) void;
 extern fn ImGui_BeginDragDropSource(flags: DragDropFlags) bool;
 extern fn ImGui_SetDragDropPayload(type: ?[*:0]const u8, data: ?*anyopaque, sz: usize, cond: Cond) bool;
@@ -2171,6 +2261,8 @@ extern fn ImGui_GetItemRectSize() Vec2;
 extern fn ImGui_GetMainViewport() ?*Viewport;
 extern fn ImGui_GetBackgroundDrawList() ?*DrawList;
 extern fn ImGui_GetForegroundDrawList() ?*DrawList;
+extern fn ImGui_GetBackgroundDrawListImGuiViewportPtr(viewport: ?*Viewport) ?*DrawList;
+extern fn ImGui_GetForegroundDrawListImGuiViewportPtr(viewport: ?*Viewport) ?*DrawList;
 extern fn ImGui_IsRectVisibleBySize(size: Vec2) bool;
 extern fn ImGui_IsRectVisible(rect_min: Vec2, rect_max: Vec2) bool;
 extern fn ImGui_GetTime() f64;
@@ -2225,6 +2317,13 @@ extern fn ImGui_SetAllocatorFunctions(alloc_func: MemAllocFunc, free_func: MemFr
 extern fn ImGui_GetAllocatorFunctions(p_alloc_func: ?*MemAllocFunc, p_free_func: ?*MemFreeFunc, p_user_data: ?*?*anyopaque) void;
 extern fn ImGui_MemAlloc(size: usize) ?*anyopaque;
 extern fn ImGui_MemFree(ptr: ?*anyopaque) void;
+extern fn ImGui_GetPlatformIO() *PlatformIO;
+extern fn ImGui_UpdatePlatformWindows() void;
+extern fn ImGui_RenderPlatformWindowsDefault() void;
+extern fn ImGui_RenderPlatformWindowsDefaultEx(platform_render_arg: ?*anyopaque, renderer_render_arg: ?*anyopaque) void;
+extern fn ImGui_DestroyPlatformWindows() void;
+extern fn ImGui_FindViewportByID(id: ID) ?*Viewport;
+extern fn ImGui_FindViewportByPlatformHandle(platform_handle: ?*anyopaque) ?*Viewport;
 extern fn ImVector_Construct(vector: ?*anyopaque) void;
 extern fn ImVector_Destruct(vector: ?*anyopaque) void;
 extern fn ImGuiStyle_ScaleAllSizes(self: *Style, scale_factor: f32) void;
@@ -2234,6 +2333,7 @@ extern fn ImGuiIO_AddMousePosEvent(self: *IO, x: f32, y: f32) void;
 extern fn ImGuiIO_AddMouseButtonEvent(self: *IO, button: c_int, down: bool) void;
 extern fn ImGuiIO_AddMouseWheelEvent(self: *IO, wheel_x: f32, wheel_y: f32) void;
 extern fn ImGuiIO_AddMouseSourceEvent(self: *IO, source: MouseSource) void;
+extern fn ImGuiIO_AddMouseViewportEvent(self: *IO, id: ID) void;
 extern fn ImGuiIO_AddFocusEvent(self: *IO, focused: bool) void;
 extern fn ImGuiIO_AddInputCharacter(self: *IO, c: c_uint) void;
 extern fn ImGuiIO_AddInputCharacterUTF16(self: *IO, c: Wchar16) void;
@@ -2323,10 +2423,6 @@ extern fn ImDrawList_AddCircleFilled(self: *DrawList, center: Vec2, radius: f32,
 extern fn ImDrawList_AddNgon(self: *DrawList, center: Vec2, radius: f32, col: U32, num_segments: c_int) void;
 extern fn ImDrawList_AddNgonEx(self: *DrawList, center: Vec2, radius: f32, col: U32, num_segments: c_int, thickness: f32) void;
 extern fn ImDrawList_AddNgonFilled(self: *DrawList, center: Vec2, radius: f32, col: U32, num_segments: c_int) void;
-extern fn ImDrawList_AddEllipse(self: *DrawList, center: Vec2, radius_x: f32, radius_y: f32, col: U32) void;
-extern fn ImDrawList_AddEllipseEx(self: *DrawList, center: Vec2, radius_x: f32, radius_y: f32, col: U32, rot: f32, num_segments: c_int, thickness: f32) void;
-extern fn ImDrawList_AddEllipseFilled(self: *DrawList, center: Vec2, radius_x: f32, radius_y: f32, col: U32) void;
-extern fn ImDrawList_AddEllipseFilledEx(self: *DrawList, center: Vec2, radius_x: f32, radius_y: f32, col: U32, rot: f32, num_segments: c_int) void;
 extern fn ImDrawList_AddText(self: *DrawList, pos: Vec2, col: U32, text_begin: ?[*:0]const u8) void;
 extern fn ImDrawList_AddTextEx(self: *DrawList, pos: Vec2, col: U32, text_begin: ?[*:0]const u8, text_end: ?[*:0]const u8) void;
 extern fn ImDrawList_AddTextImFontPtr(self: *DrawList, font: ?*const Font, font_size: f32, pos: Vec2, col: U32, text_begin: ?[*:0]const u8) void;
@@ -2347,8 +2443,6 @@ extern fn ImDrawList_PathFillConvex(self: *DrawList, col: U32) void;
 extern fn ImDrawList_PathStroke(self: *DrawList, col: U32, flags: DrawFlags, thickness: f32) void;
 extern fn ImDrawList_PathArcTo(self: *DrawList, center: Vec2, radius: f32, a_min: f32, a_max: f32, num_segments: c_int) void;
 extern fn ImDrawList_PathArcToFast(self: *DrawList, center: Vec2, radius: f32, a_min_of_12: c_int, a_max_of_12: c_int) void;
-extern fn ImDrawList_PathEllipticalArcTo(self: *DrawList, center: Vec2, radius_x: f32, radius_y: f32, rot: f32, a_min: f32, a_max: f32) void;
-extern fn ImDrawList_PathEllipticalArcToEx(self: *DrawList, center: Vec2, radius_x: f32, radius_y: f32, rot: f32, a_min: f32, a_max: f32, num_segments: c_int) void;
 extern fn ImDrawList_PathBezierCubicCurveTo(self: *DrawList, p2: Vec2, p3: Vec2, p4: Vec2, num_segments: c_int) void;
 extern fn ImDrawList_PathBezierQuadraticCurveTo(self: *DrawList, p2: Vec2, p3: Vec2, num_segments: c_int) void;
 extern fn ImDrawList_PathRect(self: *DrawList, rect_min: Vec2, rect_max: Vec2, rounding: f32, flags: DrawFlags) void;
@@ -2391,8 +2485,8 @@ extern fn ImFontAtlasCustomRect_IsPacked(self: *const FontAtlasCustomRect) bool;
 extern fn ImFontAtlas_AddFont(self: *FontAtlas, font_cfg: ?*const FontConfig) ?*Font;
 extern fn ImFontAtlas_AddFontDefault(self: *FontAtlas, font_cfg: ?*const FontConfig) ?*Font;
 extern fn ImFontAtlas_AddFontFromFileTTF(self: *FontAtlas, filename: ?[*:0]const u8, size_pixels: f32, font_cfg: ?*const FontConfig, glyph_ranges: ?*const Wchar) ?*Font;
-extern fn ImFontAtlas_AddFontFromMemoryTTF(self: *FontAtlas, font_data: ?*anyopaque, font_data_size: c_int, size_pixels: f32, font_cfg: ?*const FontConfig, glyph_ranges: ?*const Wchar) ?*Font;
-extern fn ImFontAtlas_AddFontFromMemoryCompressedTTF(self: *FontAtlas, compressed_font_data: ?*anyopaque, compressed_font_data_size: c_int, size_pixels: f32, font_cfg: ?*const FontConfig, glyph_ranges: ?*const Wchar) ?*Font;
+extern fn ImFontAtlas_AddFontFromMemoryTTF(self: *FontAtlas, font_data: ?*anyopaque, font_size: c_int, size_pixels: f32, font_cfg: ?*const FontConfig, glyph_ranges: ?*const Wchar) ?*Font;
+extern fn ImFontAtlas_AddFontFromMemoryCompressedTTF(self: *FontAtlas, compressed_font_data: ?*anyopaque, compressed_font_size: c_int, size_pixels: f32, font_cfg: ?*const FontConfig, glyph_ranges: ?*const Wchar) ?*Font;
 extern fn ImFontAtlas_AddFontFromMemoryCompressedBase85TTF(self: *FontAtlas, compressed_font_data_base85: ?[*:0]const u8, size_pixels: f32, font_cfg: ?*const FontConfig, glyph_ranges: ?*const Wchar) ?*Font;
 extern fn ImFontAtlas_ClearInputData(self: *FontAtlas) void;
 extern fn ImFontAtlas_ClearTexData(self: *FontAtlas) void;
