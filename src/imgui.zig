@@ -6,9 +6,39 @@ pub const backends = struct {
     pub const mach = @import("imgui_mach.zig");
 };
 
+const alignment = 16;
+
+fn zigAlloc(sz: usize, user_data: ?*anyopaque) callconv(.C) ?*anyopaque {
+    var allocator: *std.mem.Allocator = @ptrCast(@alignCast(user_data));
+
+    if (allocator.alignedAlloc(u8, alignment, sz + alignment)) |mem| {
+        const user_ptr = mem.ptr + alignment;
+        var info_ptr: *usize = @ptrCast(mem.ptr);
+        info_ptr.* = sz + alignment;
+        return user_ptr;
+    } else |_| {
+        return null;
+    }
+}
+
+fn zigFree(ptr: ?*anyopaque, user_data: ?*anyopaque) callconv(.C) void {
+    var allocator: *std.mem.Allocator = @ptrCast(@alignCast(user_data));
+
+    if (ptr) |p| {
+        const user_ptr: [*]align(alignment) u8 = @ptrCast(@alignCast(p));
+        const mem_ptr = user_ptr - alignment;
+        const info_ptr: *usize = @ptrCast(mem_ptr);
+        const sz = info_ptr.*;
+        allocator.free(mem_ptr[0..sz]);
+    }
+}
+
+pub fn setZigAllocator(allocator: *std.mem.Allocator) void {
+    setAllocatorFunctions(zigAlloc, zigFree, allocator);
+}
+
 pub const VERSION = "1.89.9";
 pub const VERSION_NUM = 18990;
-//pub const IMPL_API = IMGUI_API;
 pub const PAYLOAD_TYPE_COLOR_3F = "_COL3F";
 pub const PAYLOAD_TYPE_COLOR_4F = "_COL4F";
 pub const UNICODE_CODEPOINT_INVALID = 0xFFFD;

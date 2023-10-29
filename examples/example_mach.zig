@@ -13,6 +13,7 @@ pub const mach_core_options = core.ComptimeOptions{
 };
 
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+var allocator: std.mem.Allocator = undefined;
 
 title_timer: core.Timer,
 f: f32 = 0.0,
@@ -20,8 +21,9 @@ f: f32 = 0.0,
 pub fn init(app: *App) !void {
     try core.init(.{});
 
-    const allocator = gpa.allocator();
+    allocator = gpa.allocator();
 
+    imgui.setZigAllocator(&allocator);
     _ = imgui.createContext(null);
     try imgui_mach.init(allocator, core.device, 3, .bgra8_unorm, .undefined); // TODO - use swap chain preferred format
 

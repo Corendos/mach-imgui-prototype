@@ -15,6 +15,7 @@ const defines = [_][]const u8{
     "IMGUI_DISABLE_OBSOLETE_KEYIO",
     "IMGUI_DISABLE_OBSOLETE_FUNCTIONS",
 };
+const skip_defines = [_][]const u8{"IMGUI_IMPL_API"};
 const type_aliases = [_][2][]const u8{
     .{ "va_list", "c.va_list" },
     .{ "size_t", "usize" },
@@ -59,6 +60,7 @@ const is_many_item_field = [_][2][]const u8{
 };
 
 var defines_set: std.StringHashMapUnmanaged(void) = .{};
+var skip_defines_set: std.StringHashMapUnmanaged(void) = .{};
 var type_aliases_map: std.StringHashMapUnmanaged([]const u8) = .{};
 var bounds_aliases_map: std.StringHashMapUnmanaged([]const u8) = .{};
 var is_many_item_field_set: std.StringHashMapUnmanaged(std.StringHashMapUnmanaged(void)) = .{};
@@ -157,6 +159,7 @@ fn emitCamelCase(name: []const u8) void {
 fn emitDefine(x: std.json.Value) void {
     if (!keepElement(x)) return;
     const full_name = x.object.get("name").?.string;
+    if (skip_defines_set.contains(full_name)) return;
     const name = trimLeadingUnderscore(trimNamespace(full_name));
     if (x.object.get("content")) |content| {
         print("pub const {s} = {s};\n", .{ name, content.string });
@@ -468,10 +471,9 @@ fn emitFunctions(x: std.json.Value) void {
 }
 
 fn emit(x: std.json.Value) void {
-    write("const std = @import(\"std\");\n");
-    write("const c = @cImport({\n");
-    write("    @cInclude(\"stdarg.h\");\n");
-    write("});\n");
+    const header = @embedFile("generate_header.zig");
+    write(header);
+    write("\n");
 
     const functions = x.object.get("functions").?;
     emitDefines(x.object.get("defines").?);
@@ -490,6 +492,7 @@ pub fn main() !void {
     allocator = gpa.allocator();
 
     for (defines) |entry| try defines_set.put(allocator, entry, {});
+    for (skip_defines) |entry| try skip_defines_set.put(allocator, entry, {});
     for (type_aliases) |entry| try type_aliases_map.put(allocator, entry[0], entry[1]);
     for (bounds_aliases) |entry| try bounds_aliases_map.put(allocator, entry[0], entry[1]);
     for (is_many_item_field) |entry| {
@@ -500,6 +503,7 @@ pub fn main() !void {
     }
 
     defer defines_set.deinit(allocator);
+    defer skip_defines_set.deinit(allocator);
     defer type_aliases_map.deinit(allocator);
     defer bounds_aliases_map.deinit(allocator);
     defer {

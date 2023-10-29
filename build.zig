@@ -72,14 +72,8 @@ pub fn build(b: *std.Build) !void {
         .src = "examples/example_mach.zig",
         .target = target,
         .deps = &[_]std.build.ModuleDependency{
-            .{
-                .name = "imgui",
-                .module = module,
-            },
-            .{
-                .name = "build-options",
-                .module = build_options.createModule(),
-            },
+            .{ .name = "imgui", .module = module },
+            .{ .name = "build-options", .module = build_options.createModule() },
         },
         .optimize = optimize,
     });
