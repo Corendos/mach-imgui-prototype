@@ -1,7 +1,6 @@
 const std = @import("std");
 
 var allocator: std.mem.Allocator = undefined;
-const writer = std.io.getStdOut().writer();
 
 const hash = std.hash.Fnv1a_32.hash;
 
@@ -39,6 +38,8 @@ const type_aliases = [_][2][]const u8{
     .{ "ImVector_ImVec2", "Vector(Vec2)" },
     .{ "ImVector_ImVec4", "Vector(Vec4)" },
     .{ "ImVector_ImWchar", "Vector(Wchar)" },
+    .{ "ImVector_ImGuiPlatformMonitor", "Vector(PlatformMonitor)" },
+    .{ "ImVector_ImGuiViewportPtr", "Vector(*Viewport)" },
 };
 const bounds_aliases = [_][2][]const u8{
     .{ "(IM_UNICODE_CODEPOINT_MAX +1)/4096/8", "(UNICODE_CODEPOINT_MAX+1)/4096/8" },
@@ -65,18 +66,8 @@ var type_aliases_map: std.StringHashMapUnmanaged([]const u8) = .{};
 var bounds_aliases_map: std.StringHashMapUnmanaged([]const u8) = .{};
 var is_many_item_field_set: std.StringHashMapUnmanaged(std.StringHashMapUnmanaged(void)) = .{};
 var known_structs: std.StringHashMapUnmanaged(void) = .{};
-
-fn writeByte(ch: u8) void {
-    writer.writeByte(ch) catch unreachable;
-}
-
-fn write(str: []const u8) void {
-    writer.writeAll(str) catch unreachable;
-}
-
-fn print(comptime format: []const u8, args: anytype) void {
-    std.fmt.format(writer, format, args) catch unreachable;
-}
+var aligned_content: ?std.ArrayListUnmanaged(u8) = null;
+var aligned_fields: std.ArrayListUnmanaged(struct { x: std.json.Value, content: []const u8 }) = .{};
 
 fn trimPrefixOpt(name: []const u8, prefix: []const u8) ?[]const u8 {
     return if (std.mem.startsWith(u8, name, prefix))
@@ -137,14 +128,40 @@ fn keepElement(x: std.json.Value) bool {
     return true;
 }
 
+fn writeByte(ch: u8) void {
+    if (aligned_content) |*ac| {
+        ac.writer(allocator).writeByte(ch) catch unreachable;
+    } else {
+        std.io.getStdOut().writer().writeByte(ch) catch unreachable;
+    }
+}
+
+fn write(str: []const u8) void {
+    if (aligned_content) |*ac| {
+        ac.writer(allocator).writeAll(str) catch unreachable;
+    } else {
+        std.io.getStdOut().writer().writeAll(str) catch unreachable;
+    }
+}
+
+fn print(comptime format: []const u8, args: anytype) void {
+    if (aligned_content) |*ac| {
+        std.fmt.format(ac.writer(allocator), format, args) catch unreachable;
+    } else {
+        std.fmt.format(std.io.getStdOut().writer(), format, args) catch unreachable;
+    }
+}
+
 fn emitSnakeCase(name: []const u8) void {
-    var last_upper = true;
+    var last_is_upper = true;
+    var last_is_underscore = false;
     for (name) |ch| {
         const is_upper = std.ascii.isUpper(ch);
-        if (is_upper and last_upper != is_upper) {
+        if (is_upper and last_is_upper != is_upper and !last_is_underscore) {
             writeByte('_');
         }
-        last_upper = is_upper;
+        last_is_upper = is_upper;
+        last_is_underscore = ch == '_';
         writeByte(std.ascii.toLower(ch));
     }
 }
@@ -156,42 +173,120 @@ fn emitCamelCase(name: []const u8) void {
     }
 }
 
+fn emitPrecedingComments(x: std.json.Value, indent: usize) void {
+    if (x.object.get("comments")) |comments| {
+        if (comments.object.get("preceding")) |preceding| {
+            for (preceding.array.items) |comment| {
+                for (0..indent) |_|
+                    writeByte(' ');
+                write(comment.string);
+                write("\n");
+            }
+        }
+    }
+}
+
+fn hasAttachedComment(x: std.json.Value) bool {
+    if (x.object.get("comments")) |comments| {
+        if (comments.object.get("attached")) |comment| {
+            _ = comment;
+            return true;
+        }
+    }
+    return false;
+}
+
+fn emitAttachedComment(x: std.json.Value) void {
+    if (x.object.get("comments")) |comments| {
+        if (comments.object.get("attached")) |comment| {
+            write(" ");
+            write(comment.string);
+        }
+    }
+}
+
+fn beginAlignedFields() void {
+    aligned_content = .{};
+}
+
+fn appendAlignedField(x: std.json.Value) void {
+    const slice = aligned_content.?.toOwnedSlice(allocator) catch unreachable;
+    aligned_fields.append(allocator, .{ .x = x, .content = slice }) catch unreachable;
+}
+
+fn endAlignedFields(indent: usize) void {
+    aligned_content.?.deinit(allocator);
+    aligned_content = null;
+
+    var max_size: usize = 0;
+    for (aligned_fields.items) |entry| {
+        max_size = @max(max_size, entry.content.len);
+    }
+
+    for (aligned_fields.items) |entry| {
+        emitPrecedingComments(entry.x, indent);
+        write(entry.content);
+        if (hasAttachedComment(entry.x)) {
+            for (0..max_size - entry.content.len) |_|
+                writeByte(' ');
+            emitAttachedComment(entry.x);
+        }
+        write("\n");
+        allocator.free(entry.content);
+    }
+    aligned_fields.clearRetainingCapacity();
+}
+
 fn emitDefine(x: std.json.Value) void {
     if (!keepElement(x)) return;
     const full_name = x.object.get("name").?.string;
     if (skip_defines_set.contains(full_name)) return;
     const name = trimLeadingUnderscore(trimNamespace(full_name));
     if (x.object.get("content")) |content| {
-        print("pub const {s} = {s};\n", .{ name, content.string });
+        print("pub const {s} = {s};", .{ name, content.string });
+        appendAlignedField(x);
     }
 }
 
 fn emitDefines(x: std.json.Value) void {
+    beginAlignedFields();
     for (x.array.items) |item| emitDefine(item);
+    endAlignedFields(0);
 }
 
 fn emitEnumElement(x: std.json.Value) void {
     if (!keepElement(x)) return;
     const full_name = x.object.get("name").?.string;
     const name = trimNamespace(full_name);
+
     if (x.object.get("value")) |value| {
-        print("pub const {s} = {};\n", .{ name, value.integer });
+        print("pub const {s} = {};", .{ name, value.integer });
     } else {
-        print("pub const {s};\n", .{name});
+        print("pub const {s};", .{name});
     }
+    appendAlignedField(x);
 }
 
 pub fn emitEnumElements(x: std.json.Value) void {
+    beginAlignedFields();
     for (x.array.items) |item| emitEnumElement(item);
+    endAlignedFields(0);
 }
 
 fn emitEnum(x: std.json.Value) void {
     if (!keepElement(x)) return;
 
+    write("\n");
+    emitPrecedingComments(x, 0);
     emitEnumElements(x.object.get("elements").?);
 }
 
 fn emitEnums(x: std.json.Value) void {
+    write("\n");
+    write("//-----------------------------------------------------------------------------\n");
+    write("// Enumerations\n");
+    write("//-----------------------------------------------------------------------------\n");
+
     for (x.array.items) |item| emitEnum(item);
 }
 
@@ -340,11 +435,20 @@ fn emitTypedef(x: std.json.Value) void {
     const name = trimNamespace(full_name);
     print("pub const {s} = ", .{name});
     emitType(x.object.get("type").?, false);
-    write(";\n");
+    write(";");
+    appendAlignedField(x);
 }
 
 fn emitTypedefs(x: std.json.Value) void {
+    write("\n");
+    write("//-----------------------------------------------------------------------------\n");
+    write("// Types\n");
+    write("//-----------------------------------------------------------------------------\n");
+    write("\n");
+
+    beginAlignedFields();
     for (x.array.items) |item| emitTypedef(item);
+    endAlignedFields(0);
 }
 
 fn isManyItem(struct_name: []const u8, field_name: []const u8) bool {
@@ -362,11 +466,14 @@ fn emitStructField(x: std.json.Value, struct_name: []const u8) void {
     emitSnakeCase(name);
     write(": ");
     emitType(x.object.get("type").?, is_many_item);
-    write(",\n");
+    write(",");
+    appendAlignedField(x);
 }
 
 fn emitStructFields(x: std.json.Value, struct_name: []const u8) void {
+    beginAlignedFields();
     for (x.array.items) |item| emitStructField(item, struct_name);
+    endAlignedFields(4);
 }
 
 fn emitStructFunction(x: std.json.Value, struct_name: []const u8) void {
@@ -378,13 +485,16 @@ fn emitStructFunction(x: std.json.Value, struct_name: []const u8) void {
         if (std.mem.eql(u8, func_struct_name, struct_name)) {
             print("    pub const ", .{});
             emitCamelCase(trimLeadingUnderscore(name));
-            print(" = {s};\n", .{full_name});
+            print(" = {s};", .{full_name});
+            appendAlignedField(x);
         }
     }
 }
 
 fn emitStructFunctions(x: std.json.Value, struct_name: []const u8) void {
+    beginAlignedFields();
     for (x.array.items) |item| emitStructFunction(item, struct_name);
+    endAlignedFields(4);
 }
 
 fn emitStruct(x: std.json.Value, functions: std.json.Value) void {
@@ -392,7 +502,15 @@ fn emitStruct(x: std.json.Value, functions: std.json.Value) void {
     const full_name = x.object.get("name").?.string;
     if (type_aliases_map.contains(full_name)) return;
     const name = trimNamespace(full_name);
+
+    write("\n");
+    emitPrecedingComments(x, 0);
     print("pub const {s} = extern struct {{\n", .{name});
+    if (hasAttachedComment(x)) {
+        write("    ");
+        emitAttachedComment(x);
+        write("\n");
+    }
     emitStructFields(x.object.get("fields").?, name);
     emitStructFunctions(functions, full_name);
     write("};\n");
@@ -401,6 +519,11 @@ fn emitStruct(x: std.json.Value, functions: std.json.Value) void {
 }
 
 fn emitStructs(x: std.json.Value, functions: std.json.Value) void {
+    write("\n");
+    write("//-----------------------------------------------------------------------------\n");
+    write("// Structs\n");
+    write("//-----------------------------------------------------------------------------\n");
+    write("\n");
     write("pub fn Vector(comptime T: type) type {\n");
     write("    return extern struct {\n");
     write("        size: c_int,\n");
@@ -455,23 +578,45 @@ fn emitPubFunction(x: std.json.Value) void {
             const name = trimLeadingUnderscore(trimNamespace(full_name));
             print("pub const ", .{});
             emitCamelCase(name);
-            print(" = {s};\n", .{full_name});
+            print(" = {s};", .{full_name});
+            appendAlignedField(x);
         }
     } else {
         const name = trimLeadingUnderscore(trimNamespace(full_name));
         print("pub const ", .{});
         emitCamelCase(name);
-        print(" = {s};\n", .{full_name});
+        print(" = {s};", .{full_name});
+        appendAlignedField(x);
     }
 }
 
 fn emitFunctions(x: std.json.Value) void {
+    write("\n");
+    write("//-----------------------------------------------------------------------------\n");
+    write("// API functions\n");
+    write("//-----------------------------------------------------------------------------\n");
+    write("\n");
+
+    write("pub fn setZigAllocator(allocator: *std.mem.Allocator) void {\n");
+    write("    setAllocatorFunctions(zigAlloc, zigFree, allocator);\n");
+    write("}\n");
+
+    beginAlignedFields();
     for (x.array.items) |item| emitPubFunction(item);
+    endAlignedFields(0);
+
+    write("\n");
+    write("//-----------------------------------------------------------------------------\n");
+    write("// Extern declarations\n");
+    write("//-----------------------------------------------------------------------------\n");
+    write("\n");
+
     for (x.array.items) |item| emitExternFunction(item);
 }
 
 fn emit(x: std.json.Value) void {
     const header = @embedFile("generate_header.zig");
+    const footer = @embedFile("generate_footer.zig");
     write(header);
     write("\n");
 
@@ -481,9 +626,8 @@ fn emit(x: std.json.Value) void {
     emitTypedefs(x.object.get("typedefs").?);
     emitStructs(x.object.get("structs").?, functions);
     emitFunctions(functions);
-    write("test {\n");
-    write("    std.testing.refAllDeclsRecursive(@This());\n");
-    write("}\n");
+    write("\n");
+    write(footer);
 }
 
 pub fn main() !void {
@@ -514,6 +658,7 @@ pub fn main() !void {
         is_many_item_field_set.deinit(allocator);
     }
     defer known_structs.deinit(allocator);
+    defer aligned_fields.deinit(allocator);
 
     var file = try std.fs.cwd().openFile("cimgui.json", .{});
     defer file.close();
