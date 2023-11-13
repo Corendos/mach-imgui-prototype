@@ -7,28 +7,23 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const use_dusk = b.option(bool, "use_dusk", "Use Dusk") orelse false;
     const use_freetype = b.option(bool, "use_freetype", "Use Freetype") orelse false;
-
-    const mach_core_dep = b.dependency("mach_core", .{
-        .target = target,
-        .optimize = optimize,
-    });
+    const use_glfw = b.option(bool, "use_glfw", "Use GLFW") orelse false;
+    const use_opengl3 = b.option(bool, "use_opengl3", "Use OpenGL 3.0") orelse false;
 
     const module = b.addModule("zig-imgui", .{
-        .source_file = .{ .path = "src/imgui.zig" },
-        .dependencies = &.{
-            .{ .name = "mach-core", .module = mach_core_dep.module("mach-core") },
-        },
+        .root_source_file = b.path("src/imgui.zig"),
     });
+    _ = module; // autofix
 
     const lib = b.addStaticLibrary(.{
         .name = "imgui",
-        .root_source_file = .{ .path = "src/cimgui.cpp" },
         .target = target,
         .optimize = optimize,
     });
+    lib.addCSourceFile(.{ .file = b.path("src/cimgui.cpp") });
     lib.linkLibC();
+    lib.linkLibCpp();
 
     const imgui_dep = b.dependency("imgui", .{});
 
@@ -39,11 +34,11 @@ pub fn build(b: *std.Build) !void {
     defer flags.deinit();
 
     try files.appendSlice(&.{
-        imgui_dep.path("imgui.cpp").getPath(b),
-        imgui_dep.path("imgui_widgets.cpp").getPath(b),
-        imgui_dep.path("imgui_tables.cpp").getPath(b),
-        imgui_dep.path("imgui_draw.cpp").getPath(b),
-        imgui_dep.path("imgui_demo.cpp").getPath(b),
+        "imgui.cpp",
+        "imgui_widgets.cpp",
+        "imgui_tables.cpp",
+        "imgui_draw.cpp",
+        "imgui_demo.cpp",
     });
 
     if (use_freetype) {
@@ -56,40 +51,30 @@ pub fn build(b: *std.Build) !void {
         }).artifact("freetype"));
     }
 
-    lib.addIncludePath(imgui_dep.path("."));
+    if (use_glfw) {
+        try files.append("backends/imgui_impl_glfw.cpp");
+        lib.addCSourceFile(.{ .file = b.path("src/glfw_wrapper.cpp") });
+
+        const glfw_dep = b.dependency("glfw", .{
+            .target = target,
+            .optimize = optimize,
+        });
+        const glfw_lib = glfw_dep.artifact("glfw");
+        lib.linkLibrary(glfw_lib);
+    }
+
+    if (use_opengl3) {
+        try files.append("backends/imgui_impl_opengl3.cpp");
+        lib.addCSourceFile(.{ .file = b.path("src/opengl3_wrapper.cpp") });
+    }
+
+    lib.addIncludePath(imgui_dep.path(""));
     lib.addCSourceFiles(.{
+        .root = imgui_dep.path(""),
         .files = files.items,
         .flags = flags.items,
     });
     b.installArtifact(lib);
-
-    // Example
-    const build_options = b.addOptions();
-    build_options.addOption(bool, "use_dusk", use_dusk);
-
-    const app = try mach_core.App.init(b, mach_core_dep.builder, .{
-        .name = "mach-imgui-example",
-        .src = "examples/example_mach.zig",
-        .target = target,
-        .deps = &[_]std.build.ModuleDependency{
-            .{ .name = "imgui", .module = module },
-            .{ .name = "build-options", .module = build_options.createModule() },
-        },
-        .optimize = optimize,
-    });
-    app.compile.linkLibrary(lib);
-
-    if (use_dusk) {
-        const mach_dusk_dep = b.dependency("mach_dusk", .{
-            .target = target,
-            .optimize = optimize,
-        });
-        app.compile.linkLibrary(mach_dusk_dep.artifact("mach-dusk"));
-        @import("mach_dusk").link(mach_dusk_dep.builder, app.compile);
-    }
-
-    const run_step = b.step("run", "Run the example");
-    run_step.dependOn(&app.run.step);
 
     // Generator
     const generator_exe = b.addExecutable(.{

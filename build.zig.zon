@@ -7,21 +7,21 @@
     .name = "mach-imgui",
     .version = "0.1.0",
     .dependencies = .{
-        .mach_core = .{
-            .url = "https://pkg.machengine.org/mach-core/cce02fb96ca787378289c5855b381f0ca9f3e090.tar.gz",
-            .hash = "122096b39d9266d275b780df4d63b1afe6e9a3726f19766baf74b34af3f092532cd3",
-        },
-        .freetype = .{
-            .url = "https://pkg.machengine.org/freetype/fa33c2db730c0e888046e863b5550ddc3d24e739.tar.gz",
-            .hash = "12206ed50a939287c717f76547baf24e54301de4500505c19f10965ef559619baf10",
-        },
-        .mach_dusk = .{
-            .url = "https://pkg.machengine.org/mach-dusk/ee8abd31daefa617832c590d61c1e1d665a5e55a.tar.gz",
-            .hash = "1220d0bf732d8291b8629ce7e115efb6adef84dcc1218317ee0a89a6f1663153f2a9",
-        },
+        //.freetype = .{
+        //    .url = "https://pkg.machengine.org/freetype/fa33c2db730c0e888046e863b5550ddc3d24e739.tar.gz",
+        //    .hash = "12206ed50a939287c717f76547baf24e54301de4500505c19f10965ef559619baf10",
+        //},
         .imgui = .{
             .url = "https://github.com/ocornut/imgui/archive/refs/tags/v1.89.9-docking.tar.gz",
             .hash = "12205e93e208aada4c835acdc3e2c1fac95b3ad92b47abe6412ab043f9f13817ad9b",
+        },
+        .@"mach-glfw" = .{
+            .url = "https://github.com/Corendos/mach-glfw/archive/9fcf54e87ea3b72c33988fd7c0fb62dca201c38e.tar.gz",
+            .hash = "1220be675ffd88467e78acf201b577230c8d00741fcfb980aa1fcb377550af057854",
+        },
+        .glfw = .{
+            .url = "https://github.com/Corendos/glfw/archive/5c6994c143c87936c980b6710bbb86fc77b2097b.tar.gz",
+            .hash = "122028dbc595e8d8266f681837e24f75caaea07489aff3fda94b2b09aa501e4400d2",
         },
     },
 }

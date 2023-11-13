@@ -1,0 +1,334 @@
+const std = @import("std");
+const builtin = @import("builtin");
+const glfw = @import("glfw");
+const imgui = @import("imgui.zig");
+
+fn assert(ok: bool, comptime message: ?[:0]const u8) void {
+    if (!ok) {
+        if (message) |m| @panic(m) else unreachable;
+    }
+}
+
+pub const GlfwClientApi = enum {
+    unknown,
+    opengl,
+    vulkan,
+};
+
+const WNDPROC = fn (_: std.os.windows.HWND, _: std.os.windows.UINT, _: std.os.windows.WPARAM, _: std.os.windows.LPARAM) callconv(.C) std.os.windows.LRESULT;
+
+const GlfwData = struct {
+    window: ?*glfw.c.GLFWwindow = null,
+    client_api: GlfwClientApi = .unknown,
+    time: f64 = 0.0,
+    mouse_window: ?*glfw.c.GLFWwindow = null,
+    mouse_cursors: [imgui.MouseCursor_COUNT]?glfw.Cursor = [_]?glfw.Cursor{null} ** imgui.MouseCursor_COUNT,
+    last_valid_mouse_pos: imgui.Vec2 = .{ .x = 0, .y = 0 },
+    installed_callbacks: bool = false,
+    callbacks_chain_for_all_windows: bool = false,
+
+    // Chain GLFW callbacks: our callbacks will call the user's previously installed callbacks, if any.
+    prev_user_callback_window_focus: glfw.c.GLFWwindowfocusfun = null,
+    prev_user_callback_cursor_pos: glfw.c.GLFWcursorposfun = null,
+    prev_user_callback_cursor_enter: glfw.c.GLFWcursorenterfun = null,
+    prev_user_callback_mousebutton: glfw.c.GLFWmousebuttonfun = null,
+    prev_user_callback_scroll: glfw.c.GLFWscrollfun = null,
+    prev_user_callback_key: glfw.c.GLFWkeyfun = null,
+    prev_user_callback_char: glfw.c.GLFWcharfun = null,
+    prev_user_callback_monitor: glfw.c.GLFWmonitorfun = null,
+    //wnd_proc: if (builtin.target.os.tag == .windows) ?WNDPROC else void = if (builtin.target.os.tag == .windows) null else {},
+};
+
+pub fn init(window: glfw.Window, install_callbacks: bool, client_api: GlfwClientApi) bool {
+    const io = imgui.getIO();
+    assert(io.backend_platform_user_data == null, "Already initialized a platform backend!");
+
+    const bd = std.heap.c_allocator.create(GlfwData) catch return false;
+    bd.* = .{};
+
+    io.backend_platform_user_data = bd;
+    io.backend_platform_name = "imgui_impl_glfw";
+    io.backend_flags |= imgui.BackendFlags_HasMouseCursors;
+    io.backend_flags |= imgui.BackendFlags_HasSetMousePos;
+
+    bd.window = window.handle;
+    bd.time = 0.0;
+
+    io.set_clipboard_text_fn = setClipboardText;
+    io.get_clipboard_text_fn = getClipboardText;
+
+    const prev_error_callback = glfw.c.glfwSetErrorCallback(null);
+    bd.mouse_cursors[imgui.MouseCursor_Arrow] = glfw.Cursor.createStandard(glfw.Cursor.Shape.arrow);
+    bd.mouse_cursors[imgui.MouseCursor_TextInput] = glfw.Cursor.createStandard(glfw.Cursor.Shape.ibeam);
+    bd.mouse_cursors[imgui.MouseCursor_ResizeNS] = glfw.Cursor.createStandard(glfw.Cursor.Shape.resize_ns);
+    bd.mouse_cursors[imgui.MouseCursor_ResizeEW] = glfw.Cursor.createStandard(glfw.Cursor.Shape.resize_ew);
+    bd.mouse_cursors[imgui.MouseCursor_Hand] = glfw.Cursor.createStandard(glfw.Cursor.Shape.pointing_hand);
+    bd.mouse_cursors[imgui.MouseCursor_ResizeAll] = glfw.Cursor.createStandard(glfw.Cursor.Shape.resize_all);
+    bd.mouse_cursors[imgui.MouseCursor_ResizeNESW] = glfw.Cursor.createStandard(glfw.Cursor.Shape.resize_nesw);
+    bd.mouse_cursors[imgui.MouseCursor_ResizeNWSE] = glfw.Cursor.createStandard(glfw.Cursor.Shape.resize_nwse);
+    bd.mouse_cursors[imgui.MouseCursor_NotAllowed] = glfw.Cursor.createStandard(glfw.Cursor.Shape.not_allowed);
+    _ = glfw.c.glfwSetErrorCallback(prev_error_callback);
+
+    if (install_callbacks) {
+        // TODO(Corendos):
+        installCallbacks(window.handle);
+    }
+
+    if (imgui.getMainViewport()) |main_viewport| {
+        _ = main_viewport;
+
+        if (builtin.target.os.tag == .windows) {}
+    }
+
+    if (builtin.target.os.tag == .windows) {
+        //bd.wndProc = std.os.windows.getWindow
+    }
+
+    bd.client_api = client_api;
+
+    return true;
+}
+
+pub fn shutdown() void {
+    const bd = getBackendData() orelse {
+        @panic("No platform backend to shutdown, or already shutdown?");
+    };
+    const io = imgui.getIO();
+
+    if (bd.installed_callbacks) {
+        restoreCallbacks(bd.window.?);
+    }
+
+    for (bd.mouse_cursors) |maybe_cursor| if (maybe_cursor) |c| glfw.c.glfwDestroyCursor(c.ptr);
+
+    io.backend_platform_name = null;
+    io.backend_platform_user_data = null;
+    io.backend_flags &= ~@as(c_int, imgui.BackendFlags_HasMouseCursors | imgui.BackendFlags_HasSetMousePos | imgui.BackendFlags_HasGamepad);
+    std.heap.c_allocator.destroy(bd);
+}
+
+fn getBackendData() ?*GlfwData {
+    return if (imgui.getCurrentContext()) |_| @ptrCast(@alignCast(imgui.getIO().backend_platform_user_data)) else null;
+    //return if (imgui.getCurrentContext()) |_| b: {
+    //    const value = imgui.getIO().backend_platform_user_data.?;
+    //    std.log.debug("user_data: {}", .{@intFromPtr(value)});
+    //    break :b @ptrCast(@alignCast(imgui.getIO().backend_platform_user_data));
+    //} else null;
+}
+fn setClipboardText(userdata: ?*anyopaque, text: ?[*:0]const u8) callconv(.C) void {
+    glfw.c.glfwSetClipboardString(@ptrCast(@alignCast(userdata)), text);
+}
+
+fn getClipboardText(userdata: ?*anyopaque) callconv(.C) ?[*:0]const u8 {
+    return glfw.c.glfwGetClipboardString(@ptrCast(@alignCast(userdata)));
+}
+
+fn installCallbacks(window: *glfw.c.GLFWwindow) void {
+    // NOTE(Corendos): It's safe to unwrap the optional because we are called from the `init` function.
+    const bd = getBackendData().?;
+    assert(bd.installed_callbacks == false, "Callbacks already installed!");
+    assert(bd.window == window, null);
+
+    bd.prev_user_callback_window_focus = glfw.c.glfwSetWindowFocusCallback(window, windowFocusCallback);
+    bd.prev_user_callback_cursor_pos = glfw.c.glfwSetCursorPosCallback(window, cursorPosCallback);
+    bd.prev_user_callback_cursor_enter = glfw.c.glfwSetCursorEnterCallback(window, cursorEnterCallback);
+    bd.prev_user_callback_mousebutton = glfw.c.glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    bd.prev_user_callback_scroll = glfw.c.glfwSetScrollCallback(window, scrollCallback);
+    bd.prev_user_callback_key = glfw.c.glfwSetKeyCallback(window, keyCallback);
+    bd.prev_user_callback_char = glfw.c.glfwSetCharCallback(window, charCallback);
+    bd.prev_user_callback_monitor = glfw.c.glfwSetMonitorCallback(monitorCallback);
+
+    bd.installed_callbacks = true;
+}
+
+fn restoreCallbacks(window: *glfw.c.GLFWwindow) void {
+    // NOTE(Corendos): It's safe to unwrap the optional because we are called from the `shutdown` function.
+    const bd = getBackendData().?;
+    assert(bd.installed_callbacks == true, "Callbacks not installed!");
+    assert(bd.window == window, null);
+
+    _ = glfw.c.glfwSetWindowFocusCallback(window, bd.prev_user_callback_window_focus);
+    _ = glfw.c.glfwSetCursorPosCallback(window, bd.prev_user_callback_cursor_pos);
+    _ = glfw.c.glfwSetCursorEnterCallback(window, bd.prev_user_callback_cursor_enter);
+    _ = glfw.c.glfwSetMouseButtonCallback(window, bd.prev_user_callback_mousebutton);
+    _ = glfw.c.glfwSetScrollCallback(window, bd.prev_user_callback_scroll);
+    _ = glfw.c.glfwSetKeyCallback(window, bd.prev_user_callback_key);
+    _ = glfw.c.glfwSetCharCallback(window, bd.prev_user_callback_char);
+    _ = glfw.c.glfwSetMonitorCallback(bd.prev_user_callback_monitor);
+    bd.installed_callbacks = false;
+
+    bd.prev_user_callback_window_focus = null;
+    bd.prev_user_callback_cursor_pos = null;
+    bd.prev_user_callback_cursor_enter = null;
+    bd.prev_user_callback_mousebutton = null;
+    bd.prev_user_callback_scroll = null;
+    bd.prev_user_callback_key = null;
+    bd.prev_user_callback_char = null;
+    bd.prev_user_callback_monitor = null;
+}
+
+fn windowFocusCallback(window: ?*glfw.c.GLFWwindow, focused: c_int) callconv(.C) void {
+    const bd = getBackendData().?;
+    if (bd.prev_user_callback_window_focus != null and shouldChainCallbacks(window)) {
+        bd.prev_user_callback_window_focus.?(window, focused);
+    }
+    const io = imgui.getIO();
+    io.addFocusEvent(focused != 0);
+}
+
+fn cursorPosCallback(window: ?*glfw.c.GLFWwindow, x: f64, y: f64) callconv(.C) void {
+    const bd = getBackendData().?;
+    if (bd.prev_user_callback_cursor_pos != null and shouldChainCallbacks(window)) {
+        bd.prev_user_callback_cursor_pos.?(window, x, y);
+    }
+    const io = imgui.getIO();
+    io.addMousePosEvent(@floatCast(x), @floatCast(y));
+    bd.last_valid_mouse_pos = .{ .x = @floatCast(x), .y = @floatCast(y) };
+}
+
+fn cursorEnterCallback(window: ?*glfw.c.GLFWwindow, entered: c_int) callconv(.C) void {
+    const bd = getBackendData().?;
+    if (bd.prev_user_callback_cursor_enter != null and shouldChainCallbacks(window)) {
+        bd.prev_user_callback_cursor_enter.?(window, entered);
+    }
+    const io = imgui.getIO();
+    if (entered != 0) {
+        bd.mouse_window = window;
+        io.addMousePosEvent(bd.last_valid_mouse_pos.x, bd.last_valid_mouse_pos.y);
+    } else if (entered == 0 and bd.mouse_window == window) {
+        bd.last_valid_mouse_pos = io.mouse_pos;
+        bd.mouse_window = null;
+        io.addMousePosEvent(-std.math.floatMax(f32), -std.math.floatMax(f32));
+    }
+}
+
+fn mouseButtonCallback(window: ?*glfw.c.GLFWwindow, button: c_int, action: c_int, mods: c_int) callconv(.C) void {
+    const bd = getBackendData().?;
+    if (bd.prev_user_callback_mousebutton != null and shouldChainCallbacks(window)) {
+        bd.prev_user_callback_mousebutton.?(window, button, action, mods);
+    }
+
+    updateKeyModifiers(window);
+
+    const io = imgui.getIO();
+    if (button >= 0 and button < imgui.MouseButton_COUNT) {
+        io.addMouseButtonEvent(button, action == glfw.c.GLFW_PRESS);
+    }
+}
+
+fn scrollCallback(window: ?*glfw.c.GLFWwindow, xoffset: f64, yoffset: f64) callconv(.C) void {
+    const bd = getBackendData().?;
+    if (bd.prev_user_callback_scroll != null and shouldChainCallbacks(window)) {
+        bd.prev_user_callback_scroll.?(window, xoffset, yoffset);
+    }
+    const io = imgui.getIO();
+    io.addMouseWheelEvent(@floatCast(xoffset), @floatCast(yoffset));
+}
+
+fn keyCallback(window: ?*glfw.c.GLFWwindow, keycode: c_int, scancode: c_int, action: c_int, mods: c_int) callconv(.C) void {
+    const bd = getBackendData().?;
+    if (bd.prev_user_callback_key != null and shouldChainCallbacks(window)) {
+        bd.prev_user_callback_key.?(window, keycode, scancode, action, mods);
+    }
+
+    if (action != glfw.c.GLFW_PRESS or action != glfw.c.GLFW_RELEASE) return;
+
+    // TODO
+}
+
+fn charCallback(window: ?*glfw.c.GLFWwindow, c: c_uint) callconv(.C) void {
+    const bd = getBackendData().?;
+    if (bd.prev_user_callback_char != null and shouldChainCallbacks(window)) {
+        bd.prev_user_callback_char.?(window, c);
+    }
+    const io = imgui.getIO();
+    io.addInputCharacter(c);
+}
+
+fn monitorCallback(window: ?*glfw.c.GLFWmonitor, _: c_int) callconv(.C) void {
+    const bd = getBackendData().?;
+    _ = bd;
+    _ = window;
+}
+
+fn shouldChainCallbacks(window: ?*glfw.c.GLFWwindow) bool {
+    const bd = getBackendData().?;
+    return if (bd.callbacks_chain_for_all_windows) true else bd.window == window;
+}
+
+fn updateKeyModifiers(window: ?*glfw.c.GLFWwindow) void {
+    const io = imgui.getIO();
+    io.addKeyEvent(imgui.Mod_Ctrl, glfw.c.glfwGetKey(window, glfw.c.GLFW_KEY_LEFT_CONTROL) == glfw.c.GLFW_PRESS or glfw.c.glfwGetKey(window, glfw.c.GLFW_KEY_RIGHT_CONTROL) == glfw.c.GLFW_PRESS);
+    io.addKeyEvent(imgui.Mod_Shift, glfw.c.glfwGetKey(window, glfw.c.GLFW_KEY_LEFT_SHIFT) == glfw.c.GLFW_PRESS or glfw.c.glfwGetKey(window, glfw.c.GLFW_KEY_RIGHT_SHIFT) == glfw.c.GLFW_PRESS);
+    io.addKeyEvent(imgui.Mod_Alt, glfw.c.glfwGetKey(window, glfw.c.GLFW_KEY_LEFT_ALT) == glfw.c.GLFW_PRESS or glfw.c.glfwGetKey(window, glfw.c.GLFW_KEY_RIGHT_ALT) == glfw.c.GLFW_PRESS);
+    io.addKeyEvent(imgui.Mod_Super, glfw.c.glfwGetKey(window, glfw.c.GLFW_KEY_LEFT_SUPER) == glfw.c.GLFW_PRESS or glfw.c.glfwGetKey(window, glfw.c.GLFW_KEY_RIGHT_SUPER) == glfw.c.GLFW_PRESS);
+}
+
+fn updateMouseData() void {
+    const bd = getBackendData().?;
+    const io = imgui.getIO();
+
+    const window = glfw.Window.from(bd.window.?);
+
+    const is_window_focused = window.getAttrib(glfw.Window.Attrib.focused) != 0;
+
+    if (is_window_focused) {
+        if (io.want_set_mouse_pos) {
+            window.setCursorPos(io.mouse_pos.x, io.mouse_pos.y);
+        }
+
+        if (bd.mouse_window == null) {
+            const mouse_pos = window.getCursorPos();
+            bd.last_valid_mouse_pos = .{ .x = @floatCast(mouse_pos.xpos), .y = @floatCast(mouse_pos.ypos) };
+            io.addMousePosEvent(@floatCast(mouse_pos.xpos), @floatCast(mouse_pos.ypos));
+        }
+    }
+}
+
+fn updateMouseCursor() void {
+    const bd = getBackendData().?;
+    const io = imgui.getIO();
+
+    if ((io.config_flags & imgui.ConfigFlags_NoMouseCursorChange) != 0 or glfw.c.glfwGetInputMode(bd.window, glfw.c.GLFW_CURSOR) == glfw.c.GLFW_CURSOR_DISABLED) return;
+
+    const imgui_cursor = imgui.getMouseCursor();
+    if (imgui_cursor == imgui.MouseCursor_None or io.mouse_draw_cursor) {
+        glfw.c.glfwSetInputMode(bd.window, glfw.c.GLFW_CURSOR, glfw.c.GLFW_CURSOR_HIDDEN);
+    } else {
+        const cursor = bd.mouse_cursors[@intCast(imgui_cursor)] orelse bd.mouse_cursors[imgui.MouseCursor_Arrow];
+        glfw.c.glfwSetCursor(bd.window, if (cursor) |c| c.ptr else null);
+        glfw.c.glfwSetInputMode(bd.window, glfw.c.GLFW_CURSOR, glfw.c.GLFW_CURSOR_NORMAL);
+    }
+}
+
+fn updateGamepads() void {}
+
+pub fn newFrame() void {
+    const io = imgui.getIO();
+    const bd = getBackendData() orelse {
+        @panic("Did you call init()?");
+    };
+
+    const window = glfw.Window.from(bd.window.?);
+    const size = window.getSize();
+    const display_size = window.getFramebufferSize();
+    io.display_size = .{ .x = @floatFromInt(size.width), .y = @floatFromInt(size.height) };
+    if (size.width > 0 and size.height > 0) {
+        io.display_framebuffer_scale = .{
+            .x = @as(f32, @floatFromInt(display_size.width)) / @as(f32, @floatFromInt(size.width)),
+            .y = @as(f32, @floatFromInt(display_size.height)) / @as(f32, @floatFromInt(size.height)),
+        };
+    }
+
+    const current_time = b: {
+        var t = glfw.getTime();
+        if (t <= bd.time) t = bd.time + 0.00001;
+        break :b t;
+    };
+    io.delta_time = if (bd.time > 0.0) @floatCast(current_time - bd.time) else @floatCast(1.0 / 60.0);
+    bd.time = current_time;
+
+    updateMouseData();
+    updateMouseCursor();
+    updateGamepads();
+}
