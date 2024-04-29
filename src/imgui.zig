@@ -30,7 +30,9 @@ const c = @cImport({
     @cInclude("stdarg.h");
 });
 pub const backends = struct {
-    pub const mach = @import("imgui_mach.zig");
+    pub const glfw = @import("imgui_glfw.zig");
+    pub const opengl3 = @import("imgui_opengl3.zig");
+    pub const vulkan = @import("imgui_vulkan.zig");
 };
 
 pub const VERSION = "1.89.9";
@@ -1009,7 +1011,7 @@ pub const Style = extern struct {
     anti_aliased_fill: bool,                     // Enable anti-aliased edges around filled shapes (rounded rectangles, circles, etc.). Disable if you are really tight on CPU/GPU. Latched at the beginning of the frame (copied to ImDrawList).
     curve_tessellation_tol: f32,                 // Tessellation tolerance when using PathBezierCurveTo() without a specific number of segments. Decrease for highly tessellated curves (higher quality, more polygons), increase to reduce quality.
     circle_tessellation_max_error: f32,          // Maximum error (in pixels) allowed when using AddCircle()/AddCircleFilled() or drawing rounded corner rectangles with no explicit segment count specified. Decrease for higher quality but more geometry.
-    colors: [Col_COUNT]Vec4,
+    colors: *[Col_COUNT]Vec4,
     // Behaviors
     // (It is possible to modify those fields mid-frame if specific behavior need it, unlike e.g. configuration fields in ImGuiIO)
     hover_stationary_delay: f32,                 // Delay for IsItemHovered(ImGuiHoveredFlags_Stationary). Time required to consider mouse stationary.
@@ -1096,6 +1098,7 @@ pub const IO = extern struct {
     // Optional: Notify OS Input Method Editor of the screen position of your cursor for text input position (e.g. when using Japanese/Chinese IME on Windows)
     // (default to use native imm32 api on Windows)
     set_platform_ime_data_fn: ?*const fn (?*Viewport, ?*PlatformImeData) callconv(.C) void,
+    _unused_padding: ?*anyopaque,                                                           // Unused field to keep data structure the same size.
     // Optional: Platform locale
     platform_locale_decimal_point: Wchar,                                                   // '.'              // [Experimental] Configure decimal point e.g. '.' or ',' useful for some languages (e.g. German), generally pulled from *localeconv()->decimal_point
     want_capture_mouse: bool,                                                               // Set when Dear ImGui will use mouse inputs, in this case do not dispatch them to your main game/application (either way, always pass on mouse inputs to imgui). (e.g. unclicked mouse is hovering over an imgui window, widget is active, mouse was clicked over an imgui window, etc.).
@@ -1117,7 +1120,7 @@ pub const IO = extern struct {
     // (this block used to be written by backend, since 1.87 it is best to NOT write to those directly, call the AddXXX functions above instead)
     // (reading from those variables is fair game, as they are extremely unlikely to be moving anywhere)
     mouse_pos: Vec2,                                                                        // Mouse position, in pixels. Set to ImVec2(-FLT_MAX, -FLT_MAX) if mouse is unavailable (on another screen, etc.)
-    mouse_down: [5]bool,                                                                    // Mouse buttons: 0=left, 1=right, 2=middle + extras (ImGuiMouseButton_COUNT == 5). Dear ImGui mostly uses left and right buttons. Other buttons allow us to track if the mouse is being used by your application + available to user as a convenience via IsMouse** API.
+    mouse_down: *[5]bool,                                                                   // Mouse buttons: 0=left, 1=right, 2=middle + extras (ImGuiMouseButton_COUNT == 5). Dear ImGui mostly uses left and right buttons. Other buttons allow us to track if the mouse is being used by your application + available to user as a convenience via IsMouse** API.
     mouse_wheel: f32,                                                                       // Mouse wheel Vertical: 1 unit scrolls about 5 lines text. >0 scrolls Up, <0 scrolls Down. Hold SHIFT to turn vertical scroll into horizontal scroll.
     mouse_wheel_h: f32,                                                                     // Mouse wheel Horizontal. >0 scrolls Left, <0 scrolls Right. Most users don't have a mouse with a horizontal wheel, may not be filled by all backends.
     mouse_source: MouseSource,                                                              // Mouse actual input peripheral (Mouse/TouchScreen/Pen).
@@ -1128,23 +1131,23 @@ pub const IO = extern struct {
     key_super: bool,                                                                        // Keyboard modifier down: Cmd/Super/Windows
     // Other state maintained from data above + IO function calls
     key_mods: KeyChord,                                                                     // Key mods flags (any of ImGuiMod_Ctrl/ImGuiMod_Shift/ImGuiMod_Alt/ImGuiMod_Super flags, same as io.KeyCtrl/KeyShift/KeyAlt/KeySuper but merged into flags. DOES NOT CONTAINS ImGuiMod_Shortcut which is pretranslated). Read-only, updated by NewFrame()
-    keys_data: [Key_KeysData_SIZE]KeyData,                                                  // Key state for all known keys. Use IsKeyXXX() functions to access this.
+    keys_data: *[Key_KeysData_SIZE]KeyData,                                                 // Key state for all known keys. Use IsKeyXXX() functions to access this.
     want_capture_mouse_unless_popup_close: bool,                                            // Alternative to WantCaptureMouse: (WantCaptureMouse == true && WantCaptureMouseUnlessPopupClose == false) when a click over void is expected to close a popup.
     mouse_pos_prev: Vec2,                                                                   // Previous mouse position (note that MouseDelta is not necessary == MousePos-MousePosPrev, in case either position is invalid)
-    mouse_clicked_pos: [5]Vec2,                                                             // Position at time of clicking
-    mouse_clicked_time: [5]f64,                                                             // Time of last click (used to figure out double-click)
-    mouse_clicked: [5]bool,                                                                 // Mouse button went from !Down to Down (same as MouseClickedCount[x] != 0)
-    mouse_double_clicked: [5]bool,                                                          // Has mouse button been double-clicked? (same as MouseClickedCount[x] == 2)
-    mouse_clicked_count: [5]U16,                                                            // == 0 (not clicked), == 1 (same as MouseClicked[]), == 2 (double-clicked), == 3 (triple-clicked) etc. when going from !Down to Down
-    mouse_clicked_last_count: [5]U16,                                                       // Count successive number of clicks. Stays valid after mouse release. Reset after another click is done.
-    mouse_released: [5]bool,                                                                // Mouse button went from Down to !Down
-    mouse_down_owned: [5]bool,                                                              // Track if button was clicked inside a dear imgui window or over void blocked by a popup. We don't request mouse capture from the application if click started outside ImGui bounds.
-    mouse_down_owned_unless_popup_close: [5]bool,                                           // Track if button was clicked inside a dear imgui window.
+    mouse_clicked_pos: *[5]Vec2,                                                            // Position at time of clicking
+    mouse_clicked_time: *[5]f64,                                                            // Time of last click (used to figure out double-click)
+    mouse_clicked: *[5]bool,                                                                // Mouse button went from !Down to Down (same as MouseClickedCount[x] != 0)
+    mouse_double_clicked: *[5]bool,                                                         // Has mouse button been double-clicked? (same as MouseClickedCount[x] == 2)
+    mouse_clicked_count: *[5]U16,                                                           // == 0 (not clicked), == 1 (same as MouseClicked[]), == 2 (double-clicked), == 3 (triple-clicked) etc. when going from !Down to Down
+    mouse_clicked_last_count: *[5]U16,                                                      // Count successive number of clicks. Stays valid after mouse release. Reset after another click is done.
+    mouse_released: *[5]bool,                                                               // Mouse button went from Down to !Down
+    mouse_down_owned: *[5]bool,                                                             // Track if button was clicked inside a dear imgui window or over void blocked by a popup. We don't request mouse capture from the application if click started outside ImGui bounds.
+    mouse_down_owned_unless_popup_close: *[5]bool,                                          // Track if button was clicked inside a dear imgui window.
     mouse_wheel_request_axis_swap: bool,                                                    // On a non-Mac system, holding SHIFT requests WheelY to perform the equivalent of a WheelX event. On a Mac system this is already enforced by the system.
-    mouse_down_duration: [5]f32,                                                            // Duration the mouse button has been down (0.0f == just clicked)
-    mouse_down_duration_prev: [5]f32,                                                       // Previous time the mouse button has been down
-    mouse_drag_max_distance_abs: [5]Vec2,                                                   // Maximum distance, absolute, on each axis, of how much mouse has traveled from the clicking point
-    mouse_drag_max_distance_sqr: [5]f32,                                                    // Squared maximum distance of how much mouse has traveled from the clicking point (used for moving thresholds)
+    mouse_down_duration: *[5]f32,                                                           // Duration the mouse button has been down (0.0f == just clicked)
+    mouse_down_duration_prev: *[5]f32,                                                      // Previous time the mouse button has been down
+    mouse_drag_max_distance_abs: *[5]Vec2,                                                  // Maximum distance, absolute, on each axis, of how much mouse has traveled from the clicking point
+    mouse_drag_max_distance_sqr: *[5]f32,                                                   // Squared maximum distance of how much mouse has traveled from the clicking point (used for moving thresholds)
     pen_pressure: f32,                                                                      // Touch/Pen pressure (0.0f to 1.0f, should be >0.0f only when MouseDown[0] == true). Helper storage currently unused by Dear ImGui.
     app_focus_lost: bool,                                                                   // Only modify via AddFocusEvent()
     app_accepting_events: bool,                                                             // Only modify via SetAppAcceptingEvents()
@@ -1234,15 +1237,15 @@ pub const WindowClass = extern struct {
 // Data payload for Drag and Drop operations: AcceptDragDropPayload(), GetDragDropPayload()
 pub const Payload = extern struct {
     // Members
-    data: ?*anyopaque,       // Data (copied and owned by dear imgui)
-    data_size: c_int,        // Data size
+    data: ?*anyopaque,        // Data (copied and owned by dear imgui)
+    data_size: c_int,         // Data size
     // [Internal]
-    source_id: ID,           // Source item id
-    source_parent_id: ID,    // Source parent id (if available)
-    data_frame_count: c_int, // Data timestamp
-    data_type: [32+1]c_char, // Data type tag (short user-supplied string, 32 characters max)
-    preview: bool,           // Set when AcceptDragDropPayload() was called and mouse has been hovering the target item (nb: handle overlapping drag targets)
-    delivery: bool,          // Set when AcceptDragDropPayload() was called and mouse button is released over the target item.
+    source_id: ID,            // Source item id
+    source_parent_id: ID,     // Source parent id (if available)
+    data_frame_count: c_int,  // Data timestamp
+    data_type: *[32+1]c_char, // Data type tag (short user-supplied string, 32 characters max)
+    preview: bool,            // Set when AcceptDragDropPayload() was called and mouse has been hovering the target item (nb: handle overlapping drag targets)
+    delivery: bool,           // Set when AcceptDragDropPayload() was called and mouse button is released over the target item.
     pub const clear = ImGuiPayload_Clear;
     pub const isDataType = ImGuiPayload_IsDataType;
     pub const isPreview = ImGuiPayload_IsPreview;
@@ -1275,7 +1278,7 @@ pub const TextFilter_ImGuiTextRange = extern struct {
 
 // Helper: Parse and apply text filters. In format "aaaaa[,bbbb][,ccccc]"
 pub const TextFilter = extern struct {
-    input_buf: [256]c_char,
+    input_buf: *[256]c_char,
     filters: Vector(TextFilter_ImGuiTextRange),
     count_grep: c_int,
     pub const imGuiTextRange_empty = ImGuiTextFilter_ImGuiTextRange_empty;
@@ -1612,7 +1615,7 @@ pub const FontConfig = extern struct {
     rasterizer_multiply: f32,       // 1.0f     // Brighten (>1.0f) or darken (<1.0f) font output. Brightening small fonts may be a good workaround to make them more readable.
     ellipsis_char: Wchar,           // -1       // Explicitly specify unicode codepoint of ellipsis character. When fonts are being merged first specified ellipsis will be used.
     // [Internal]
-    name: [40]c_char,               // Name (strictly to ease debugging)
+    name: *[40]c_char,              // Name (strictly to ease debugging)
     dst_font: ?*Font,
 };
 
@@ -1677,32 +1680,32 @@ pub const FontAtlasCustomRect = extern struct {
 // - Even though many functions are suffixed with "TTF", OTF data is supported just as well.
 // - This is an old API and it is currently awkward for those and various other reasons! We will address them in the future!
 pub const FontAtlas = extern struct {
-    flags: FontAtlasFlags,                              // Build flags (see ImFontAtlasFlags_)
-    tex_id: TextureID,                                  // User data to refer to the texture once it has been uploaded to user's graphic systems. It is passed back to you during rendering via the ImDrawCmd structure.
-    tex_desired_width: c_int,                           // Texture width desired by user before Build(). Must be a power-of-two. If have many glyphs your graphics API have texture size restrictions you may want to increase texture width to decrease height.
-    tex_glyph_padding: c_int,                           // Padding between glyphs within texture in pixels. Defaults to 1. If your rendering method doesn't rely on bilinear filtering you may set this to 0 (will also need to set AntiAliasedLinesUseTex = false).
-    locked: bool,                                       // Marked as Locked by ImGui::NewFrame() so attempt to modify the atlas will assert.
-    user_data: ?*anyopaque,                             // Store your own atlas related user-data (if e.g. you have multiple font atlas).
+    flags: FontAtlasFlags,                               // Build flags (see ImFontAtlasFlags_)
+    tex_id: TextureID,                                   // User data to refer to the texture once it has been uploaded to user's graphic systems. It is passed back to you during rendering via the ImDrawCmd structure.
+    tex_desired_width: c_int,                            // Texture width desired by user before Build(). Must be a power-of-two. If have many glyphs your graphics API have texture size restrictions you may want to increase texture width to decrease height.
+    tex_glyph_padding: c_int,                            // Padding between glyphs within texture in pixels. Defaults to 1. If your rendering method doesn't rely on bilinear filtering you may set this to 0 (will also need to set AntiAliasedLinesUseTex = false).
+    locked: bool,                                        // Marked as Locked by ImGui::NewFrame() so attempt to modify the atlas will assert.
+    user_data: ?*anyopaque,                              // Store your own atlas related user-data (if e.g. you have multiple font atlas).
     // [Internal]
     // NB: Access texture data via GetTexData*() calls! Which will setup a default font for you.
-    tex_ready: bool,                                    // Set when texture was built matching current font input
-    tex_pixels_use_colors: bool,                        // Tell whether our texture data is known to use colors (rather than just alpha channel), in order to help backend select a format.
-    tex_pixels_alpha8: ?[*]c_char,                      // 1 component per pixel, each component is unsigned 8-bit. Total size = TexWidth * TexHeight
-    tex_pixels_rgba32: ?[*]c_uint,                      // 4 component per pixel, each component is unsigned 8-bit. Total size = TexWidth * TexHeight * 4
-    tex_width: c_int,                                   // Texture width calculated during Build().
-    tex_height: c_int,                                  // Texture height calculated during Build().
-    tex_uv_scale: Vec2,                                 // = (1.0f/TexWidth, 1.0f/TexHeight)
-    tex_uv_white_pixel: Vec2,                           // Texture coordinates to a white pixel
-    fonts: Vector(*Font),                               // Hold all the fonts returned by AddFont*. Fonts[0] is the default font upon calling ImGui::NewFrame(), use ImGui::PushFont()/PopFont() to change the current font.
-    custom_rects: Vector(FontAtlasCustomRect),          // Rectangles for packing custom texture data into the atlas.
-    config_data: Vector(FontConfig),                    // Configuration data
-    tex_uv_lines: [DRAWLIST_TEX_LINES_WIDTH_MAX+1]Vec4, // UVs for baked anti-aliased lines
+    tex_ready: bool,                                     // Set when texture was built matching current font input
+    tex_pixels_use_colors: bool,                         // Tell whether our texture data is known to use colors (rather than just alpha channel), in order to help backend select a format.
+    tex_pixels_alpha8: ?[*]c_char,                       // 1 component per pixel, each component is unsigned 8-bit. Total size = TexWidth * TexHeight
+    tex_pixels_rgba32: ?[*]c_uint,                       // 4 component per pixel, each component is unsigned 8-bit. Total size = TexWidth * TexHeight * 4
+    tex_width: c_int,                                    // Texture width calculated during Build().
+    tex_height: c_int,                                   // Texture height calculated during Build().
+    tex_uv_scale: Vec2,                                  // = (1.0f/TexWidth, 1.0f/TexHeight)
+    tex_uv_white_pixel: Vec2,                            // Texture coordinates to a white pixel
+    fonts: Vector(*Font),                                // Hold all the fonts returned by AddFont*. Fonts[0] is the default font upon calling ImGui::NewFrame(), use ImGui::PushFont()/PopFont() to change the current font.
+    custom_rects: Vector(FontAtlasCustomRect),           // Rectangles for packing custom texture data into the atlas.
+    config_data: Vector(FontConfig),                     // Configuration data
+    tex_uv_lines: *[DRAWLIST_TEX_LINES_WIDTH_MAX+1]Vec4, // UVs for baked anti-aliased lines
     // [Internal] Font builder
-    font_builder_io: ?*const FontBuilderIO,             // Opaque interface to a font builder (default to stb_truetype, can be changed to use FreeType by defining IMGUI_ENABLE_FREETYPE).
-    font_builder_flags: c_uint,                         // Shared flags (for all fonts) for custom font builder. THIS IS BUILD IMPLEMENTATION DEPENDENT. Per-font override is also available in ImFontConfig.
+    font_builder_io: ?*const FontBuilderIO,              // Opaque interface to a font builder (default to stb_truetype, can be changed to use FreeType by defining IMGUI_ENABLE_FREETYPE).
+    font_builder_flags: c_uint,                          // Shared flags (for all fonts) for custom font builder. THIS IS BUILD IMPLEMENTATION DEPENDENT. Per-font override is also available in ImFontConfig.
     // [Internal] Packing data
-    pack_id_mouse_cursors: c_int,                       // Custom texture rectangle ID for white pixel and mouse cursors
-    pack_id_lines: c_int,                               // Custom texture rectangle ID for baked anti-aliased lines
+    pack_id_mouse_cursors: c_int,                        // Custom texture rectangle ID for white pixel and mouse cursors
+    pack_id_lines: c_int,                                // Custom texture rectangle ID for baked anti-aliased lines
     pub const addFont = ImFontAtlas_AddFont;
     pub const addFontDefault = ImFontAtlas_AddFontDefault;
     pub const addFontFromFileTTF = ImFontAtlas_AddFontFromFileTTF;
@@ -1755,28 +1758,28 @@ pub const FontAtlas = extern struct {
 // ImFontAtlas automatically loads a default embedded font for you when you call GetTexDataAsAlpha8() or GetTexDataAsRGBA32().
 pub const Font = extern struct {
     // Members: Hot ~20/24 bytes (for CalcTextSize)
-    index_advance_x: Vector(f32),                           // 12-16 // out //            // Sparse. Glyphs->AdvanceX in a directly indexable way (cache-friendly for CalcTextSize functions which only this this info, and are often bottleneck in large UI).
-    fallback_advance_x: f32,                                // 4     // out // = FallbackGlyph->AdvanceX
-    font_size: f32,                                         // 4     // in  //            // Height of characters/line, set during loading (don't change after loading)
+    index_advance_x: Vector(f32),                            // 12-16 // out //            // Sparse. Glyphs->AdvanceX in a directly indexable way (cache-friendly for CalcTextSize functions which only this this info, and are often bottleneck in large UI).
+    fallback_advance_x: f32,                                 // 4     // out // = FallbackGlyph->AdvanceX
+    font_size: f32,                                          // 4     // in  //            // Height of characters/line, set during loading (don't change after loading)
     // Members: Hot ~28/40 bytes (for CalcTextSize + render loop)
-    index_lookup: Vector(Wchar),                            // 12-16 // out //            // Sparse. Index glyphs by Unicode code-point.
-    glyphs: Vector(FontGlyph),                              // 12-16 // out //            // All glyphs.
-    fallback_glyph: ?*const FontGlyph,                      // 4-8   // out // = FindGlyph(FontFallbackChar)
+    index_lookup: Vector(Wchar),                             // 12-16 // out //            // Sparse. Index glyphs by Unicode code-point.
+    glyphs: Vector(FontGlyph),                               // 12-16 // out //            // All glyphs.
+    fallback_glyph: ?*const FontGlyph,                       // 4-8   // out // = FindGlyph(FontFallbackChar)
     // Members: Cold ~32/40 bytes
-    container_atlas: ?*FontAtlas,                           // 4-8   // out //            // What we has been loaded into
-    config_data: ?*const FontConfig,                        // 4-8   // in  //            // Pointer within ContainerAtlas->ConfigData
-    config_data_count: c_short,                             // 2     // in  // ~ 1        // Number of ImFontConfig involved in creating this font. Bigger than 1 when merging multiple font sources into one ImFont.
-    fallback_char: Wchar,                                   // 2     // out // = FFFD/'?' // Character used if a glyph isn't found.
-    ellipsis_char: Wchar,                                   // 2     // out // = '...'/'.'// Character used for ellipsis rendering.
-    ellipsis_char_count: c_short,                           // 1     // out // 1 or 3
-    ellipsis_width: f32,                                    // 4     // out               // Width
-    ellipsis_char_step: f32,                                // 4     // out               // Step between characters when EllipsisCount > 0
-    dirty_lookup_tables: bool,                              // 1     // out //
-    scale: f32,                                             // 4     // in  // = 1.f      // Base font scale, multiplied by the per-window font scale which you can adjust with SetWindowFontScale()
-    ascent: f32,                                            // 4+4   // out //            // Ascent: distance from top to bottom of e.g. 'A' [0..FontSize]
-    descent: f32,                                           // 4+4   // out //            // Ascent: distance from top to bottom of e.g. 'A' [0..FontSize]
-    metrics_total_surface: c_int,                           // 4     // out //            // Total surface in pixels to get an idea of the font rasterization/texture cost (not exact, we approximate the cost of padding between glyphs)
-    used4k_pages_map: [(UNICODE_CODEPOINT_MAX+1)/4096/8]U8, // 2 bytes if ImWchar=ImWchar16, 34 bytes if ImWchar==ImWchar32. Store 1-bit for each block of 4K codepoints that has one active glyph. This is mainly used to facilitate iterations across all used codepoints.
+    container_atlas: ?*FontAtlas,                            // 4-8   // out //            // What we has been loaded into
+    config_data: ?*const FontConfig,                         // 4-8   // in  //            // Pointer within ContainerAtlas->ConfigData
+    config_data_count: c_short,                              // 2     // in  // ~ 1        // Number of ImFontConfig involved in creating this font. Bigger than 1 when merging multiple font sources into one ImFont.
+    fallback_char: Wchar,                                    // 2     // out // = FFFD/'?' // Character used if a glyph isn't found.
+    ellipsis_char: Wchar,                                    // 2     // out // = '...'/'.'// Character used for ellipsis rendering.
+    ellipsis_char_count: c_short,                            // 1     // out // 1 or 3
+    ellipsis_width: f32,                                     // 4     // out               // Width
+    ellipsis_char_step: f32,                                 // 4     // out               // Step between characters when EllipsisCount > 0
+    dirty_lookup_tables: bool,                               // 1     // out //
+    scale: f32,                                              // 4     // in  // = 1.f      // Base font scale, multiplied by the per-window font scale which you can adjust with SetWindowFontScale()
+    ascent: f32,                                             // 4+4   // out //            // Ascent: distance from top to bottom of e.g. 'A' [0..FontSize]
+    descent: f32,                                            // 4+4   // out //            // Ascent: distance from top to bottom of e.g. 'A' [0..FontSize]
+    metrics_total_surface: c_int,                            // 4     // out //            // Total surface in pixels to get an idea of the font rasterization/texture cost (not exact, we approximate the cost of padding between glyphs)
+    used4k_pages_map: *[(UNICODE_CODEPOINT_MAX+1)/4096/8]U8, // 2 bytes if ImWchar=ImWchar16, 34 bytes if ImWchar==ImWchar32. Store 1-bit for each block of 4K codepoints that has one active glyph. This is mainly used to facilitate iterations across all used codepoints.
     pub const findGlyph = ImFont_FindGlyph;
     pub const findGlyphNoFallback = ImFont_FindGlyphNoFallback;
     pub const getCharAdvance = ImFont_GetCharAdvance;
@@ -2751,18 +2754,18 @@ extern fn ImGui_GetIDStr(str_id_begin: ?[*:0]const u8, str_id_end: ?[*:0]const u
 extern fn ImGui_GetIDPtr(ptr_id: ?*anyopaque) ID;
 extern fn ImGui_TextUnformatted(text: ?[*:0]const u8) void;
 extern fn ImGui_TextUnformattedEx(text: ?[*:0]const u8, text_end: ?[*:0]const u8) void;
-extern fn ImGui_Text(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_TextV(fmt: ?[*:0]const u8, args: c.va_list) void;
-extern fn ImGui_TextColored(col: Vec4, fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_TextColoredV(col: Vec4, fmt: ?[*:0]const u8, args: c.va_list) void;
-extern fn ImGui_TextDisabled(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_TextDisabledV(fmt: ?[*:0]const u8, args: c.va_list) void;
-extern fn ImGui_TextWrapped(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_TextWrappedV(fmt: ?[*:0]const u8, args: c.va_list) void;
-extern fn ImGui_LabelText(label: ?[*:0]const u8, fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_LabelTextV(label: ?[*:0]const u8, fmt: ?[*:0]const u8, args: c.va_list) void;
-extern fn ImGui_BulletText(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_BulletTextV(fmt: ?[*:0]const u8, args: c.va_list) void;
+extern fn ImGui_Text(fmt: [*:0]const u8, ...) void;
+extern fn ImGui_TextV(fmt: [*:0]const u8, args: c.va_list) void;
+extern fn ImGui_TextColored(col: Vec4, fmt: [*:0]const u8, ...) void;
+extern fn ImGui_TextColoredV(col: Vec4, fmt: [*:0]const u8, args: c.va_list) void;
+extern fn ImGui_TextDisabled(fmt: [*:0]const u8, ...) void;
+extern fn ImGui_TextDisabledV(fmt: [*:0]const u8, args: c.va_list) void;
+extern fn ImGui_TextWrapped(fmt: [*:0]const u8, ...) void;
+extern fn ImGui_TextWrappedV(fmt: [*:0]const u8, args: c.va_list) void;
+extern fn ImGui_LabelText(label: ?[*:0]const u8, fmt: [*:0]const u8, ...) void;
+extern fn ImGui_LabelTextV(label: ?[*:0]const u8, fmt: [*:0]const u8, args: c.va_list) void;
+extern fn ImGui_BulletText(fmt: [*:0]const u8, ...) void;
+extern fn ImGui_BulletTextV(fmt: [*:0]const u8, args: c.va_list) void;
 extern fn ImGui_SeparatorText(label: ?[*:0]const u8) void;
 extern fn ImGui_Button(label: ?[*:0]const u8) bool;
 extern fn ImGui_ButtonEx(label: ?[*:0]const u8, size: Vec2) bool;
@@ -2790,22 +2793,22 @@ extern fn ImGui_ComboCallback(label: ?[*:0]const u8, current_item: ?*c_int, item
 extern fn ImGui_ComboCallbackEx(label: ?[*:0]const u8, current_item: ?*c_int, items_getter: ?*const fn (?*anyopaque, c_int, ?*?[*:0]const u8) callconv(.C) bool, data: ?*anyopaque, items_count: c_int, popup_max_height_in_items: c_int) bool;
 extern fn ImGui_DragFloat(label: ?[*:0]const u8, v: ?*f32) bool;
 extern fn ImGui_DragFloatEx(label: ?[*:0]const u8, v: ?*f32, v_speed: f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
-extern fn ImGui_DragFloat2(label: ?[*:0]const u8, v: [2]f32) bool;
-extern fn ImGui_DragFloat2Ex(label: ?[*:0]const u8, v: [2]f32, v_speed: f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
-extern fn ImGui_DragFloat3(label: ?[*:0]const u8, v: [3]f32) bool;
-extern fn ImGui_DragFloat3Ex(label: ?[*:0]const u8, v: [3]f32, v_speed: f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
-extern fn ImGui_DragFloat4(label: ?[*:0]const u8, v: [4]f32) bool;
-extern fn ImGui_DragFloat4Ex(label: ?[*:0]const u8, v: [4]f32, v_speed: f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
+extern fn ImGui_DragFloat2(label: ?[*:0]const u8, v: *[2]f32) bool;
+extern fn ImGui_DragFloat2Ex(label: ?[*:0]const u8, v: *[2]f32, v_speed: f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
+extern fn ImGui_DragFloat3(label: ?[*:0]const u8, v: *[3]f32) bool;
+extern fn ImGui_DragFloat3Ex(label: ?[*:0]const u8, v: *[3]f32, v_speed: f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
+extern fn ImGui_DragFloat4(label: ?[*:0]const u8, v: *[4]f32) bool;
+extern fn ImGui_DragFloat4Ex(label: ?[*:0]const u8, v: *[4]f32, v_speed: f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
 extern fn ImGui_DragFloatRange2(label: ?[*:0]const u8, v_current_min: ?*f32, v_current_max: ?*f32) bool;
 extern fn ImGui_DragFloatRange2Ex(label: ?[*:0]const u8, v_current_min: ?*f32, v_current_max: ?*f32, v_speed: f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, format_max: ?[*:0]const u8, flags: SliderFlags) bool;
 extern fn ImGui_DragInt(label: ?[*:0]const u8, v: ?*c_int) bool;
 extern fn ImGui_DragIntEx(label: ?[*:0]const u8, v: ?*c_int, v_speed: f32, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
-extern fn ImGui_DragInt2(label: ?[*:0]const u8, v: [2]c_int) bool;
-extern fn ImGui_DragInt2Ex(label: ?[*:0]const u8, v: [2]c_int, v_speed: f32, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
-extern fn ImGui_DragInt3(label: ?[*:0]const u8, v: [3]c_int) bool;
-extern fn ImGui_DragInt3Ex(label: ?[*:0]const u8, v: [3]c_int, v_speed: f32, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
-extern fn ImGui_DragInt4(label: ?[*:0]const u8, v: [4]c_int) bool;
-extern fn ImGui_DragInt4Ex(label: ?[*:0]const u8, v: [4]c_int, v_speed: f32, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
+extern fn ImGui_DragInt2(label: ?[*:0]const u8, v: *[2]c_int) bool;
+extern fn ImGui_DragInt2Ex(label: ?[*:0]const u8, v: *[2]c_int, v_speed: f32, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
+extern fn ImGui_DragInt3(label: ?[*:0]const u8, v: *[3]c_int) bool;
+extern fn ImGui_DragInt3Ex(label: ?[*:0]const u8, v: *[3]c_int, v_speed: f32, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
+extern fn ImGui_DragInt4(label: ?[*:0]const u8, v: *[4]c_int) bool;
+extern fn ImGui_DragInt4Ex(label: ?[*:0]const u8, v: *[4]c_int, v_speed: f32, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
 extern fn ImGui_DragIntRange2(label: ?[*:0]const u8, v_current_min: ?*c_int, v_current_max: ?*c_int) bool;
 extern fn ImGui_DragIntRange2Ex(label: ?[*:0]const u8, v_current_min: ?*c_int, v_current_max: ?*c_int, v_speed: f32, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, format_max: ?[*:0]const u8, flags: SliderFlags) bool;
 extern fn ImGui_DragScalar(label: ?[*:0]const u8, data_type: DataType, p_data: ?*anyopaque) bool;
@@ -2814,22 +2817,22 @@ extern fn ImGui_DragScalarN(label: ?[*:0]const u8, data_type: DataType, p_data: 
 extern fn ImGui_DragScalarNEx(label: ?[*:0]const u8, data_type: DataType, p_data: ?*anyopaque, components: c_int, v_speed: f32, p_min: ?*anyopaque, p_max: ?*anyopaque, format: ?[*:0]const u8, flags: SliderFlags) bool;
 extern fn ImGui_SliderFloat(label: ?[*:0]const u8, v: ?*f32, v_min: f32, v_max: f32) bool;
 extern fn ImGui_SliderFloatEx(label: ?[*:0]const u8, v: ?*f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
-extern fn ImGui_SliderFloat2(label: ?[*:0]const u8, v: [2]f32, v_min: f32, v_max: f32) bool;
-extern fn ImGui_SliderFloat2Ex(label: ?[*:0]const u8, v: [2]f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
-extern fn ImGui_SliderFloat3(label: ?[*:0]const u8, v: [3]f32, v_min: f32, v_max: f32) bool;
-extern fn ImGui_SliderFloat3Ex(label: ?[*:0]const u8, v: [3]f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
-extern fn ImGui_SliderFloat4(label: ?[*:0]const u8, v: [4]f32, v_min: f32, v_max: f32) bool;
-extern fn ImGui_SliderFloat4Ex(label: ?[*:0]const u8, v: [4]f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
+extern fn ImGui_SliderFloat2(label: ?[*:0]const u8, v: *[2]f32, v_min: f32, v_max: f32) bool;
+extern fn ImGui_SliderFloat2Ex(label: ?[*:0]const u8, v: *[2]f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
+extern fn ImGui_SliderFloat3(label: ?[*:0]const u8, v: *[3]f32, v_min: f32, v_max: f32) bool;
+extern fn ImGui_SliderFloat3Ex(label: ?[*:0]const u8, v: *[3]f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
+extern fn ImGui_SliderFloat4(label: ?[*:0]const u8, v: *[4]f32, v_min: f32, v_max: f32) bool;
+extern fn ImGui_SliderFloat4Ex(label: ?[*:0]const u8, v: *[4]f32, v_min: f32, v_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
 extern fn ImGui_SliderAngle(label: ?[*:0]const u8, v_rad: ?*f32) bool;
 extern fn ImGui_SliderAngleEx(label: ?[*:0]const u8, v_rad: ?*f32, v_degrees_min: f32, v_degrees_max: f32, format: ?[*:0]const u8, flags: SliderFlags) bool;
 extern fn ImGui_SliderInt(label: ?[*:0]const u8, v: ?*c_int, v_min: c_int, v_max: c_int) bool;
 extern fn ImGui_SliderIntEx(label: ?[*:0]const u8, v: ?*c_int, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
-extern fn ImGui_SliderInt2(label: ?[*:0]const u8, v: [2]c_int, v_min: c_int, v_max: c_int) bool;
-extern fn ImGui_SliderInt2Ex(label: ?[*:0]const u8, v: [2]c_int, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
-extern fn ImGui_SliderInt3(label: ?[*:0]const u8, v: [3]c_int, v_min: c_int, v_max: c_int) bool;
-extern fn ImGui_SliderInt3Ex(label: ?[*:0]const u8, v: [3]c_int, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
-extern fn ImGui_SliderInt4(label: ?[*:0]const u8, v: [4]c_int, v_min: c_int, v_max: c_int) bool;
-extern fn ImGui_SliderInt4Ex(label: ?[*:0]const u8, v: [4]c_int, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
+extern fn ImGui_SliderInt2(label: ?[*:0]const u8, v: *[2]c_int, v_min: c_int, v_max: c_int) bool;
+extern fn ImGui_SliderInt2Ex(label: ?[*:0]const u8, v: *[2]c_int, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
+extern fn ImGui_SliderInt3(label: ?[*:0]const u8, v: *[3]c_int, v_min: c_int, v_max: c_int) bool;
+extern fn ImGui_SliderInt3Ex(label: ?[*:0]const u8, v: *[3]c_int, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
+extern fn ImGui_SliderInt4(label: ?[*:0]const u8, v: *[4]c_int, v_min: c_int, v_max: c_int) bool;
+extern fn ImGui_SliderInt4Ex(label: ?[*:0]const u8, v: *[4]c_int, v_min: c_int, v_max: c_int, format: ?[*:0]const u8, flags: SliderFlags) bool;
 extern fn ImGui_SliderScalar(label: ?[*:0]const u8, data_type: DataType, p_data: ?*anyopaque, p_min: ?*anyopaque, p_max: ?*anyopaque) bool;
 extern fn ImGui_SliderScalarEx(label: ?[*:0]const u8, data_type: DataType, p_data: ?*anyopaque, p_min: ?*anyopaque, p_max: ?*anyopaque, format: ?[*:0]const u8, flags: SliderFlags) bool;
 extern fn ImGui_SliderScalarN(label: ?[*:0]const u8, data_type: DataType, p_data: ?*anyopaque, components: c_int, p_min: ?*anyopaque, p_max: ?*anyopaque) bool;
@@ -2848,40 +2851,40 @@ extern fn ImGui_InputTextWithHint(label: ?[*:0]const u8, hint: ?[*:0]const u8, b
 extern fn ImGui_InputTextWithHintEx(label: ?[*:0]const u8, hint: ?[*:0]const u8, buf: ?[*:0]const u8, buf_size: usize, flags: InputTextFlags, callback: InputTextCallback, user_data: ?*anyopaque) bool;
 extern fn ImGui_InputFloat(label: ?[*:0]const u8, v: ?*f32) bool;
 extern fn ImGui_InputFloatEx(label: ?[*:0]const u8, v: ?*f32, step: f32, step_fast: f32, format: ?[*:0]const u8, flags: InputTextFlags) bool;
-extern fn ImGui_InputFloat2(label: ?[*:0]const u8, v: [2]f32) bool;
-extern fn ImGui_InputFloat2Ex(label: ?[*:0]const u8, v: [2]f32, format: ?[*:0]const u8, flags: InputTextFlags) bool;
-extern fn ImGui_InputFloat3(label: ?[*:0]const u8, v: [3]f32) bool;
-extern fn ImGui_InputFloat3Ex(label: ?[*:0]const u8, v: [3]f32, format: ?[*:0]const u8, flags: InputTextFlags) bool;
-extern fn ImGui_InputFloat4(label: ?[*:0]const u8, v: [4]f32) bool;
-extern fn ImGui_InputFloat4Ex(label: ?[*:0]const u8, v: [4]f32, format: ?[*:0]const u8, flags: InputTextFlags) bool;
+extern fn ImGui_InputFloat2(label: ?[*:0]const u8, v: *[2]f32) bool;
+extern fn ImGui_InputFloat2Ex(label: ?[*:0]const u8, v: *[2]f32, format: ?[*:0]const u8, flags: InputTextFlags) bool;
+extern fn ImGui_InputFloat3(label: ?[*:0]const u8, v: *[3]f32) bool;
+extern fn ImGui_InputFloat3Ex(label: ?[*:0]const u8, v: *[3]f32, format: ?[*:0]const u8, flags: InputTextFlags) bool;
+extern fn ImGui_InputFloat4(label: ?[*:0]const u8, v: *[4]f32) bool;
+extern fn ImGui_InputFloat4Ex(label: ?[*:0]const u8, v: *[4]f32, format: ?[*:0]const u8, flags: InputTextFlags) bool;
 extern fn ImGui_InputInt(label: ?[*:0]const u8, v: ?*c_int) bool;
 extern fn ImGui_InputIntEx(label: ?[*:0]const u8, v: ?*c_int, step: c_int, step_fast: c_int, flags: InputTextFlags) bool;
-extern fn ImGui_InputInt2(label: ?[*:0]const u8, v: [2]c_int, flags: InputTextFlags) bool;
-extern fn ImGui_InputInt3(label: ?[*:0]const u8, v: [3]c_int, flags: InputTextFlags) bool;
-extern fn ImGui_InputInt4(label: ?[*:0]const u8, v: [4]c_int, flags: InputTextFlags) bool;
+extern fn ImGui_InputInt2(label: ?[*:0]const u8, v: *[2]c_int, flags: InputTextFlags) bool;
+extern fn ImGui_InputInt3(label: ?[*:0]const u8, v: *[3]c_int, flags: InputTextFlags) bool;
+extern fn ImGui_InputInt4(label: ?[*:0]const u8, v: *[4]c_int, flags: InputTextFlags) bool;
 extern fn ImGui_InputDouble(label: ?[*:0]const u8, v: ?*f64) bool;
 extern fn ImGui_InputDoubleEx(label: ?[*:0]const u8, v: ?*f64, step: f64, step_fast: f64, format: ?[*:0]const u8, flags: InputTextFlags) bool;
 extern fn ImGui_InputScalar(label: ?[*:0]const u8, data_type: DataType, p_data: ?*anyopaque) bool;
 extern fn ImGui_InputScalarEx(label: ?[*:0]const u8, data_type: DataType, p_data: ?*anyopaque, p_step: ?*anyopaque, p_step_fast: ?*anyopaque, format: ?[*:0]const u8, flags: InputTextFlags) bool;
 extern fn ImGui_InputScalarN(label: ?[*:0]const u8, data_type: DataType, p_data: ?*anyopaque, components: c_int) bool;
 extern fn ImGui_InputScalarNEx(label: ?[*:0]const u8, data_type: DataType, p_data: ?*anyopaque, components: c_int, p_step: ?*anyopaque, p_step_fast: ?*anyopaque, format: ?[*:0]const u8, flags: InputTextFlags) bool;
-extern fn ImGui_ColorEdit3(label: ?[*:0]const u8, col: [3]f32, flags: ColorEditFlags) bool;
-extern fn ImGui_ColorEdit4(label: ?[*:0]const u8, col: [4]f32, flags: ColorEditFlags) bool;
-extern fn ImGui_ColorPicker3(label: ?[*:0]const u8, col: [3]f32, flags: ColorEditFlags) bool;
-extern fn ImGui_ColorPicker4(label: ?[*:0]const u8, col: [4]f32, flags: ColorEditFlags, ref_col: ?*const f32) bool;
+extern fn ImGui_ColorEdit3(label: ?[*:0]const u8, col: *[3]f32, flags: ColorEditFlags) bool;
+extern fn ImGui_ColorEdit4(label: ?[*:0]const u8, col: *[4]f32, flags: ColorEditFlags) bool;
+extern fn ImGui_ColorPicker3(label: ?[*:0]const u8, col: *[3]f32, flags: ColorEditFlags) bool;
+extern fn ImGui_ColorPicker4(label: ?[*:0]const u8, col: *[4]f32, flags: ColorEditFlags, ref_col: ?*const f32) bool;
 extern fn ImGui_ColorButton(desc_id: ?[*:0]const u8, col: Vec4, flags: ColorEditFlags) bool;
 extern fn ImGui_ColorButtonEx(desc_id: ?[*:0]const u8, col: Vec4, flags: ColorEditFlags, size: Vec2) bool;
 extern fn ImGui_SetColorEditOptions(flags: ColorEditFlags) void;
 extern fn ImGui_TreeNode(label: ?[*:0]const u8) bool;
-extern fn ImGui_TreeNodeStr(str_id: ?[*:0]const u8, fmt: ?[*:0]const u8, ...) bool;
-extern fn ImGui_TreeNodePtr(ptr_id: ?*anyopaque, fmt: ?[*:0]const u8, ...) bool;
-extern fn ImGui_TreeNodeV(str_id: ?[*:0]const u8, fmt: ?[*:0]const u8, args: c.va_list) bool;
-extern fn ImGui_TreeNodeVPtr(ptr_id: ?*anyopaque, fmt: ?[*:0]const u8, args: c.va_list) bool;
+extern fn ImGui_TreeNodeStr(str_id: ?[*:0]const u8, fmt: [*:0]const u8, ...) bool;
+extern fn ImGui_TreeNodePtr(ptr_id: ?*anyopaque, fmt: [*:0]const u8, ...) bool;
+extern fn ImGui_TreeNodeV(str_id: ?[*:0]const u8, fmt: [*:0]const u8, args: c.va_list) bool;
+extern fn ImGui_TreeNodeVPtr(ptr_id: ?*anyopaque, fmt: [*:0]const u8, args: c.va_list) bool;
 extern fn ImGui_TreeNodeEx(label: ?[*:0]const u8, flags: TreeNodeFlags) bool;
-extern fn ImGui_TreeNodeExStr(str_id: ?[*:0]const u8, flags: TreeNodeFlags, fmt: ?[*:0]const u8, ...) bool;
-extern fn ImGui_TreeNodeExPtr(ptr_id: ?*anyopaque, flags: TreeNodeFlags, fmt: ?[*:0]const u8, ...) bool;
-extern fn ImGui_TreeNodeExV(str_id: ?[*:0]const u8, flags: TreeNodeFlags, fmt: ?[*:0]const u8, args: c.va_list) bool;
-extern fn ImGui_TreeNodeExVPtr(ptr_id: ?*anyopaque, flags: TreeNodeFlags, fmt: ?[*:0]const u8, args: c.va_list) bool;
+extern fn ImGui_TreeNodeExStr(str_id: ?[*:0]const u8, flags: TreeNodeFlags, fmt: [*:0]const u8, ...) bool;
+extern fn ImGui_TreeNodeExPtr(ptr_id: ?*anyopaque, flags: TreeNodeFlags, fmt: [*:0]const u8, ...) bool;
+extern fn ImGui_TreeNodeExV(str_id: ?[*:0]const u8, flags: TreeNodeFlags, fmt: [*:0]const u8, args: c.va_list) bool;
+extern fn ImGui_TreeNodeExVPtr(ptr_id: ?*anyopaque, flags: TreeNodeFlags, fmt: [*:0]const u8, args: c.va_list) bool;
 extern fn ImGui_TreePush(str_id: ?[*:0]const u8) void;
 extern fn ImGui_TreePushPtr(ptr_id: ?*anyopaque) void;
 extern fn ImGui_TreePop() void;
@@ -2918,11 +2921,11 @@ extern fn ImGui_MenuItemEx(label: ?[*:0]const u8, shortcut: ?[*:0]const u8, sele
 extern fn ImGui_MenuItemBoolPtr(label: ?[*:0]const u8, shortcut: ?[*:0]const u8, p_selected: ?*bool, enabled: bool) bool;
 extern fn ImGui_BeginTooltip() bool;
 extern fn ImGui_EndTooltip() void;
-extern fn ImGui_SetTooltip(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_SetTooltipV(fmt: ?[*:0]const u8, args: c.va_list) void;
+extern fn ImGui_SetTooltip(fmt: [*:0]const u8, ...) void;
+extern fn ImGui_SetTooltipV(fmt: [*:0]const u8, args: c.va_list) void;
 extern fn ImGui_BeginItemTooltip() bool;
-extern fn ImGui_SetItemTooltip(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_SetItemTooltipV(fmt: ?[*:0]const u8, args: c.va_list) void;
+extern fn ImGui_SetItemTooltip(fmt: [*:0]const u8, ...) void;
+extern fn ImGui_SetItemTooltipV(fmt: [*:0]const u8, args: c.va_list) void;
 extern fn ImGui_BeginPopup(str_id: ?[*:0]const u8, flags: WindowFlags) bool;
 extern fn ImGui_BeginPopupModal(name: ?[*:0]const u8, p_open: ?*bool, flags: WindowFlags) bool;
 extern fn ImGui_EndPopup() void;
@@ -2985,8 +2988,8 @@ extern fn ImGui_LogToFile(auto_open_depth: c_int, filename: ?[*:0]const u8) void
 extern fn ImGui_LogToClipboard(auto_open_depth: c_int) void;
 extern fn ImGui_LogFinish() void;
 extern fn ImGui_LogButtons() void;
-extern fn ImGui_LogText(fmt: ?[*:0]const u8, ...) void;
-extern fn ImGui_LogTextV(fmt: ?[*:0]const u8, args: c.va_list) void;
+extern fn ImGui_LogText(fmt: [*:0]const u8, ...) void;
+extern fn ImGui_LogTextV(fmt: [*:0]const u8, args: c.va_list) void;
 extern fn ImGui_BeginDragDropSource(flags: DragDropFlags) bool;
 extern fn ImGui_SetDragDropPayload(type: ?[*:0]const u8, data: ?*anyopaque, sz: usize, cond: Cond) bool;
 extern fn ImGui_EndDragDropSource() void;
@@ -3129,8 +3132,8 @@ extern fn ImGuiTextBuffer_clear(self: *TextBuffer) void;
 extern fn ImGuiTextBuffer_reserve(self: *TextBuffer, capacity: c_int) void;
 extern fn ImGuiTextBuffer_c_str(self: *const TextBuffer) ?[*:0]const u8;
 extern fn ImGuiTextBuffer_append(self: *TextBuffer, str: ?[*:0]const u8, str_end: ?[*:0]const u8) void;
-extern fn ImGuiTextBuffer_appendf(self: *TextBuffer, fmt: ?[*:0]const u8, ...) void;
-extern fn ImGuiTextBuffer_appendfv(self: *TextBuffer, fmt: ?[*:0]const u8, args: c.va_list) void;
+extern fn ImGuiTextBuffer_appendf(self: *TextBuffer, fmt: [*:0]const u8, ...) void;
+extern fn ImGuiTextBuffer_appendfv(self: *TextBuffer, fmt: [*:0]const u8, args: c.va_list) void;
 extern fn ImGuiStorage_Clear(self: *Storage) void;
 extern fn ImGuiStorage_GetInt(self: *const Storage, key: ID, default_val: c_int) c_int;
 extern fn ImGuiStorage_SetInt(self: *Storage, key: ID, val: c_int) void;
@@ -3272,7 +3275,7 @@ extern fn ImFontAtlas_AddCustomRectRegular(self: *FontAtlas, width: c_int, heigh
 extern fn ImFontAtlas_AddCustomRectFontGlyph(self: *FontAtlas, font: ?*Font, id: Wchar, width: c_int, height: c_int, advance_x: f32, offset: Vec2) c_int;
 extern fn ImFontAtlas_GetCustomRectByIndex(self: *FontAtlas, index: c_int) ?*FontAtlasCustomRect;
 extern fn ImFontAtlas_CalcCustomRectUV(self: *const FontAtlas, rect: ?*const FontAtlasCustomRect, out_uv_min: ?*Vec2, out_uv_max: ?*Vec2) void;
-extern fn ImFontAtlas_GetMouseCursorTexData(self: *FontAtlas, cursor: MouseCursor, out_offset: ?*Vec2, out_size: ?*Vec2, out_uv_border: [2]Vec2, out_uv_fill: [2]Vec2) bool;
+extern fn ImFontAtlas_GetMouseCursorTexData(self: *FontAtlas, cursor: MouseCursor, out_offset: ?*Vec2, out_size: ?*Vec2, out_uv_border: *[2]Vec2, out_uv_fill: *[2]Vec2) bool;
 extern fn ImFont_FindGlyph(self: *const Font, c: Wchar) ?*const FontGlyph;
 extern fn ImFont_FindGlyphNoFallback(self: *const Font, c: Wchar) ?*const FontGlyph;
 extern fn ImFont_GetCharAdvance(self: *const Font, c: Wchar) f32;
@@ -3305,7 +3308,7 @@ fn zigAlloc(sz: usize, user_data: ?*anyopaque) callconv(.C) ?*anyopaque {
 
     if (allocator.alignedAlloc(u8, alignment, sz + alignment)) |mem| {
         const user_ptr = mem.ptr + alignment;
-        var info_ptr: *usize = @ptrCast(mem.ptr);
+        const info_ptr: *usize = @ptrCast(mem.ptr);
         info_ptr.* = sz + alignment;
         return user_ptr;
     } else |_| {

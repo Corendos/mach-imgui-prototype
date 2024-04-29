@@ -7,21 +7,41 @@
     .name = "mach-imgui",
     .version = "0.1.0",
     .dependencies = .{
-        .mach_core = .{
-            .url = "https://pkg.machengine.org/mach-core/cce02fb96ca787378289c5855b381f0ca9f3e090.tar.gz",
-            .hash = "122096b39d9266d275b780df4d63b1afe6e9a3726f19766baf74b34af3f092532cd3",
-        },
-        .freetype = .{
-            .url = "https://pkg.machengine.org/freetype/fa33c2db730c0e888046e863b5550ddc3d24e739.tar.gz",
-            .hash = "12206ed50a939287c717f76547baf24e54301de4500505c19f10965ef559619baf10",
-        },
-        .mach_dusk = .{
-            .url = "https://pkg.machengine.org/mach-dusk/ee8abd31daefa617832c590d61c1e1d665a5e55a.tar.gz",
-            .hash = "1220d0bf732d8291b8629ce7e115efb6adef84dcc1218317ee0a89a6f1663153f2a9",
-        },
+        //.mach_core = .{
+        //    .url = "https://pkg.machengine.org/mach-core/cce02fb96ca787378289c5855b381f0ca9f3e090.tar.gz",
+        //    .hash = "122096b39d9266d275b780df4d63b1afe6e9a3726f19766baf74b34af3f092532cd3",
+        //},
+        //.freetype = .{
+        //    .url = "https://pkg.machengine.org/freetype/fa33c2db730c0e888046e863b5550ddc3d24e739.tar.gz",
+        //    .hash = "12206ed50a939287c717f76547baf24e54301de4500505c19f10965ef559619baf10",
+        //},
+        //.mach_dusk = .{
+        //    .url = "https://pkg.machengine.org/mach-dusk/ee8abd31daefa617832c590d61c1e1d665a5e55a.tar.gz",
+        //    .hash = "1220d0bf732d8291b8629ce7e115efb6adef84dcc1218317ee0a89a6f1663153f2a9",
+        //},
         .imgui = .{
             .url = "https://github.com/ocornut/imgui/archive/refs/tags/v1.89.9-docking.tar.gz",
             .hash = "12205e93e208aada4c835acdc3e2c1fac95b3ad92b47abe6412ab043f9f13817ad9b",
+        },
+        .glfw = .{
+            .url = "https://pkg.machengine.org/glfw/49d153ebfc4f45eacc757ec2b063decbf5bb1779.tar.gz",
+            .hash = "122020d1ba277ff9e4b5ffff3e3bf4a3c98eeaec821e2a497d031070b05f7814b91f",
+        },
+        .xcode_frameworks = .{
+            .url = "https://pkg.machengine.org/xcode-frameworks/8a920385383cc4c0a2a4f55b084d402a9400a5a8.tar.gz",
+            .hash = "122051b3c616c62d55a82207c1cb76e2264b26e8378f56b1e5376d7684bd13616589",
+        },
+        .vulkan_headers = .{
+            .url = "https://pkg.machengine.org/vulkan-headers/1feb2d841870f7461c28b95549cb707440226138.tar.gz",
+            .hash = "12209e716013e33618aaf5d915c6f2d196922b36aa16e06b52d7c28eafb2b3da0f4e",
+        },
+        .wayland_headers = .{
+            .url = "https://pkg.machengine.org/wayland-headers/651515e2d6deb69f0e5ddc39e6f921b33abaf9d6.tar.gz",
+            .hash = "1220552bb224e57205049e1c47be8d078a3dc09cb772c0c2e9dea09e452d0c5d6adf",
+        },
+        .x11_headers = .{
+            .url = "https://pkg.machengine.org/x11-headers/d5594ef666e51b2531511a15db03b5439e4c11e5.tar.gz",
+            .hash = "12208aaa9355611470ae1357dfa2fd8c86e61679c2a9d343a8afaf25d3826a893111",
         },
     },
 }

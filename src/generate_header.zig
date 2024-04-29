@@ -30,5 +30,7 @@ const c = @cImport({
     @cInclude("stdarg.h");
 });
 pub const backends = struct {
-    pub const mach = @import("imgui_mach.zig");
+    pub const glfw = @import("imgui_glfw.zig");
+    pub const opengl3 = @import("imgui_opengl3.zig");
+    pub const vulkan = @import("imgui_vulkan.zig");
 };

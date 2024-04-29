@@ -389,8 +389,8 @@ fn emitFunctionType(x: std.json.Value) void {
 }
 
 fn emitArrayType(x: std.json.Value) void {
-    write("[");
     if (x.object.get("bounds")) |bounds| {
+        write("*[");
         if (bounds_aliases_map.get(bounds.string)) |alias| {
             write(alias);
         } else {
@@ -401,7 +401,7 @@ fn emitArrayType(x: std.json.Value) void {
             }
         }
     } else {
-        write("*");
+        write("[*");
     }
     write("]");
     emitTypeDesc(x.object.get("inner_type").?, false);
@@ -640,7 +640,7 @@ pub fn main() !void {
     for (type_aliases) |entry| try type_aliases_map.put(allocator, entry[0], entry[1]);
     for (bounds_aliases) |entry| try bounds_aliases_map.put(allocator, entry[0], entry[1]);
     for (is_many_item_field) |entry| {
-        var struct_entry = try is_many_item_field_set.getOrPut(allocator, entry[0]);
+        const struct_entry = try is_many_item_field_set.getOrPut(allocator, entry[0]);
         if (!struct_entry.found_existing)
             struct_entry.value_ptr.* = .{};
         try struct_entry.value_ptr.*.put(allocator, entry[1], {});

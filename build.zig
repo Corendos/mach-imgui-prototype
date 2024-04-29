@@ -1,26 +1,24 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-const mach_core = @import("mach_core");
-
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const use_dusk = b.option(bool, "use_dusk", "Use Dusk") orelse false;
     const use_freetype = b.option(bool, "use_freetype", "Use Freetype") orelse false;
+    const enable_glfw_backend = b.option(bool, "enable_glfw", "Enable the GLFW platform backend") orelse false;
+    const enable_opengl3_backend = b.option(bool, "enable_opengl3", "Enable the OpenGL3 renderer backend") orelse false;
+    const enable_vulkan_backend = b.option(bool, "enable_vulkan", "Enable the Vulkan renderer backend") orelse false;
 
-    const mach_core_dep = b.dependency("mach_core", .{
-        .target = target,
-        .optimize = optimize,
-    });
+    var build_options = b.addOptions();
+    build_options.addOption(bool, "enable_glfw_backend", enable_glfw_backend);
+    build_options.addOption(bool, "enable_opengl3_backend", enable_opengl3_backend);
+    build_options.addOption(bool, "enable_vulkan_backend", enable_vulkan_backend);
 
     const module = b.addModule("zig-imgui", .{
-        .source_file = .{ .path = "src/imgui.zig" },
-        .dependencies = &.{
-            .{ .name = "mach-core", .module = mach_core_dep.module("mach-core") },
-        },
+        .root_source_file = b.path("src/imgui.zig"),
     });
+    module.addOptions("build_options", build_options);
 
     const lib = b.addStaticLibrary(.{
         .name = "imgui",
@@ -30,7 +28,9 @@ pub fn build(b: *std.Build) !void {
     });
     lib.linkLibC();
 
-    const imgui_dep = b.dependency("imgui", .{});
+    const imgui_dep = b.lazyDependency("imgui", .{}).?;
+
+    lib.addIncludePath(imgui_dep.path("backends"));
 
     var files = std.ArrayList([]const u8).init(b.allocator);
     defer files.deinit();
@@ -56,40 +56,37 @@ pub fn build(b: *std.Build) !void {
         }).artifact("freetype"));
     }
 
+    if (enable_glfw_backend) {
+        const glfw_dep = b.dependency("glfw", .{ .target = target, .optimize = optimize });
+        lib.linkLibrary(glfw_dep.artifact("glfw"));
+        //@import("glfw").link(b, lib);
+
+        try files.append(imgui_dep.path("backends/imgui_impl_glfw.cpp").getPath(b));
+        try files.append("src/imgui_impl_glfw_wrapper.cpp");
+    }
+
+    if (enable_opengl3_backend) {
+        try files.append(imgui_dep.path("backends/imgui_impl_opengl3.cpp").getPath(b));
+        try files.append("src/imgui_impl_opengl3_wrapper.cpp");
+    }
+
+    if (enable_vulkan_backend) {
+        try files.append(imgui_dep.path("backends/imgui_impl_vulkan.cpp").getPath(b));
+        try files.append("src/imgui_impl_vulkan_wrapper.cpp");
+        try flags.append("-DIMGUI_IMPL_VULKAN_NO_PROTOTYPES");
+
+        lib.linkLibrary(b.dependency("vulkan_headers", .{
+            .target = target,
+            .optimize = optimize,
+        }).artifact("vulkan-headers"));
+    }
+
     lib.addIncludePath(imgui_dep.path("."));
     lib.addCSourceFiles(.{
         .files = files.items,
         .flags = flags.items,
     });
     b.installArtifact(lib);
-
-    // Example
-    const build_options = b.addOptions();
-    build_options.addOption(bool, "use_dusk", use_dusk);
-
-    const app = try mach_core.App.init(b, mach_core_dep.builder, .{
-        .name = "mach-imgui-example",
-        .src = "examples/example_mach.zig",
-        .target = target,
-        .deps = &[_]std.build.ModuleDependency{
-            .{ .name = "imgui", .module = module },
-            .{ .name = "build-options", .module = build_options.createModule() },
-        },
-        .optimize = optimize,
-    });
-    app.compile.linkLibrary(lib);
-
-    if (use_dusk) {
-        const mach_dusk_dep = b.dependency("mach_dusk", .{
-            .target = target,
-            .optimize = optimize,
-        });
-        app.compile.linkLibrary(mach_dusk_dep.artifact("mach-dusk"));
-        @import("mach_dusk").link(mach_dusk_dep.builder, app.compile);
-    }
-
-    const run_step = b.step("run", "Run the example");
-    run_step.dependOn(&app.run.step);
 
     // Generator
     const generator_exe = b.addExecutable(.{
