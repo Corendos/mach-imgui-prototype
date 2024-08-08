@@ -16,12 +16,12 @@
             .hash = "12205e93e208aada4c835acdc3e2c1fac95b3ad92b47abe6412ab043f9f13817ad9b",
         },
         .@"mach-glfw" = .{
-            .url = "https://github.com/Corendos/mach-glfw/archive/9fcf54e87ea3b72c33988fd7c0fb62dca201c38e.tar.gz",
-            .hash = "1220be675ffd88467e78acf201b577230c8d00741fcfb980aa1fcb377550af057854",
+            .url = "https://pkg.machengine.org/mach-glfw/95bacce05bce0622039be6db46145d5f378ba50f.tar.gz",
+            .hash = "122009d5fa5aed0e9a75deed250450dec0705c0ead9bdb075db8ac41495992a834fc",
         },
         .glfw = .{
-            .url = "https://github.com/Corendos/glfw/archive/5c6994c143c87936c980b6710bbb86fc77b2097b.tar.gz",
-            .hash = "122028dbc595e8d8266f681837e24f75caaea07489aff3fda94b2b09aa501e4400d2",
+            .url = "https://pkg.machengine.org/glfw/e6f377baed70a7bef9fa08d808f40b64c5136bf6.tar.gz",
+            .hash = "1220c15e66c13f9633fcfd50b5ed265f74f2950c98b1f1defd66298fa027765e0190",
         },
     },
 }

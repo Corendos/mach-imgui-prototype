@@ -79,7 +79,7 @@ pub fn build(b: *std.Build) !void {
     // Generator
     const generator_exe = b.addExecutable(.{
         .name = "mach-imgui-generator",
-        .root_source_file = .{ .path = "src/generate.zig" },
+        .root_source_file = b.path("src/generate.zig"),
         .target = target,
         .optimize = optimize,
     });
