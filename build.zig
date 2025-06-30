@@ -16,14 +16,19 @@ pub fn build(b: *std.Build) !void {
     });
     _ = module; // autofix
 
-    const lib = b.addStaticLibrary(.{
-        .name = "imgui",
+    const imgui_module = b.addModule("imgui", .{
         .target = target,
         .optimize = optimize,
+        .link_libc = true,
+        .link_libcpp = true,
     });
+    const lib = b.addLibrary(.{
+        .name = "imgui",
+        .root_module = imgui_module,
+        .linkage = .static,
+    });
+
     lib.addCSourceFile(.{ .file = b.path("src/cimgui.cpp") });
-    lib.linkLibC();
-    lib.linkLibCpp();
 
     const imgui_dep = b.dependency("imgui", .{});
 
@@ -55,12 +60,8 @@ pub fn build(b: *std.Build) !void {
         try files.append("backends/imgui_impl_glfw.cpp");
         lib.addCSourceFile(.{ .file = b.path("src/glfw_wrapper.cpp") });
 
-        const glfw_dep = b.dependency("glfw", .{
-            .target = target,
-            .optimize = optimize,
-        });
-        const glfw_lib = glfw_dep.artifact("glfw");
-        lib.linkLibrary(glfw_lib);
+        const mach_glfw_dep = b.dependency("mach-glfw", .{ .target = target, .optimize = optimize });
+        imgui_module.linkLibrary(mach_glfw_dep.artifact("glfw"));
     }
 
     if (use_opengl3) {
